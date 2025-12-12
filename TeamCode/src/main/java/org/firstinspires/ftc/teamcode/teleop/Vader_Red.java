@@ -14,8 +14,8 @@ import org.firstinspires.ftc.teamcode.subsystems.Shooter.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 
-@TeleOp(name = "Kaos_Blue", group = "Orion")
-public class Kaos_Blue extends OpMode {
+@TeleOp(name = "Vader_Red", group = "Orion")
+public class Vader_Red extends OpMode {
     DriveSubsystem driveSubsystem;
     IntakeSubsystem intakeSubsystem;
     ShooterSubsystem shooterSubsystem;
@@ -29,7 +29,7 @@ public class Kaos_Blue extends OpMode {
 
     @Override
     public void init() {
-        Robot.alliance = Alliance.BLUE;
+        Robot.alliance = Alliance.RED;
 
         telemetry = new MultipleTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
@@ -54,7 +54,7 @@ public class Kaos_Blue extends OpMode {
 
     @Override
     public void start() {
-        driveSubsystem.start();
+//        driveSubsystem.start();
         vision.start();
     }
 
@@ -93,10 +93,10 @@ public class Kaos_Blue extends OpMode {
 
 
 
-        telemetry.addLine("//Odometry//");
-        telemetry.addData("X", driveSubsystem.getPose().getX());
-        telemetry.addData("Y", driveSubsystem.getPose().getY());
-        telemetry.addData("Heading", Math.toDegrees(driveSubsystem.getPose().getHeading()));
+//        telemetry.addLine("//Odometry//");
+//        telemetry.addData("X", driveSubsystem.getPose().getX());
+//        telemetry.addData("Y", driveSubsystem.getPose().getY());
+//        telemetry.addData("Heading", driveSubsystem.getPose().getHeading());
 
 
         telemetry.addLine("//Shooter//");

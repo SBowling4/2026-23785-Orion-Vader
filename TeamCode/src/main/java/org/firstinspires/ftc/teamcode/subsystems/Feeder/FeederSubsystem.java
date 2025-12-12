@@ -30,14 +30,14 @@ public class FeederSubsystem {
     public void init() {
         feederMotor = new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME);
 
-        flywheelSubsystem = FlywheelSubsystem.getInstance();
-        shooterSubsystem = ShooterSubsystem.getInstance();
+//        flywheelSubsystem = FlywheelSubsystem.getInstance();
+//        shooterSubsystem = ShooterSubsystem.getInstance();
     }
 
     public void loop() {
-        if (gamepad1.a && (gamepad1.left_bumper || gamepad1.right_bumper)) {
-            autoFeed();
-        } else if (gamepad1.a) {
+//        if (gamepad1.a && (gamepad1.left_bumper || gamepad1.right_bumper)) {
+//            autoFeed();
+/*        } else*/ if (gamepad1.a) {
             feed();
         } else if (gamepad1.y || gamepad1.b) {
             back();
@@ -55,11 +55,11 @@ public class FeederSubsystem {
     }
 
     public void autoFeed() {
-        if (flywheelSubsystem.atVelocity() && shooterSubsystem.atPosition()) {
-            feed();
-        } else {
-            stop();
-        }
+//        if (flywheelSubsystem.atVelocity() && shooterSubsystem.atPosition()) {
+//            feed();
+//        } else {
+//            stop();
+//        }
     }
 
     public void back() {
