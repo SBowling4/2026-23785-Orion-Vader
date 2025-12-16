@@ -98,6 +98,7 @@ public class FeederSubsystem {
      * Singleton pattern to get the instance of FeederSubsystem.
      * @param hardwareMap The hardware map to initialize the subsystem.
      * @param gamepad1 The gamepad to control the subsystem.
+     *                 prepare for BDR
      */
     public static FeederSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
