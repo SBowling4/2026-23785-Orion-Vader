@@ -51,7 +51,7 @@ public class Vision {
         } else if (Robot.alliance == Alliance.RED) {
             goodTagId = 24;
         } else {
-            goodTagId = -1;
+            throw new IllegalStateException("Alliance not set");
         }
 
         LLResult result = limelight.getLatestResult();

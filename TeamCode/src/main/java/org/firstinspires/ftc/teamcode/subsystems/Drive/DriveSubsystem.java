@@ -52,6 +52,7 @@ public class DriveSubsystem {
 
         frontRight.setInverted(true);
         backRight.setInverted(true);
+        frontLeft.setInverted(true);
 
         alignPID = new PIDController(DriveConstants.kP, DriveConstants.kI, DriveConstants.kD);
 
@@ -82,7 +83,7 @@ public class DriveSubsystem {
         alignPID.setP(DriveConstants.kP);
         alignPID.setD(DriveConstants.kD);
 
-        mecanum.driveFieldCentric(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x, imu.getRobotYawPitchRollAngles().getYaw());
+        mecanum.driveRobotCentric(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
 //        follower.setTeleOpDrive(
 //                -gamepad1.left_stick_y,

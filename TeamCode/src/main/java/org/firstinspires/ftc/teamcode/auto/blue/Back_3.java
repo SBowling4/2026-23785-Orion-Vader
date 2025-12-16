@@ -81,14 +81,14 @@ public class Back_3 extends OpMode {
 
         if (t < 9.5 && t > 9) {
             feederSubsystem.stop();
-            driveSubsystem.follower.setTeleOpDrive(.5, 0, 0);
+            driveSubsystem.mecanum.driveRobotCentric(.5, 0, 0);
         }
 
         if (t > 9.5) {
             isFinished = true;
         }
 
-        driveSubsystem.follower.update();
+//        driveSubsystem.follower.update();
 
         telemetry.addData("Velocity", flywheelSubsystem.getVelocity());
         telemetry.addData("Target Velocity", flywheelSubsystem.lastTargetRadPerSec);
@@ -102,6 +102,6 @@ public class Back_3 extends OpMode {
     public void start() {
         time.reset();
         vision.start();
-        driveSubsystem.start();
+//        driveSubsystem.start();
     }
 }
