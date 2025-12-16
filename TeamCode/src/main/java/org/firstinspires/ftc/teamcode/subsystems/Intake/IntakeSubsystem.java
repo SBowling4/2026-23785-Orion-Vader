@@ -16,15 +16,24 @@ public class IntakeSubsystem {
 
     Gamepad gamepad1;
 
-    public IntakeSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
+    /**
+     * Intake Subsystem constructor
+     */
+    private IntakeSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
     }
 
+    /**
+     * Initializes the Intake Subsystem
+     */
     public void init() {
         intakeMotor = new MotorEx(hardwareMap, IntakeConstants.INTAKE_MOTOR_NAME);
     }
 
+    /**
+     * Main loop for the Intake Subsystem
+     */
     public void loop() {
         if (gamepad1.a || gamepad1.b) {
             intake();
@@ -34,18 +43,31 @@ public class IntakeSubsystem {
             stop();
         }
     }
+
+    /**
+     * Activates the intake motor to intake objects.
+     */
     public void intake() {
         intakeMotor.set(1);
     }
 
+    /**
+     * Activates the intake motor to expel objects.
+     */
     public void out() {
         intakeMotor.set(-1);
     }
 
+    /**
+     * Stops the intake motor.
+     */
     public void stop() {
         intakeMotor.stopMotor();
     }
 
+    /**
+     * Singleton pattern to get the instance of IntakeSubsystem.
+     */
     public static IntakeSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
             instance = new IntakeSubsystem(hardwareMap, gamepad1);
@@ -53,6 +75,9 @@ public class IntakeSubsystem {
         return instance;
     }
 
+    /**
+     * Get the existing instance of IntakeSubsystem.
+     */
     public static IntakeSubsystem getInstance() {
         if (instance == null) {
             throw new IllegalStateException("IntakeSubsystem not initialized. Call getInstance(hardwareMap, gamepad1) first.");

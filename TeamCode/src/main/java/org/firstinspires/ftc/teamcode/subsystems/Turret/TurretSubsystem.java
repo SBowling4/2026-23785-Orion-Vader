@@ -6,8 +6,11 @@ import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
-
+import org.firstinspires.ftc.teamcode.util.Alliance;
+@SuppressWarnings("FieldCanBeLocal")
 public class TurretSubsystem {
     private CRServoImplEx turretServo;
     private AnalogInput encoder;
@@ -23,14 +26,24 @@ public class TurretSubsystem {
     private double turretSetpoint = 0.0;
 
     private final HardwareMap hardwareMap;
+    private DriveSubsystem driveSubsystem;
 
     private static TurretSubsystem instance;
 
 
+    /**
+     * Private constructor for singleton pattern.
+     *
+     * @param hardwareMap Hardware map from the robot.
+     */
     private TurretSubsystem(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
     }
 
+
+    /**
+     * Initialize turret subsystem.
+     */
     public void init() {
         turretServo = hardwareMap.get(CRServoImplEx.class, TurretConstants.TURRET_SERVO_NAME);
         encoder = hardwareMap.get(AnalogInput.class, TurretConstants.TURRET_ENCODER_NAME);
@@ -41,31 +54,61 @@ public class TurretSubsystem {
                 TurretConstants.kD
         );
 
+        driveSubsystem = DriveSubsystem.getInstance();
+
     }
 
-    //TODO: DIfferent alliances
-    //TODO: Way to maintain absolute heading
     //TODO: Tune PID
     //TODO: Figure out how absolute encoders work
+    /**
+     * Main loop for turret subsystem.
+     */
     public void loop() {
-        turretAngle = getPosition();
+        robotPose = driveSubsystem.getPose();
 
-        double x = robotPose.getX();
-        double y = 144 - robotPose.getY();
+        if (Robot.alliance == Alliance.BLUE) {
+            turretAngle = getPosition();
 
-        robotHeading = robotPose.getHeading();
-        overallAngle = Math.atan2(y, x);
+            double x = robotPose.getX();
+            double y = 144 - robotPose.getY();
 
-        turretSetpoint = turretAngle + (overallAngle - robotHeading);
+            robotHeading = robotPose.getHeading();
+            overallAngle = 180 - Math.atan2(y, x);
 
-        double pidOutput = pidController.calculate(turretAngle, turretSetpoint);
+            turretSetpoint = overallAngle - robotHeading;
 
-        turretServo.setPower(pidOutput);
+            double pidOutput = pidController.calculate(turretAngle, turretSetpoint);
+
+            turretServo.setPower(pidOutput);
+        } else if (Robot.alliance == Alliance.RED) {
+            turretAngle = getPosition();
+
+            double x = 144 - robotPose.getX();
+            double y = 144 - robotPose.getY();
+
+            robotHeading = robotPose.getHeading();
+            overallAngle = Math.atan2(y, x);
+
+            turretSetpoint = robotHeading - overallAngle;
+
+            double pidOutput = pidController.calculate(turretAngle, turretSetpoint);
+
+            turretServo.setPower(pidOutput);
+
+        } else {
+            throw new IllegalStateException("Alliance not set");
+        }
+
 
     }
 
+    /**
+     * Get turret position in radians.
+     *
+     * @return Turret position in radians.
+     */
     public double getPosition() {
-        double voltage = encoder.getVoltage();
+        double voltage = encoder.getVoltage() - TurretConstants.OFFSET;
 
         return (voltage / 3.3) * 2 * Math.PI * TurretConstants.GEAR_RATIO;
     }

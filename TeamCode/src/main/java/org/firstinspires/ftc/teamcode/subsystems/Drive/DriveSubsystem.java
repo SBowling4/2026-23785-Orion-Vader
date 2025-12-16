@@ -4,15 +4,23 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.pedropathing.control.KalmanFilter;
+import com.pedropathing.control.KalmanFilterParameters;
+import com.pedropathing.control.LowPassFilter;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.ftc.FTCCoordinates;
+import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.lib.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
+import org.firstinspires.ftc.teamcode.util.Alliance;
 
 public class DriveSubsystem {
 
@@ -30,7 +38,11 @@ public class DriveSubsystem {
 
     private static DriveSubsystem instance;
 
-//    public Follower follower;
+    public Follower follower;
+
+    private Pose pose;
+
+    private double lastHeading = 0;
 
 
 
@@ -93,11 +105,6 @@ public class DriveSubsystem {
 //        );
 
 
-        if (gamepad1.x) {
-            align();
-            return;
-        }
-
         if (gamepad1.share) {
             resetHeading();
         }
@@ -107,33 +114,45 @@ public class DriveSubsystem {
     }
 
 
-    public void align() {
-        if (vision.getTx().isEmpty()) {
-            mecanum.driveRobotCentric(0, 0, 0);
-//            follower.setTeleOpDrive(0,0,0);
-            return;
-        }
 
-        double tx = vision.getTx().get();
 
-        double target = 0;
-
-        double power = alignPID.calculate(tx, target);
-
-        mecanum.driveRobotCentric(0, 0, power);
-
-//        follower.setTeleOpDrive(0, 0, power);
-//        follower.update();
+    public Pose getPose() {
+        return new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading() + lastHeading, PedroCoordinates.INSTANCE);
     }
 
-//    public Pose getPose() {
-//        return follower.getPose();
-//    }
-
     public void resetHeading() {
-        imu.resetYaw();
-//        follower.setPose(follower.getPose().setHeading(0));
+        lastHeading = follower.getHeading();
 
+        follower.setPose(follower.getPose().setHeading(0));
+
+    }
+
+    public void addVisionMeasurement(Pose3D visPose) {
+        Pose pose = new Pose(visPose.getPosition().x, visPose.getPosition().y, visPose.getOrientation().getYaw(), FTCCoordinates.INSTANCE).getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+
+//        KalmanFilter filter = new KalmanFilter(new KalmanFilterParameters(0 ,0)); //TODO: Figure out what this means
+//
+//        filter.update();
+
+//        follower.setPose(pose);
+
+
+    }
+
+    public double getDistanceToGoal() {
+        if (Robot.alliance == Alliance.BLUE) {
+            double x = pose.getX();
+            double y = 144 - pose.getY();
+
+            return Math.hypot(x, y);
+        } else if (Robot.alliance == Alliance.RED) {
+            double x = 144 - pose.getX();
+            double y = 144 - pose.getY();
+
+            return Math.hypot(x, y);
+        } else {
+            throw new IllegalStateException("Alliance not set");
+        }
     }
 
 
@@ -153,7 +172,7 @@ public class DriveSubsystem {
         return instance;
     }
 
-    public DriveSubsystem getInstance() {
+    public static DriveSubsystem getInstance() {
         if (instance == null) {
             throw new IllegalStateException("DriveSubsystem not initialized. Call getInstance(telemetry, hardwareMap, gamepad1) first.");
         }
