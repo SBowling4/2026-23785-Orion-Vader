@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -8,11 +10,17 @@ import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 
 public class TurretSubsystem {
     private CRServoImplEx turretServo;
+    private AnalogInput encoder;
     private PIDController pidController;
 
     public double turretPower = 0.0;
 
-    private Vision vision;
+    private Pose robotPose;
+    private double turretAngle = 0.0;
+    private double overallAngle = 0.0;
+    private double robotHeading = 0.0;
+
+    private double turretSetpoint = 0.0;
 
     private final HardwareMap hardwareMap;
 
@@ -25,6 +33,7 @@ public class TurretSubsystem {
 
     public void init() {
         turretServo = hardwareMap.get(CRServoImplEx.class, TurretConstants.TURRET_SERVO_NAME);
+        encoder = hardwareMap.get(AnalogInput.class, TurretConstants.TURRET_ENCODER_NAME);
 
         pidController = new PIDController(
                 TurretConstants.kP,
@@ -32,23 +41,33 @@ public class TurretSubsystem {
                 TurretConstants.kD
         );
 
-        vision = Vision.getInstance();
     }
 
-    /**
-     * Main loop: keep turret pointed at AprilTag.
-     * Uses vision offset as an error signal (goal = 0°).
-     */
+    //TODO: DIfferent alliances
+    //TODO: Way to maintain absolute heading
+    //TODO: Tune PID
+    //TODO: Figure out how absolute encoders work
     public void loop() {
-        if (vision.getTx().isEmpty()) return;
+        turretAngle = getPosition();
 
-        double tx = vision.getTx().get();
+        double x = robotPose.getX();
+        double y = 144 - robotPose.getY();
 
-        double pidOut = pidController.calculate(tx, 0);
+        robotHeading = robotPose.getHeading();
+        overallAngle = Math.atan2(y, x);
 
-        turretPower = pidOut;
+        turretSetpoint = turretAngle + (overallAngle - robotHeading);
 
-        turretServo.setPower(pidOut);
+        double pidOutput = pidController.calculate(turretAngle, turretSetpoint);
+
+        turretServo.setPower(pidOutput);
+
+    }
+
+    public double getPosition() {
+        double voltage = encoder.getVoltage();
+
+        return (voltage / 3.3) * 2 * Math.PI * TurretConstants.GEAR_RATIO;
     }
 
     /**
