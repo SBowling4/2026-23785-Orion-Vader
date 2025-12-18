@@ -46,17 +46,19 @@ public class FlywheelSubsystem {
         rightMotor.resetEncoder();
 
         leftMotor.setInverted(false);
-        rightMotor.setInverted(true);
+        rightMotor.setInverted(false);
 
         leftMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
         rightMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
     }
 
     public void loop() {
-        if (gamepad1.left_bumper || gamepad1.right_bumper) {
-
-        } else if (gamepad1.a || gamepad1.b || gamepad1.y) {
+        if (gamepad1.left_bumper) {
             setPower(1);
+        } else if (gamepad1.right_bumper) {
+            setPower(.5);
+        } else if (gamepad1.a || gamepad1.y) {
+            setPower(-1);
         } else {
             stop();
         }

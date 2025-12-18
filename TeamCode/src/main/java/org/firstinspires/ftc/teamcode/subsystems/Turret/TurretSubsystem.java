@@ -59,6 +59,11 @@ public class TurretSubsystem {
         turretServo.setPower(0.0);
     }
 
+    public void setTurretPower(double power) {
+        turretPower = power;
+        turretServo.setPower(power);
+    }
+
     public static TurretSubsystem getInstance(HardwareMap hardwareMap) {
         if (instance == null) {
             instance = new TurretSubsystem(hardwareMap);
