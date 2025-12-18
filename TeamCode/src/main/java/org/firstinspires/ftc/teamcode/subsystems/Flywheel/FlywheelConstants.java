@@ -11,9 +11,8 @@ public class FlywheelConstants {
     public static double kI = 0.0;
     public static double kD = 0.0;
 
-    public static double kS = 1.709;
+    public static double kS = 1.709; //TODO: tune
     public static double kV = .0234;
-    public static double kA = 0.0;
 
     public static double CLOSE_VELOCITY = 227.5;
     public static double MID_VELOCITY = 275;

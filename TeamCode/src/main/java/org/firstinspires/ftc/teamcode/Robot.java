@@ -58,7 +58,6 @@ public class Robot {
     }
 
     public static void sendHardwareMap(HardwareMap hm) {
-        if (hardwareMap != null) return;
         hardwareMap = hm;
     }
 

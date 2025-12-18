@@ -20,7 +20,6 @@ public class Vision {
     private final Telemetry telemetry;
 
     public boolean llValid = true;
-    public boolean hasTag = true;
 
     private Pose3D visPose;
 
@@ -43,6 +42,10 @@ public class Vision {
         limelight = hardwareMap.get(Limelight3A.class, VisionConstants.LIMELIGHT_NAME);
 
         limelight.pipelineSwitch(0);
+
+        if (Robot.alliance == Alliance.UNKNOWN) {
+            throw new IllegalStateException("Alliance not set");
+        }
     }
 
     /**

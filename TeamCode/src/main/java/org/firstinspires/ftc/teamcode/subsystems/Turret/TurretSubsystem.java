@@ -10,7 +10,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -124,9 +123,10 @@ public class TurretSubsystem {
 
             return target;
 
-        } else {
-            throw new IllegalStateException("Alliance not set");
         }
+
+        return -1;
+
     }
 
     /**

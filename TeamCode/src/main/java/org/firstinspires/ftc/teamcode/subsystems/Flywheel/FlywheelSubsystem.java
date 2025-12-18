@@ -47,7 +47,7 @@ public class FlywheelSubsystem {
         leftMotor = new MotorEx(hardwareMap, FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME);
         rightMotor = new MotorEx(hardwareMap, FlywheelConstants.RIGHT_FLYWHEEL_MOTOR_NAME);
 
-        ff = new FeedForward(FlywheelConstants.kS, FlywheelConstants.kV, FlywheelConstants.kA);
+        ff = new FeedForward(FlywheelConstants.kS, FlywheelConstants.kV);
 
         pid = new PIDController(FlywheelConstants.kP, FlywheelConstants.kI, FlywheelConstants.kD);
 
@@ -102,22 +102,17 @@ public class FlywheelSubsystem {
      */
     public void setVelocity(double targetRadPerSec) {
         double currentRadPerSec = getVelocity();
-
         lastTargetRadPerSec = targetRadPerSec;
 
-        // Use absolute value for feedforward to ensure kS term has correct sign
-        // The direction will be handled by the overall voltage sign
-        double ffVolts = ff.calculate(Math.abs(targetRadPerSec));
-
-        // PID works on signed values
+        // Remove the Math.abs() - let feedforward handle the sign
+        double ffVolts = ff.calculate(targetRadPerSec);
         double pidOutput = pid.calculate(currentRadPerSec, targetRadPerSec);
 
-        // Combine feedforward and feedback, applying correct sign
-        double volts = Math.signum(targetRadPerSec) * ffVolts + pidOutput;
-
+        // Combine feedforward and feedback
+        double volts = ffVolts + pidOutput;
         lastTargetVolts = volts;
 
-        setVoltage(-volts);
+        setVoltage(volts);
     }
 
     /**
