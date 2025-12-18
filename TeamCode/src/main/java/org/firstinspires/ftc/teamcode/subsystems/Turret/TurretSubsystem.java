@@ -133,6 +133,11 @@ public class TurretSubsystem {
         turretServo.setPower(0.0);
     }
 
+    public void setTurretPower(double power) {
+        turretPower = power;
+        turretServo.setPower(power);
+    }
+
     public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
             instance = new TurretSubsystem(hardwareMap, gamepad1);

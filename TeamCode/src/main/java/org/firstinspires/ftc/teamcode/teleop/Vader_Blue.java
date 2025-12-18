@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Shooter.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Turret.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 
@@ -20,8 +21,9 @@ public class Vader_Blue extends OpMode {
     IntakeSubsystem intakeSubsystem;
 //    ShooterSubsystem shooterSubsystem;
 //    Vision vision;
-//    FlywheelSubsystem flywheelSubsystem;
+    FlywheelSubsystem flywheelSubsystem;
     FeederSubsystem feederSubsystem;
+    TurretSubsystem turretSubsystem;
 
     private boolean lastUpState = false;
     private boolean lastDownState = false;
@@ -35,19 +37,21 @@ public class Vader_Blue extends OpMode {
 
         driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
         intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1);
-//        flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
+        flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
 //        shooterSubsystem = ShooterSubsystem.getInstance(hardwareMap, gamepad1, gamepad2);
         feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
 //        vision = Vision.getInstance(hardwareMap);
+        turretSubsystem = TurretSubsystem.getInstance(hardwareMap);
 
 
 
         driveSubsystem.init();
         intakeSubsystem.init();
-//        flywheelSubsystem.init();
+        flywheelSubsystem.init();
 //        shooterSubsystem.init();
         feederSubsystem.init();
 //        vision.init();
+        turretSubsystem.init();
 
         Robot.sendHardwareMap(hardwareMap);
     }
@@ -63,9 +67,12 @@ public class Vader_Blue extends OpMode {
         driveSubsystem.loop();
         intakeSubsystem.loop();
 //        shooterSubsystem.loop();
-//        flywheelSubsystem.loop();
+        flywheelSubsystem.loop();
         feederSubsystem.loop();
 //        vision.loop();
+//        turretSubsystem.loop();
+
+        turretSubsystem.setTurretPower(0);
 
 //        boolean currentUpState = gamepad1.dpad_up;
 //        boolean currentDownState = gamepad1.dpad_down;
