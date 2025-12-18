@@ -38,6 +38,9 @@ public class ShooterSubsystem {
         this.gamepad1 = gamepad1;
     }
 
+    /**
+     * Initializes the Shooter Subsystem
+     */
     public void init() {
         servo = hardwareMap.get(CRServoImplEx.class, ShooterConstants.SERVO_NAME);
 
@@ -66,6 +69,9 @@ public class ShooterSubsystem {
         tuningPos = 0;
     }
 
+    /**
+     * Loops the Shooter Subsystem
+     */
     public void loop() {
         if (getTS()) {
             encoder.reset();
@@ -90,6 +96,10 @@ public class ShooterSubsystem {
 
     }
 
+    /**
+     *
+     * @return if the shooter is at the target position
+     */
     public boolean atPosition() {
         return Math.abs(getPosition() - targetPos) < 1;
     }
@@ -100,28 +110,28 @@ public class ShooterSubsystem {
      * @param isBack If the default shooter mode (if no tag seen) should be true if far, false if short
      */
     public void shoot(boolean isBack) {
-        if (vision.getDistance().isEmpty() && isBack) {
-            setAngle(ShooterConstants.FAR_ANGLE);
-            flywheelSubsystem.setVelocity(FlywheelConstants.FAR_AUTO_VELOCITY);
-
-            return;
-        }
-
-        if (vision.getDistance().isEmpty() && !isBack) {
-            setAngle(ShooterConstants.CLOSE_ANGLE);
-            flywheelSubsystem.setVelocity(FlywheelConstants.CLOSE_VELOCITY);
-
-            return;
-        }
-
-
-        if (vision.getDistance().isEmpty()) return;
-
-        double velocityFromDistance = flywheelSubsystem.findVelocity(vision.getDistance().get());
-        double angleFromDistance = findAngle(vision.getDistance().get());
-
-        setAngle(angleFromDistance);
-        flywheelSubsystem.setVelocity(velocityFromDistance);
+//        if (vision.getDistance().isEmpty() && isBack) {
+//            setAngle(ShooterConstants.FAR_ANGLE);
+//            flywheelSubsystem.setVelocity(FlywheelConstants.FAR_AUTO_VELOCITY);
+//
+//            return;
+//        }
+//
+//        if (vision.getDistance().isEmpty() && !isBack) {
+//            setAngle(ShooterConstants.CLOSE_ANGLE);
+//            flywheelSubsystem.setVelocity(FlywheelConstants.CLOSE_VELOCITY);
+//
+//            return;
+//        }
+//
+//
+//        if (vision.getDistance().isEmpty()) return;
+//
+//        double velocityFromDistance = flywheelSubsystem.findVelocity(vision.getDistance().get());
+//        double angleFromDistance = findAngle(vision.getDistance().get());
+//
+//        setAngle(angleFromDistance);
+//        flywheelSubsystem.setVelocity(velocityFromDistance);
     }
 
 
@@ -173,7 +183,14 @@ public class ShooterSubsystem {
     }
 
 
-
+    /**
+     * Singleton pattern to get the instance of the ShooterSubsystem
+     *
+     * @param hardwareMap HardwareMap from the OpMode
+     * @param gamepad1    Gamepad1 from the OpMode
+     * @param gamepad2    Gamepad2 from the OpMode
+     * @return Instance of the ShooterSubsystem
+     */
     public static ShooterSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
         if (instance == null) {
             instance = new ShooterSubsystem(hardwareMap, gamepad1, gamepad2);
@@ -181,6 +198,11 @@ public class ShooterSubsystem {
         return instance;
     }
 
+    /**
+     * Singleton pattern to get the instance of the ShooterSubsystem
+     *
+     * @return Instance of the ShooterSubsystem
+     */
     public static ShooterSubsystem getInstance() {
         if (instance == null) {
             throw new IllegalStateException("ShooterSubsystem not initialized. Call getInstance(hardwareMap, gamepad2) first.");

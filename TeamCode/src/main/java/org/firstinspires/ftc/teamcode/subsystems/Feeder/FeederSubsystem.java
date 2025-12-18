@@ -21,12 +21,17 @@ public class FeederSubsystem {
 
     private static FeederSubsystem instance;
 
-
-    public FeederSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
+    /**
+     * Feeder Subsystem constructor
+     */
+    private FeederSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
     }
 
+    /**
+     * Initializes the Feeder Subsystem
+     */
     public void init() {
         feederMotor = new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME);
 
@@ -34,6 +39,9 @@ public class FeederSubsystem {
 //        shooterSubsystem = ShooterSubsystem.getInstance();
     }
 
+    /**
+     * Main loop for the Feeder Subsystem
+     */
     public void loop() {
 //        if (gamepad1.a && (gamepad1.left_bumper || gamepad1.right_bumper)) {
 //            autoFeed();
@@ -46,14 +54,24 @@ public class FeederSubsystem {
         }
     }
 
+    /**
+     * Activates the feeder motor to feed objects.
+     */
     public void feed() {
         feederMotor.set(1);
     }
 
+    /**
+     * Activates the feeder motor to feed objects with specified power.
+     * @param power The power level to set the feeder motor (range -1.0 to 1.0).
+     */
     public void feed(double power) {
         feederMotor.set(power);
     }
 
+    /**
+     * Automatically feeds objects when the flywheel and shooter are at their target states.
+     */
     public void autoFeed() {
 //        if (flywheelSubsystem.atVelocity() && shooterSubsystem.atPosition()) {
 //            feed();
@@ -62,16 +80,26 @@ public class FeederSubsystem {
 //        }
     }
 
+    /**
+     * Activates the feeder motor to expel objects.
+     */
     public void back() {
         feederMotor.set(-1);
     }
 
-
+    /**
+     * Stops the feeder motor.
+     */
     public void stop() {
         feederMotor.stopMotor();
     }
 
-
+    /**
+     * Singleton pattern to get the instance of FeederSubsystem.
+     * @param hardwareMap The hardware map to initialize the subsystem.
+     * @param gamepad1 The gamepad to control the subsystem.
+     *                 prepare for BDR
+     */
     public static FeederSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
             instance = new FeederSubsystem(hardwareMap, gamepad1);
@@ -79,6 +107,9 @@ public class FeederSubsystem {
         return instance;
     }
 
+    /**
+     * Singleton pattern to get the instance of FeederSubsystem.
+     */
     public static FeederSubsystem getInstance() {
         if (instance == null) {
             throw new IllegalStateException("Call getInstance(HardwareMap hardwareMap) first");

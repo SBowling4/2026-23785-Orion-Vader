@@ -29,11 +29,17 @@ public class FlywheelSubsystem {
 
     private static FlywheelSubsystem instance;
 
-    public FlywheelSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
+    /**
+     * Flywheel Subsystem constructor
+     */
+    private FlywheelSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
     }
 
+    /**
+     * Initializes the Flywheel Subsystem
+     */
     public void init() {
         leftMotor = new MotorEx(hardwareMap, FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME);
         rightMotor = new MotorEx(hardwareMap, FlywheelConstants.RIGHT_FLYWHEEL_MOTOR_NAME);
@@ -52,6 +58,9 @@ public class FlywheelSubsystem {
         rightMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
     }
 
+    /**
+     * Main loop for the Flywheel Subsystem
+     */
     public void loop() {
         if (gamepad1.left_bumper) {
             setPower(1);
@@ -64,15 +73,28 @@ public class FlywheelSubsystem {
         }
     }
 
+    /**
+     * Stops the flywheel motors
+     */
     public void stop() {
         leftMotor.stopMotor();
         rightMotor.stopMotor();
     }
 
+    /**
+     * Gets the current velocity of the flywheel in radians per second
+     *
+     * @return Current velocity (rad/s)
+     */
     public double getVelocity() {
         return -(leftMotor.getVelocity()  / FlywheelConstants.TICKS_PER_REVOLUTION) * 2 * Math.PI;
     }
 
+    /**
+     * Sets the target velocity for the flywheel using a combination of feedforward and PID control
+     *
+     * @param targetRadPerSec Target velocity (rad/s)
+     */
     public void setVelocity(double targetRadPerSec) {
         double currentRadPerSec = getVelocity();
 
@@ -93,12 +115,21 @@ public class FlywheelSubsystem {
         setVoltage(-volts);
     }
 
+    /**
+     * Checks if the flywheel is at the target velocity
+     *
+     * @return true if at target velocity, false otherwise
+     */
     public boolean atVelocity() {
         return Math.abs(getVelocity() - lastTargetRadPerSec) < 5;
     }
 
 
-
+    /**
+     * Sets the motor power based on the desired voltage
+     *
+     * @param volts Desired voltage
+     */
     public void setVoltage(double volts) {
         double power = Range.clip(volts / Robot.getRobotVoltage(), -1.0, 1.0);
         leftMotor.set(power);
@@ -115,12 +146,23 @@ public class FlywheelSubsystem {
         return 204 + 74.4 * distance + -23.8 * Math.pow(distance, 2) + 5.36 * Math.pow(distance, 3);
     }
 
+    /**
+     * Sets the power for both flywheel motors
+     *
+     * @param power Power value (-1.0 to 1.0)
+     */
     public void setPower(double power) {
         leftMotor.set(power);
         rightMotor.set(power);
     }
 
-
+    /**
+     * Singleton pattern to get the instance of FlywheelSubsystem
+     *
+     * @param hardwareMap HardwareMap from the robot
+     * @param gamepad1    Gamepad for user input
+     * @return Instance of FlywheelSubsystem
+     */
     public static FlywheelSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
             instance = new FlywheelSubsystem(hardwareMap, gamepad1);
@@ -128,6 +170,11 @@ public class FlywheelSubsystem {
         return instance;
     }
 
+    /**
+     * Singleton pattern to get the instance of FlywheelSubsystem
+     *
+     * @return Instance of FlywheelSubsystem
+     */
     public static FlywheelSubsystem getInstance() {
         if (instance == null) {
             throw new IllegalStateException("FlywheelSubsystem not initialized. Call getInstance(hardwareMap) first.");
