@@ -4,21 +4,16 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
-import com.pedropathing.control.KalmanFilter;
-import com.pedropathing.control.KalmanFilterParameters;
-import com.pedropathing.control.LowPassFilter;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.lib.pedropathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 
@@ -26,17 +21,12 @@ public class DriveSubsystem {
 
     private MotorEx frontLeft, frontRight, backLeft, backRight;
 
-    private IMU imu;
-
     private PIDController alignPID;
     public MecanumDrive mecanum;
 
-    public final HardwareMap hardwareMap;
+    private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
-
-    private Vision vision;
-
-    private static DriveSubsystem instance;
+    private final Telemetry telemetry;
 
     public Follower follower;
 
@@ -44,11 +34,17 @@ public class DriveSubsystem {
 
     private double lastHeading = 0;
 
+    private Vision vision;
+
+    private static DriveSubsystem instance;
 
 
-    public DriveSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
+
+
+    private DriveSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
+        this.telemetry = telemetry;
     }
 
     public void init() {
@@ -70,18 +66,8 @@ public class DriveSubsystem {
 
         mecanum = new MecanumDrive(frontLeft, frontRight, backLeft, backRight);
 
-        imu = hardwareMap.get(IMU.class, "imu");
+        vision = Vision.getInstance();
 
-        imu.initialize(new IMU.Parameters(
-                new RevHubOrientationOnRobot(
-                        RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
-                )
-        ));
-
-
-
-        vision = Vision.getInstance(hardwareMap);
 
 //        follower = Constants.createFollower(hardwareMap);
 //        follower.setStartingPose(new Pose());
@@ -109,12 +95,12 @@ public class DriveSubsystem {
             resetHeading();
         }
 
+        setTelemetry();
+        addVisionMeasurement(vision.getVisPose());
+
 //        follower.update();
 
     }
-
-
-
 
     public Pose getPose() {
         return new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading() + lastHeading, PedroCoordinates.INSTANCE);
@@ -130,11 +116,11 @@ public class DriveSubsystem {
     public void addVisionMeasurement(Pose3D visPose) {
         Pose pose = new Pose(visPose.getPosition().x, visPose.getPosition().y, visPose.getOrientation().getYaw(), FTCCoordinates.INSTANCE).getAsCoordinateSystem(PedroCoordinates.INSTANCE);
 
-//        KalmanFilter filter = new KalmanFilter(new KalmanFilterParameters(0 ,0)); //TODO: Figure out what this means
+//        KalmanFilter filter = new KalmanFilter(new KalmanFilterParameters(0 ,0)); //TODO: Figure how this works, and if I should use it
 //
 //        filter.update();
 
-//        follower.setPose(pose);
+        follower.setPose(pose);
 
 
     }
@@ -165,9 +151,17 @@ public class DriveSubsystem {
         backRight.stopMotor();
     }
 
-    public static DriveSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
+    private void setTelemetry() {
+        telemetry.addLine("//Drive//");
+        telemetry.addData("X", getPose().getX());
+        telemetry.addData("Y", getPose().getY());
+        telemetry.addData("Heading", Math.toDegrees(getPose().getHeading()));
+        telemetry.addData("Distance to Goal", getDistanceToGoal());
+    }
+
+    public static DriveSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
         if (instance == null) {
-            instance = new DriveSubsystem(hardwareMap, gamepad1);
+            instance = new DriveSubsystem(hardwareMap, gamepad1, telemetry);
         }
         return instance;
     }

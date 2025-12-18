@@ -1,10 +1,7 @@
-package org.firstinspires.ftc.teamcode.subsystems.Shooter;
+package org.firstinspires.ftc.teamcode.subsystems.Hood;
 
-import com.bylazar.configurables.annotations.Configurable;
-
-public class ShooterConstants {
+public class HoodConstants {
     public static final String SERVO_NAME = "angle";
-    public static final String TOUCH_SENSOR_NAME = "ts";
     public static double kP = 0.0649;
     public static double kI = 0.0;
     public static double kD = 0.0;

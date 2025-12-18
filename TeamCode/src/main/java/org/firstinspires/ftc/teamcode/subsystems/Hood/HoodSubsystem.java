@@ -1,30 +1,28 @@
-package org.firstinspires.ftc.teamcode.subsystems.Shooter;
+package org.firstinspires.ftc.teamcode.subsystems.Hood;
 
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 
-public class ShooterSubsystem {
-    public CRServoImplEx servo;
-    public Motor.Encoder encoder;
-    private TouchSensor touchSensor;
+public class HoodSubsystem {
+    public CRServoImplEx hoodServo;
+    public Motor.Encoder hoodEncoder;
     public PIDController pid;
     private FlywheelSubsystem flywheelSubsystem;
     private Vision vision;
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
-    private static ShooterSubsystem instance;
+    private final Telemetry telemetry;
+    private static HoodSubsystem instance;
 
     public double tuningPos = 0;
     public double targetPos = 0;
@@ -33,33 +31,32 @@ public class ShooterSubsystem {
     /**
      * Shooter Subsystem constructor
      */
-    public ShooterSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
+    public HoodSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
+        this.telemetry = telemetry;
     }
 
     /**
      * Initializes the Shooter Subsystem
      */
     public void init() {
-        servo = hardwareMap.get(CRServoImplEx.class, ShooterConstants.SERVO_NAME);
+        hoodServo = hardwareMap.get(CRServoImplEx.class, HoodConstants.SERVO_NAME);
 
-        encoder = FlywheelSubsystem.getInstance().rightMotor.encoder;
-
-        touchSensor = hardwareMap.get(TouchSensor.class, ShooterConstants.TOUCH_SENSOR_NAME);
+        hoodEncoder = FlywheelSubsystem.getInstance().rightMotor.encoder;
 
         pid = new PIDController(
-                ShooterConstants.kP,
-                ShooterConstants.kI,
-                ShooterConstants.kD
+                HoodConstants.kP,
+                HoodConstants.kI,
+                HoodConstants.kD
         );
 
         double ticksPerRev = 8192;
-        double degreesPerPulse = (360.0 * ShooterConstants.GEAR_RATIO) / ticksPerRev;
+        double degreesPerPulse = (360.0 * HoodConstants.GEAR_RATIO) / ticksPerRev;
 
-        encoder.setDistancePerPulse(degreesPerPulse);
+        hoodEncoder.setDistancePerPulse(degreesPerPulse);
 
-        encoder.reset();
+        hoodEncoder.reset();
 
         pid.setTolerance(1);
 
@@ -73,10 +70,6 @@ public class ShooterSubsystem {
      * Loops the Shooter Subsystem
      */
     public void loop() {
-        if (getTS()) {
-            encoder.reset();
-        }
-
         if (Robot.tuningMode) {
             if (gamepad1.dpad_up) {
                 tuningPos += .5;
@@ -93,6 +86,8 @@ public class ShooterSubsystem {
         if (gamepad1.right_bumper) {
             shoot(false);
         }
+
+        setTelemetry();
 
     }
 
@@ -142,18 +137,11 @@ public class ShooterSubsystem {
      */
     public double getPosition() {
         int ticksPerRev = 8192;
-        double revolutions = (double) encoder.getPosition() / ticksPerRev;
+        double revolutions = (double) hoodEncoder.getPosition() / ticksPerRev;
 
-        return revolutions * 360.0 * ShooterConstants.GEAR_RATIO;
+        return revolutions * 360.0 * HoodConstants.GEAR_RATIO;
     }
 
-    /**
-     *
-     * @return if the sensor is pressed
-     */
-    public boolean getTS() {
-        return touchSensor.isPressed();
-    }
 
     /**
      *
@@ -162,12 +150,12 @@ public class ShooterSubsystem {
      * @param targetAngle the angle for the shooter to go to (degrees)
      */
     public void setAngle(double targetAngle) {
-        targetAngle = Range.clip(targetAngle, ShooterConstants.MIN_ANGLE, ShooterConstants.MAX_ANGLE);
+        targetAngle = Range.clip(targetAngle, HoodConstants.MIN_ANGLE, HoodConstants.MAX_ANGLE);
 
         this.targetPos = targetAngle;
 
         double power = pid.calculate(getPosition(), targetAngle);
-        servo.setPower(power);
+        hoodServo.setPower(power);
     }
 
     /**
@@ -182,18 +170,25 @@ public class ShooterSubsystem {
         return -151 + 427 * distance + -356 * Math.pow(distance, 2) + 101 * Math.pow(distance, 3);
     }
 
+    private void setTelemetry() {
+        telemetry.addLine("//Hood//");
+        telemetry.addData("Position", getPosition());
+        telemetry.addData("Target", targetPos);
+        telemetry.addLine();
+    }
+
 
     /**
      * Singleton pattern to get the instance of the ShooterSubsystem
      *
      * @param hardwareMap HardwareMap from the OpMode
      * @param gamepad1    Gamepad1 from the OpMode
-     * @param gamepad2    Gamepad2 from the OpMode
+     * @param telemetry    Telemetry from the OpMode
      * @return Instance of the ShooterSubsystem
      */
-    public static ShooterSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
+    public static HoodSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
         if (instance == null) {
-            instance = new ShooterSubsystem(hardwareMap, gamepad1, gamepad2);
+            instance = new HoodSubsystem(hardwareMap, gamepad1, telemetry);
         }
         return instance;
     }
@@ -203,7 +198,7 @@ public class ShooterSubsystem {
      *
      * @return Instance of the ShooterSubsystem
      */
-    public static ShooterSubsystem getInstance() {
+    public static HoodSubsystem getInstance() {
         if (instance == null) {
             throw new IllegalStateException("ShooterSubsystem not initialized. Call getInstance(hardwareMap, gamepad2) first.");
         }

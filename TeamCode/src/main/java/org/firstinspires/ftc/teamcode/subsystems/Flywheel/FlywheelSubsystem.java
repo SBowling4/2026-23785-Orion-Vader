@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.util.FeedForward;
 
@@ -24,6 +25,7 @@ public class FlywheelSubsystem {
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
+    private final Telemetry telemetry;
 
     public double tuningVelocity = 0.0;
 
@@ -32,9 +34,10 @@ public class FlywheelSubsystem {
     /**
      * Flywheel Subsystem constructor
      */
-    private FlywheelSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
+    private FlywheelSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
+        this.telemetry = telemetry;
     }
 
     /**
@@ -71,6 +74,8 @@ public class FlywheelSubsystem {
         } else {
             stop();
         }
+
+        setTelemetry();
     }
 
     /**
@@ -156,6 +161,15 @@ public class FlywheelSubsystem {
         rightMotor.set(power);
     }
 
+    private void setTelemetry() {
+        telemetry.addLine("//Flywheel//");
+        telemetry.addData("Flywheel Velocity", getVelocity());
+        telemetry.addData("Flywheel Target", lastTargetRadPerSec);
+        telemetry.addData("Flywheel Volts", lastTargetVolts);
+        telemetry.addLine();
+
+    }
+
     /**
      * Singleton pattern to get the instance of FlywheelSubsystem
      *
@@ -163,9 +177,9 @@ public class FlywheelSubsystem {
      * @param gamepad1    Gamepad for user input
      * @return Instance of FlywheelSubsystem
      */
-    public static FlywheelSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
+    public static FlywheelSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
         if (instance == null) {
-            instance = new FlywheelSubsystem(hardwareMap, gamepad1);
+            instance = new FlywheelSubsystem(hardwareMap, gamepad1, telemetry);
         }
         return instance;
     }

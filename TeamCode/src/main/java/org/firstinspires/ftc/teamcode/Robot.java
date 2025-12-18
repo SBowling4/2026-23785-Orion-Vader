@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter.ShooterConstants;
+import org.firstinspires.ftc.teamcode.subsystems.Hood.HoodConstants;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 
 @Configurable
@@ -19,9 +19,9 @@ public class Robot {
 
 
     public enum ShooterStates {
-        FAR(ShooterConstants.FAR_ANGLE, FlywheelConstants.FAR_VELOCITY),
-        MID(ShooterConstants.MID_ANGLE, FlywheelConstants.MID_VELOCITY),
-        CLOSE(ShooterConstants.CLOSE_ANGLE, FlywheelConstants.CLOSE_VELOCITY);
+        FAR(HoodConstants.FAR_ANGLE, FlywheelConstants.FAR_VELOCITY),
+        MID(HoodConstants.MID_ANGLE, FlywheelConstants.MID_VELOCITY),
+        CLOSE(HoodConstants.CLOSE_ANGLE, FlywheelConstants.CLOSE_VELOCITY);
         public final double angle;
         public final double velocity;
 

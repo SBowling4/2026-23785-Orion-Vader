@@ -4,24 +4,32 @@ import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants.INTAKE_STATE;
+
+
 import org.firstinspires.ftc.teamcode.Robot;
 
 public class IntakeSubsystem {
+    private MotorEx intakeMotor;
+
+    private final HardwareMap hardwareMap;
+    private final Gamepad gamepad1;
+    private final Telemetry telemetry;
+
+    private INTAKE_STATE intakeState;
 
     private static IntakeSubsystem instance;
 
-    MotorEx intakeMotor;
 
-    HardwareMap hardwareMap;
-
-    Gamepad gamepad1;
 
     /**
      * Intake Subsystem constructor
      */
-    private IntakeSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
+    private IntakeSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
+        this.telemetry = telemetry;
     }
 
     /**
@@ -29,6 +37,8 @@ public class IntakeSubsystem {
      */
     public void init() {
         intakeMotor = new MotorEx(hardwareMap, IntakeConstants.INTAKE_MOTOR_NAME);
+
+        intakeState = INTAKE_STATE.STOP;
     }
 
     /**
@@ -36,41 +46,38 @@ public class IntakeSubsystem {
      */
     public void loop() {
         if (gamepad1.a || gamepad1.b) {
-            intake();
+            setState(INTAKE_STATE.INTAKE);
         } else if (gamepad1.y){
-            out();
+            setState(INTAKE_STATE.OUT);
         } else {
-            stop();
+            setState(INTAKE_STATE.STOP);
         }
+
+        setTelemetry();
     }
 
-    /**
-     * Activates the intake motor to intake objects.
-     */
-    public void intake() {
-        intakeMotor.set(1);
+    public void setState(INTAKE_STATE state) {
+        this.intakeState = state;
+        intakeMotor.set(state.getPower());
     }
 
-    /**
-     * Activates the intake motor to expel objects.
-     */
-    public void out() {
-        intakeMotor.set(-1);
+    public INTAKE_STATE getState() {
+        return this.intakeState;
     }
 
-    /**
-     * Stops the intake motor.
-     */
-    public void stop() {
-        intakeMotor.stopMotor();
+    private void setTelemetry() {
+        telemetry.addLine("//Intake//");
+        telemetry.addData("Intake State", intakeState.toString());
+        telemetry.addLine();
     }
+
 
     /**
      * Singleton pattern to get the instance of IntakeSubsystem.
      */
-    public static IntakeSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
+    public static IntakeSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
         if (instance == null) {
-            instance = new IntakeSubsystem(hardwareMap, gamepad1);
+            instance = new IntakeSubsystem(hardwareMap, gamepad1, telemetry);
         }
         return instance;
     }

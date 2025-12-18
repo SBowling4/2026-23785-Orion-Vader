@@ -10,9 +10,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Turret.TurretSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 
 @TeleOp(name = "Vader_Blue", group = "Orion")
@@ -35,22 +33,21 @@ public class Vader_Blue extends OpMode {
 
         telemetry = new MultipleTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
-        driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
-        intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1);
-        flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
-//        shooterSubsystem = ShooterSubsystem.getInstance(hardwareMap, gamepad1, gamepad2);
-        feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
-//        vision = Vision.getInstance(hardwareMap);
-        turretSubsystem = TurretSubsystem.getInstance(hardwareMap);
+        driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
+        intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
+        flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
+//        shooterSubsystem = ShooterSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
+        feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
+//        vision = Vision.getInstance(hardwareMap, telemetry);
+        turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
 
 
-
+//        vision.init();
         driveSubsystem.init();
         intakeSubsystem.init();
         flywheelSubsystem.init();
 //        shooterSubsystem.init();
         feederSubsystem.init();
-//        vision.init();
         turretSubsystem.init();
 
         Robot.sendHardwareMap(hardwareMap);
@@ -72,7 +69,7 @@ public class Vader_Blue extends OpMode {
 //        vision.loop();
 //        turretSubsystem.loop();
 
-        turretSubsystem.setTurretPower(0);
+//        turretSubsystem.setTurretPower(0);
 
 //        boolean currentUpState = gamepad1.dpad_up;
 //        boolean currentDownState = gamepad1.dpad_down;
@@ -97,38 +94,6 @@ public class Vader_Blue extends OpMode {
 //                shooterSubsystem.setAngle(0);
 //            }
 //        }
-
-
-
-//        telemetry.addLine("//Odometry//");
-//        telemetry.addData("X", driveSubsystem.getPose().getX());
-//        telemetry.addData("Y", driveSubsystem.getPose().getY());
-//        telemetry.addData("Heading", Math.toDegrees(driveSubsystem.getPose().getHeading()));
-
-
-//        telemetry.addLine("//Shooter//");
-//        telemetry.addData("Shooter State", Robot.tuningMode ? "TUNING" : Robot.shooterState.toString());
-//        telemetry.addLine();
-//
-//        telemetry.addData("Target Angle", shooterSubsystem.targetPos);
-//        telemetry.addData("Current Angle", shooterSubsystem.getPosition());
-//        telemetry.addLine();
-//
-//        telemetry.addData("Flywheel Velocity", flywheelSubsystem.getVelocity());
-//        telemetry.addData("Flywheel Target", flywheelSubsystem.lastTargetRadPerSec);
-//        telemetry.addData("Flywheel Volts", flywheelSubsystem.lastTargetVolts);
-//        telemetry.addLine();
-//
-//
-//
-//        telemetry.addLine("//Vision//");
-//        telemetry.addData("LL Valid", vision.llValid);
-//        telemetry.addData("Has Tag", vision.hasTag);
-//        telemetry.addData("Ta", vision.getTa().orElse(-1.0));
-//        telemetry.addData("Tx", vision.getTx().orElse(-1.0));
-//        telemetry.addData("Ty", vision.getTy().orElse(-1.0));
-//        telemetry.addData("Distance", vision.getDistance().orElse(-1.0));
-//        telemetry.addLine();
 
 
 

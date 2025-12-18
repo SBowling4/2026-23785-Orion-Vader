@@ -5,6 +5,7 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -16,6 +17,7 @@ public class Vision {
     private LLResultTypes.FiducialResult goodTag;
 
     private final HardwareMap hardwareMap;
+    private final Telemetry telemetry;
 
     public boolean llValid = true;
     public boolean hasTag = true;
@@ -29,8 +31,9 @@ public class Vision {
      *
      * @param hardwareMap Hardware map from the robot.
      */
-    private Vision(HardwareMap hardwareMap) {
+    private Vision(HardwareMap hardwareMap, Telemetry telemetry) {
         this.hardwareMap = hardwareMap;
+        this.telemetry = telemetry;
     }
 
     /**
@@ -65,6 +68,8 @@ public class Vision {
         if (result == null) return;
 
         setVisPose(result.getBotpose());
+
+        setTelemetry();
     }
 
 
@@ -86,6 +91,12 @@ public class Vision {
         this.visPose = pose;
     }
 
+    private void setTelemetry() {
+        telemetry.addLine("//Vision//");
+        telemetry.addData("Limelight Valid", llValid);
+        telemetry.addLine();
+    }
+
 
     /**
      * Get the singleton instance of the Vision subsystem.
@@ -93,9 +104,9 @@ public class Vision {
      * @param hardwareMap The hardware map to use for initialization.
      * @return The singleton instance of the Vision subsystem.
      */
-    public static Vision getInstance(HardwareMap hardwareMap) {
+    public static Vision getInstance(HardwareMap hardwareMap, Telemetry telemetry) {
         if (instance == null) {
-            instance = new Vision(hardwareMap);
+            instance = new Vision(hardwareMap, telemetry);
         }
         return instance;
     }
