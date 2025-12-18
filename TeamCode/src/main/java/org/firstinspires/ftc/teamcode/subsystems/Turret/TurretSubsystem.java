@@ -4,6 +4,7 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -26,6 +27,7 @@ public class TurretSubsystem {
     private double turretSetpoint = 0.0;
 
     private final HardwareMap hardwareMap;
+    private final Gamepad gamepad1;
     private DriveSubsystem driveSubsystem;
 
     private static TurretSubsystem instance;
@@ -36,8 +38,9 @@ public class TurretSubsystem {
      *
      * @param hardwareMap Hardware map from the robot.
      */
-    private TurretSubsystem(HardwareMap hardwareMap) {
+    private TurretSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
+        this.gamepad1 = gamepad1;
     }
 
 
@@ -66,6 +69,19 @@ public class TurretSubsystem {
     public void loop() {
         robotPose = driveSubsystem.getPose();
 
+        if (gamepad1.right_bumper) {
+            turretSetpoint = findPosition();
+        } else {
+            turretSetpoint = 0;
+        }
+
+        turretPower = pidController.calculate(turretAngle, turretSetpoint);
+        turretServo.setPower(turretPower);
+
+
+    }
+
+    public double findPosition() {
         if (Robot.alliance == Alliance.BLUE) {
             turretAngle = getPosition();
 
@@ -75,11 +91,9 @@ public class TurretSubsystem {
             robotHeading = robotPose.getHeading();
             overallAngle = 180 - Math.atan2(y, x);
 
-            turretSetpoint = overallAngle - robotHeading;
+            return overallAngle - robotHeading;
 
-            double pidOutput = pidController.calculate(turretAngle, turretSetpoint);
 
-            turretServo.setPower(pidOutput);
         } else if (Robot.alliance == Alliance.RED) {
             turretAngle = getPosition();
 
@@ -89,17 +103,11 @@ public class TurretSubsystem {
             robotHeading = robotPose.getHeading();
             overallAngle = Math.atan2(y, x);
 
-            turretSetpoint = robotHeading - overallAngle;
-
-            double pidOutput = pidController.calculate(turretAngle, turretSetpoint);
-
-            turretServo.setPower(pidOutput);
+            return robotHeading - overallAngle;
 
         } else {
             throw new IllegalStateException("Alliance not set");
         }
-
-
     }
 
     /**
@@ -110,7 +118,11 @@ public class TurretSubsystem {
     public double getPosition() {
         double voltage = encoder.getVoltage() - TurretConstants.OFFSET;
 
-        return (voltage / 3.3) * 2 * Math.PI * TurretConstants.GEAR_RATIO;
+        return (voltage / encoder.getMaxVoltage()) * 2 * Math.PI * TurretConstants.GEAR_RATIO;
+    }
+
+    public double getRawPosition() {
+        return encoder.getVoltage();
     }
 
     /**
@@ -121,9 +133,9 @@ public class TurretSubsystem {
         turretServo.setPower(0.0);
     }
 
-    public static TurretSubsystem getInstance(HardwareMap hardwareMap) {
+    public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
-            instance = new TurretSubsystem(hardwareMap);
+            instance = new TurretSubsystem(hardwareMap, gamepad1);
         }
         return instance;
     }
