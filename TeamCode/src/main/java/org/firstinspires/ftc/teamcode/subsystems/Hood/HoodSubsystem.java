@@ -70,22 +70,21 @@ public class HoodSubsystem {
      * Loops the Shooter Subsystem
      */
     public void loop() {
-        if (Robot.tuningMode) {
-            if (gamepad1.dpad_up) {
-                tuningPos += .5;
-            } else if (gamepad1.dpad_down) {
-                tuningPos -= .5;
-            }
+//        if (Robot.tuningMode) {
+//            if (gamepad1.dpad_up) {
+//                tuningPos += .5;
+//            } else if (gamepad1.dpad_down) {
+//                tuningPos -= .5;
+//            }
+//
+//            tuningPos = Range.clip(tuningPos, 0, 25);
+//
+//            setAngle(tuningPos);
+//        }
 
-            tuningPos = Range.clip(tuningPos, 0, 25);
-
-            setAngle(tuningPos);
-        }
 
 
-        if (gamepad1.right_bumper) {
-            shoot(false);
-        }
+
 
         setTelemetry();
 

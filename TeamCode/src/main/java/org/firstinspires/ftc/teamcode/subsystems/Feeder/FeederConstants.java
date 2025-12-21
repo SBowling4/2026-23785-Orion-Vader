@@ -1,9 +1,14 @@
 package org.firstinspires.ftc.teamcode.subsystems.Feeder;
 
+import com.bylazar.configurables.annotations.Configurable;
+
+@Configurable
 public class FeederConstants {
     public static final String FEEDER_MOTOR_NAME = "feeder";
     public static final String KICKER_SERVO_NAME = "kicker";
     public static final String STOPPER_SERVO_NAME = "stopper";
+
+    public static double kickerTarget = 0;
 
     public enum FEEDER_STATE {
         IN(1),
@@ -23,8 +28,8 @@ public class FeederConstants {
     }
 
     public enum STOPPER_STATE {
-        OPEN(0),
-        CLOSED(0.5);
+        OPEN(.76),
+        CLOSED(1);
 
         private final double position;
 
@@ -39,8 +44,8 @@ public class FeederConstants {
     }
 
     public enum KICKER_STATE {
-        IN(0),
-        OUT(0);
+        IN(.75),
+        OUT(.1);
 
         private final double position;
 

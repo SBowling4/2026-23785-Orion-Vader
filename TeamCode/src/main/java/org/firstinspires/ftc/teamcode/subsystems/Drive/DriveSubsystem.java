@@ -19,9 +19,8 @@ import org.firstinspires.ftc.teamcode.util.Alliance;
 
 public class DriveSubsystem {
 
-    private MotorEx frontLeft, frontRight, backLeft, backRight;
+    public MotorEx frontLeft, frontRight, backLeft, backRight;
 
-    private PIDController alignPID;
     public MecanumDrive mecanum;
 
     private final HardwareMap hardwareMap;
@@ -34,7 +33,7 @@ public class DriveSubsystem {
 
     private double lastHeading = 0;
 
-    private Vision vision;
+//    private Vision vision;
 
     private static DriveSubsystem instance;
 
@@ -62,11 +61,9 @@ public class DriveSubsystem {
         backRight.setInverted(true);
         frontLeft.setInverted(true);
 
-        alignPID = new PIDController(DriveConstants.kP, DriveConstants.kI, DriveConstants.kD);
-
         mecanum = new MecanumDrive(frontLeft, frontRight, backLeft, backRight);
 
-        vision = Vision.getInstance();
+//        vision = Vision.getInstance();
 
 
 
@@ -79,9 +76,7 @@ public class DriveSubsystem {
 //        follower.startTeleopDrive();
 //    }
 
-    public void loop(){
-        alignPID.setP(DriveConstants.kP);
-        alignPID.setD(DriveConstants.kD);
+    public void loop() {
 
         mecanum.driveRobotCentric(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
@@ -93,12 +88,12 @@ public class DriveSubsystem {
 //        );
 
 
-        if (gamepad1.share) {
-            resetHeading();
-        }
+//        if (gamepad1.share) {
+//            resetHeading();
+//        }
 
-        setTelemetry();
-        addVisionMeasurement(vision.getVisPose());
+//        setTelemetry();
+//        addVisionMeasurement(vision.getVisPose());
 
 //        follower.update();
 

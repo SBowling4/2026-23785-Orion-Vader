@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystems.Hood;
 
 public class HoodConstants {
-    public static final String SERVO_NAME = "angle";
-    public static double kP = 0.0649;
+    public static final String SERVO_NAME = "hood";
+    public static double kP = 0.0;
     public static double kI = 0.0;
     public static double kD = 0.0;
 
