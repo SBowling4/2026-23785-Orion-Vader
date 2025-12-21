@@ -25,7 +25,6 @@ public class FlywheelSubsystem {
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
-    private final Telemetry telemetry;
 
     public double tuningVelocity = 0.0;
 
@@ -34,10 +33,9 @@ public class FlywheelSubsystem {
     /**
      * Flywheel Subsystem constructor
      */
-    private FlywheelSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    private FlywheelSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
-        this.telemetry = telemetry;
     }
 
     /**
@@ -70,8 +68,6 @@ public class FlywheelSubsystem {
         } else {
             stop();
         }
-
-        setTelemetry();
     }
 
     /**
@@ -152,7 +148,7 @@ public class FlywheelSubsystem {
         rightMotor.set(power);
     }
 
-    private void setTelemetry() {
+    private void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Flywheel//");
         telemetry.addData("Flywheel Velocity", getVelocity());
         telemetry.addData("Flywheel Target", lastTargetRadPerSec);
@@ -168,9 +164,9 @@ public class FlywheelSubsystem {
      * @param gamepad1    Gamepad for user input
      * @return Instance of FlywheelSubsystem
      */
-    public static FlywheelSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    public static FlywheelSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
-            instance = new FlywheelSubsystem(hardwareMap, gamepad1, telemetry);
+            instance = new FlywheelSubsystem(hardwareMap, gamepad1);
         }
         return instance;
     }

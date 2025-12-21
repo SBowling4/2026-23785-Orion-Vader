@@ -1,10 +1,12 @@
 package org.firstinspires.ftc.teamcode.subsystems.Hood;
 
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
@@ -15,26 +17,21 @@ import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 public class HoodSubsystem {
     public CRServoImplEx hoodServo;
     public Motor.Encoder hoodEncoder;
-    public PIDController pid;
-    private FlywheelSubsystem flywheelSubsystem;
-    private Vision vision;
+    public PIDFController pid;
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
-    private final Telemetry telemetry;
     private static HoodSubsystem instance;
 
     public double tuningPos = 0;
     public double targetPos = 0;
-    private boolean last = false;
 
     /**
      * Shooter Subsystem constructor
      */
-    public HoodSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    public HoodSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
-        this.telemetry = telemetry;
     }
 
     /**
@@ -45,10 +42,11 @@ public class HoodSubsystem {
 
         hoodEncoder = FlywheelSubsystem.getInstance().rightMotor.encoder;
 
-        pid = new PIDController(
+        pid = new PIDFController(
                 HoodConstants.kP,
                 HoodConstants.kI,
-                HoodConstants.kD
+                HoodConstants.kD,
+                HoodConstants.kF
         );
 
         double ticksPerRev = 8192;
@@ -60,8 +58,6 @@ public class HoodSubsystem {
 
         pid.setTolerance(1);
 
-        flywheelSubsystem = FlywheelSubsystem.getInstance();
-        vision = Vision.getInstance();
 
         tuningPos = 0;
     }
@@ -70,6 +66,9 @@ public class HoodSubsystem {
      * Loops the Shooter Subsystem
      */
     public void loop() {
+        pid.setP(HoodConstants.kP);
+        pid.setD(HoodConstants.kD);
+        pid.setF(HoodConstants.kF);
 //        if (Robot.tuningMode) {
 //            if (gamepad1.dpad_up) {
 //                tuningPos += .5;
@@ -80,13 +79,15 @@ public class HoodSubsystem {
 //            tuningPos = Range.clip(tuningPos, 0, 25);
 //
 //            setAngle(tuningPos);
-//        }
+//      }
 
+        if (gamepad1.right_bumper) {
+            tuningPos = 3;
+        } else if (gamepad1.left_bumper) {
+            tuningPos = 15;
+        }
 
-
-
-
-        setTelemetry();
+        setAngle(tuningPos);
 
     }
 
@@ -96,36 +97,6 @@ public class HoodSubsystem {
      */
     public boolean atPosition() {
         return Math.abs(getPosition() - targetPos) < 1;
-    }
-
-    /**
-     * Shoots the Artifact using the limelight. Calculates the angle and velocity using the distance from the tag from the Limelight
-     *
-     * @param isBack If the default shooter mode (if no tag seen) should be true if far, false if short
-     */
-    public void shoot(boolean isBack) {
-//        if (vision.getDistance().isEmpty() && isBack) {
-//            setAngle(ShooterConstants.FAR_ANGLE);
-//            flywheelSubsystem.setVelocity(FlywheelConstants.FAR_AUTO_VELOCITY);
-//
-//            return;
-//        }
-//
-//        if (vision.getDistance().isEmpty() && !isBack) {
-//            setAngle(ShooterConstants.CLOSE_ANGLE);
-//            flywheelSubsystem.setVelocity(FlywheelConstants.CLOSE_VELOCITY);
-//
-//            return;
-//        }
-//
-//
-//        if (vision.getDistance().isEmpty()) return;
-//
-//        double velocityFromDistance = flywheelSubsystem.findVelocity(vision.getDistance().get());
-//        double angleFromDistance = findAngle(vision.getDistance().get());
-//
-//        setAngle(angleFromDistance);
-//        flywheelSubsystem.setVelocity(velocityFromDistance);
     }
 
 
@@ -151,25 +122,14 @@ public class HoodSubsystem {
     public void setAngle(double targetAngle) {
         targetAngle = Range.clip(targetAngle, HoodConstants.MIN_ANGLE, HoodConstants.MAX_ANGLE);
 
-        this.targetPos = targetAngle;
+        targetPos = targetAngle;
 
         double power = pid.calculate(getPosition(), targetAngle);
         hoodServo.setPower(power);
     }
 
-    /**
-     *
-     * Equation obtained from here: <a href="https://docs.google.com/spreadsheets/d/1m6Tb_BewsEm0vuEWVIr-rKV5Jfy468Ui95xVuQbh-_I/edit?usp=sharing">Spreadsheet</a>
-     *
-     * @param distance distance (m) from target (Front of robot to base of goal)
-     * @return Desired angle for shooter (degrees)
-     */
-    public double findAngle(double distance) {
-        if (distance >= 1.425) return 25;
-        return -151 + 427 * distance + -356 * Math.pow(distance, 2) + 101 * Math.pow(distance, 3);
-    }
 
-    private void setTelemetry() {
+    public void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Hood//");
         telemetry.addData("Position", getPosition());
         telemetry.addData("Target", targetPos);
@@ -182,12 +142,11 @@ public class HoodSubsystem {
      *
      * @param hardwareMap HardwareMap from the OpMode
      * @param gamepad1    Gamepad1 from the OpMode
-     * @param telemetry    Telemetry from the OpMode
      * @return Instance of the ShooterSubsystem
      */
-    public static HoodSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    public static HoodSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
-            instance = new HoodSubsystem(hardwareMap, gamepad1, telemetry);
+            instance = new HoodSubsystem(hardwareMap, gamepad1);
         }
         return instance;
     }

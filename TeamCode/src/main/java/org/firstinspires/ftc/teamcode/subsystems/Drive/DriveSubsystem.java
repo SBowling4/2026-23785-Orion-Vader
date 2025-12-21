@@ -25,7 +25,6 @@ public class DriveSubsystem {
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
-    private final Telemetry telemetry;
 
     public Follower follower;
 
@@ -40,10 +39,9 @@ public class DriveSubsystem {
 
 
 
-    private DriveSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    private DriveSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
-        this.telemetry = telemetry;
     }
 
     public void init() {
@@ -148,7 +146,7 @@ public class DriveSubsystem {
         backRight.stopMotor();
     }
 
-    private void setTelemetry() {
+    private void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Drive//");
         telemetry.addData("X", getPose().getX());
         telemetry.addData("Y", getPose().getY());
@@ -156,9 +154,9 @@ public class DriveSubsystem {
         telemetry.addData("Distance to Goal", getDistanceToGoal());
     }
 
-    public static DriveSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    public static DriveSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
-            instance = new DriveSubsystem(hardwareMap, gamepad1, telemetry);
+            instance = new DriveSubsystem(hardwareMap, gamepad1);
         }
         return instance;
     }

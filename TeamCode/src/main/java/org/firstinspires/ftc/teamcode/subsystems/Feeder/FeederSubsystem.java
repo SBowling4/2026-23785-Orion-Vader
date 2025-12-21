@@ -30,7 +30,6 @@ public class FeederSubsystem {
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
-    private final Telemetry telemetry;
 
     private static FeederSubsystem instance;
 
@@ -42,10 +41,9 @@ public class FeederSubsystem {
     /**
      * Feeder Subsystem constructor
      */
-    private FeederSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    private FeederSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
-        this.telemetry = telemetry;
     }
 
     /**
@@ -103,8 +101,6 @@ public class FeederSubsystem {
 //        kickerServo.setPosition(kickerTarget);
 
 
-
-        setTelemetry();
     }
 
     /**
@@ -148,7 +144,7 @@ public class FeederSubsystem {
         return feederState;
     }
 
-    private void setTelemetry() {
+    private void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Feeder//");
         telemetry.addData("Feeder State", feederState.toString());
         telemetry.addLine("---------------");
@@ -168,9 +164,9 @@ public class FeederSubsystem {
      * @param gamepad1 The gamepad to control the subsystem.
      *                 prepare for BDR
      */
-    public static FeederSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    public static FeederSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
-            instance = new FeederSubsystem(hardwareMap, gamepad1, telemetry);
+            instance = new FeederSubsystem(hardwareMap, gamepad1);
         }
         return instance;
     }

@@ -33,13 +33,13 @@ public class Vader_Blue extends OpMode {
 
         telemetry = new MultipleTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
-        driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
-        intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
-        flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
-//        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
-        feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
-//        vision = Vision.getInstance(hardwareMap, telemetry);
-//        turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1, telemetry);
+        driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
+        intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1);
+        flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
+//        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
+        feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
+//        vision = Vision.getInstance(hardwareMap);
+//        turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1);
 
 
 //        vision.init();

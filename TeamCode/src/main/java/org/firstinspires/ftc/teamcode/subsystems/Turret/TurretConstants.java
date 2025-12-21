@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 import com.bylazar.configurables.annotations.Configurable;
 
-@Configurable
 public class TurretConstants {
     public static double kP = 1.5;
     public static double kI = 0.0;

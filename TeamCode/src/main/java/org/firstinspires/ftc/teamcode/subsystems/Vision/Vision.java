@@ -17,7 +17,6 @@ public class Vision {
     private LLResultTypes.FiducialResult goodTag;
 
     private final HardwareMap hardwareMap;
-    private final Telemetry telemetry;
 
     public boolean llValid = true;
 
@@ -30,9 +29,8 @@ public class Vision {
      *
      * @param hardwareMap Hardware map from the robot.
      */
-    private Vision(HardwareMap hardwareMap, Telemetry telemetry) {
+    private Vision(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
-        this.telemetry = telemetry;
     }
 
     /**
@@ -71,8 +69,6 @@ public class Vision {
         if (result == null) return;
 
         setVisPose(result.getBotpose());
-
-        setTelemetry();
     }
 
 
@@ -94,7 +90,7 @@ public class Vision {
         this.visPose = pose;
     }
 
-    private void setTelemetry() {
+    private void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Vision//");
         telemetry.addData("Limelight Valid", llValid);
         telemetry.addLine();
@@ -107,9 +103,9 @@ public class Vision {
      * @param hardwareMap The hardware map to use for initialization.
      * @return The singleton instance of the Vision subsystem.
      */
-    public static Vision getInstance(HardwareMap hardwareMap, Telemetry telemetry) {
+    public static Vision getInstance(HardwareMap hardwareMap) {
         if (instance == null) {
-            instance = new Vision(hardwareMap, telemetry);
+            instance = new Vision(hardwareMap);
         }
         return instance;
     }

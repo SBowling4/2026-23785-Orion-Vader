@@ -15,7 +15,6 @@ public class IntakeSubsystem {
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
-    private final Telemetry telemetry;
 
     private INTAKE_STATE intakeState;
 
@@ -26,10 +25,9 @@ public class IntakeSubsystem {
     /**
      * Intake Subsystem constructor
      */
-    private IntakeSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    private IntakeSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
-        this.telemetry = telemetry;
     }
 
     /**
@@ -52,8 +50,6 @@ public class IntakeSubsystem {
         } else {
             setState(INTAKE_STATE.STOP);
         }
-
-        setTelemetry();
     }
 
     public void setState(INTAKE_STATE state) {
@@ -65,7 +61,7 @@ public class IntakeSubsystem {
         return this.intakeState;
     }
 
-    private void setTelemetry() {
+    private void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Intake//");
         telemetry.addData("Intake State", intakeState.toString());
         telemetry.addLine();
@@ -75,9 +71,9 @@ public class IntakeSubsystem {
     /**
      * Singleton pattern to get the instance of IntakeSubsystem.
      */
-    public static IntakeSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    public static IntakeSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
-            instance = new IntakeSubsystem(hardwareMap, gamepad1, telemetry);
+            instance = new IntakeSubsystem(hardwareMap, gamepad1);
         }
         return instance;
     }

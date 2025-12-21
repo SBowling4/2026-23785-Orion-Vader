@@ -28,16 +28,13 @@ public class TurretSubsystem {
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
-    private final Telemetry telemetry;
-
     private DriveSubsystem driveSubsystem;
     private static TurretSubsystem instance;
 
 
-    private TurretSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    private TurretSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
-        this.telemetry = telemetry;
     }
 
     public void init() {
@@ -123,7 +120,7 @@ public class TurretSubsystem {
         turretServo.setPower(power);
     }
 
-    public void setTelemetry() {
+    public void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("// Turret //");
         telemetry.addData("Turret Angle (rad)", turretAngle);
         telemetry.addData("Turret Setpoint (rad)", turretSetpoint);
@@ -131,9 +128,9 @@ public class TurretSubsystem {
         telemetry.addLine();
     }
 
-    public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Telemetry telemetry) {
+    public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
-            instance = new TurretSubsystem(hardwareMap, gamepad1, telemetry);
+            instance = new TurretSubsystem(hardwareMap, gamepad1);
         }
         return instance;
     }
