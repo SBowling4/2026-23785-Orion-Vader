@@ -1,25 +1,42 @@
 package org.firstinspires.ftc.teamcode.subsystems.Feeder;
 
-import com.arcrobotics.ftclib.hardware.motors.MotorEx;
-import com.qualcomm.robotcore.hardware.ColorRangeSensor;
+import static org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.kickerTarget;
 
+import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+
+import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.PwmControl;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
+import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Shooter.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Hood.HoodSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.KICKER_STATE;
+import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.STOPPER_STATE;
+import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.FEEDER_STATE;
 
+
+@SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class FeederSubsystem {
     private MotorEx feederMotor;
+    public ServoImplEx kickerServo;
+    private ServoImplEx stopperServo;
+
     private FlywheelSubsystem flywheelSubsystem;
-    private ShooterSubsystem shooterSubsystem;
+    private HoodSubsystem hoodSubsystem;
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
 
     private static FeederSubsystem instance;
+
+    private STOPPER_STATE stopperState;
+    private KICKER_STATE kickerState;
+    private FEEDER_STATE feederState;
+
 
     /**
      * Feeder Subsystem constructor
@@ -35,6 +52,17 @@ public class FeederSubsystem {
     public void init() {
         feederMotor = new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME);
 
+        kickerServo = hardwareMap.get(ServoImplEx.class, FeederConstants.KICKER_SERVO_NAME);
+        stopperServo = hardwareMap.get(ServoImplEx.class, FeederConstants.STOPPER_SERVO_NAME);
+
+        stopperServo.setPwmRange(new PwmControl.PwmRange(450, 2550));
+
+
+        kickerState = KICKER_STATE.OUT;
+        stopperState = STOPPER_STATE.OPEN;
+        feederState = FEEDER_STATE.STOP;
+
+
 //        flywheelSubsystem = FlywheelSubsystem.getInstance();
 //        shooterSubsystem = ShooterSubsystem.getInstance();
     }
@@ -43,30 +71,36 @@ public class FeederSubsystem {
      * Main loop for the Feeder Subsystem
      */
     public void loop() {
-//        if (gamepad1.a && (gamepad1.left_bumper || gamepad1.right_bumper)) {
-//            autoFeed();
-/*        } else*/ if (gamepad1.a) {
-            feed();
+        if (gamepad1.a) {
+            setFeederState(FEEDER_STATE.IN);
         } else if (gamepad1.y || gamepad1.b) {
-            back();
+            setFeederState(FEEDER_STATE.OUT);
         } else {
-            stop();
+            setFeederState(FEEDER_STATE.STOP);
         }
-    }
 
-    /**
-     * Activates the feeder motor to feed objects.
-     */
-    public void feed() {
-        feederMotor.set(1);
-    }
+        if (gamepad1.dpad_up) {
+            setKickerState(KICKER_STATE.IN);
+        } else if (gamepad1.dpad_down) {
+           setKickerState(KICKER_STATE.OUT);
+        }
 
-    /**
-     * Activates the feeder motor to feed objects with specified power.
-     * @param power The power level to set the feeder motor (range -1.0 to 1.0).
-     */
-    public void feed(double power) {
-        feederMotor.set(power);
+        if (gamepad1.dpad_right) {
+            setStopperState(STOPPER_STATE.CLOSED);
+        } else if (gamepad1.dpad_left) {
+            setStopperState(STOPPER_STATE.OPEN);
+        }
+
+
+
+
+
+
+//        kickerTarget = Range.clip(kickerTarget, 0, 1);
+
+//        kickerServo.setPosition(kickerTarget);
+
+
     }
 
     /**
@@ -80,18 +114,48 @@ public class FeederSubsystem {
 //        }
     }
 
-    /**
-     * Activates the feeder motor to expel objects.
-     */
-    public void back() {
-        feederMotor.set(-1);
+    public void setFeederState(FEEDER_STATE state) {
+        this.feederState = state;
+
+        feederMotor.set(state.getPower());
     }
 
-    /**
-     * Stops the feeder motor.
-     */
-    public void stop() {
-        feederMotor.stopMotor();
+    public void setStopperState(STOPPER_STATE state) {
+        this.stopperState = state;
+
+        stopperServo.setPosition(state.getPosition());
+    }
+
+    public void setKickerState(KICKER_STATE state) {
+        this.kickerState = state;
+
+        kickerServo.setPosition(state.getPosition());
+    }
+
+    public STOPPER_STATE getStopperState() {
+        return stopperState;
+    }
+
+    public KICKER_STATE getKickerState() {
+        return kickerState;
+    }
+
+    public FEEDER_STATE getFeederState() {
+        return feederState;
+    }
+
+    private void setTelemetry(Telemetry telemetry) {
+        telemetry.addLine("//Feeder//");
+        telemetry.addData("Feeder State", feederState.toString());
+        telemetry.addLine("---------------");
+        telemetry.addData("Kicker State", kickerState.toString());
+        telemetry.addData("Kicker Pos", kickerServo.getController().getServoPosition(0));
+        telemetry.addData("Kicker Target", kickerTarget);
+        telemetry.addLine("---------------");
+        telemetry.addData("Stopper State", stopperState.toString());
+        telemetry.addData("Stopper Pos", stopperServo.getController().getServoPosition(2));
+
+        telemetry.addLine();
     }
 
     /**
@@ -115,6 +179,10 @@ public class FeederSubsystem {
             throw new IllegalStateException("Call getInstance(HardwareMap hardwareMap) first");
         }
         return instance;
+    }
+
+    public static void resetInstance() {
+        instance = null;
     }
 
 

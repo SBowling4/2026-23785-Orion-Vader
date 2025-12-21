@@ -1,141 +1,131 @@
 package org.firstinspires.ftc.teamcode.subsystems.Turret;
 
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.PIDFController;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.hardware.AnalogInput;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 import org.firstinspires.ftc.teamcode.util.Alliance;
+
 @SuppressWarnings("FieldCanBeLocal")
 public class TurretSubsystem {
-    private CRServoImplEx turretServo;
-    private AnalogInput encoder;
-    private PIDController pidController;
 
-    public double turretPower = 0.0;
+    private CRServoImplEx turretServo;
+    private Motor.Encoder encoder;
+    private PIDFController pidController;
 
     private Pose robotPose;
-    private double turretAngle = 0.0;
-    private double overallAngle = 0.0;
-    private double robotHeading = 0.0;
 
+    private double turretAngle = Math.PI / 2.0;
     private double turretSetpoint = 0.0;
+    private double turretPower = 0.0;
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
     private DriveSubsystem driveSubsystem;
-
     private static TurretSubsystem instance;
 
 
-    /**
-     * Private constructor for singleton pattern.
-     *
-     * @param hardwareMap Hardware map from the robot.
-     */
     private TurretSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
     }
 
-
-    /**
-     * Initialize turret subsystem.
-     */
     public void init() {
-        turretServo = hardwareMap.get(CRServoImplEx.class, TurretConstants.TURRET_SERVO_NAME);
-        encoder = hardwareMap.get(AnalogInput.class, TurretConstants.TURRET_ENCODER_NAME);
+         driveSubsystem = DriveSubsystem.getInstance();
 
-        pidController = new PIDController(
+        turretServo = hardwareMap.get(CRServoImplEx.class, TurretConstants.TURRET_SERVO_NAME);
+        encoder = driveSubsystem.backLeft.encoder;
+
+        pidController = new PIDFController(
                 TurretConstants.kP,
                 TurretConstants.kI,
-                TurretConstants.kD
+                TurretConstants.kD,
+                TurretConstants.kF
         );
-
-        driveSubsystem = DriveSubsystem.getInstance();
 
     }
 
-    //TODO: Tune PID
-    //TODO: Figure out how absolute encoders work
-    /**
-     * Main loop for turret subsystem.
-     */
     public void loop() {
-        robotPose = driveSubsystem.getPose();
+//        robotPose = driveSubsystem.getPose();
+
+        // Always update measured position
+        turretAngle = getPosition();
 
         if (gamepad1.right_bumper) {
             turretSetpoint = findPosition();
         } else {
-            turretSetpoint = 0;
+            turretSetpoint = 0.0;
         }
 
-        turretPower = pidController.calculate(turretAngle, turretSetpoint);
-        turretServo.setPower(turretPower);
 
 
+        turretPower = -pidController.calculate(turretAngle, turretSetpoint);
+        setTurretPower(turretPower);
     }
 
     public double findPosition() {
-        if (Robot.alliance == Alliance.BLUE) {
-            turretAngle = getPosition();
+        double x, y;
+        double robotHeading;
+        double overallAngle;
 
-            double x = robotPose.getX();
-            double y = 144 - robotPose.getY();
+        if (Robot.alliance == Alliance.BLUE) {
+            x = robotPose.getX();
+            y = 144 - robotPose.getY();
 
             robotHeading = robotPose.getHeading();
-            overallAngle = 180 - Math.atan2(y, x);
-
-            return overallAngle - robotHeading;
-
+            overallAngle = Math.PI - Math.atan2(y, x);
 
         } else if (Robot.alliance == Alliance.RED) {
-            turretAngle = getPosition();
-
-            double x = 144 - robotPose.getX();
-            double y = 144 - robotPose.getY();
+            x = 144 - robotPose.getX();
+            y = 144 - robotPose.getY();
 
             robotHeading = robotPose.getHeading();
             overallAngle = Math.atan2(y, x);
 
-            return robotHeading - overallAngle;
-
         } else {
-            throw new IllegalStateException("Alliance not set");
+            return 0.0;
         }
+
+        double target = overallAngle - robotHeading;
+
+        if (target < -Math.PI / 2.0 || target > Math.PI / 2.0) {
+            return 0.0;
+        }
+
+        return target;
     }
 
-    /**
-     * Get turret position in radians.
-     *
-     * @return Turret position in radians.
-     */
     public double getPosition() {
-        double voltage = encoder.getVoltage() - TurretConstants.OFFSET;
+        int ticksPerRev = 8192;
+        double revolutions = (double) encoder.getPosition() / ticksPerRev;
 
-        return (voltage / encoder.getMaxVoltage()) * 2 * Math.PI * TurretConstants.GEAR_RATIO;
+        return -revolutions * 2 * Math.PI * TurretConstants.GEAR_RATIO;
     }
 
-    public double getRawPosition() {
-        return encoder.getVoltage();
-    }
 
-    /**
-     * Stop turret movement (hold current angle).
-     */
     public void stop() {
-        turretPower = 0;
+        turretPower = 0.0;
         turretServo.setPower(0.0);
     }
 
     public void setTurretPower(double power) {
         turretPower = power;
         turretServo.setPower(power);
+    }
+
+    public void setTelemetry(Telemetry telemetry) {
+        telemetry.addLine("// Turret //");
+        telemetry.addData("Turret Angle (rad)", turretAngle);
+        telemetry.addData("Turret Setpoint (rad)", turretSetpoint);
+        telemetry.addData("Turret Error (deg)", (Math.abs(turretAngle - turretSetpoint) * 180) / Math.PI);
+        telemetry.addLine();
     }
 
     public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
@@ -147,9 +137,12 @@ public class TurretSubsystem {
 
     public static TurretSubsystem getInstance() {
         if (instance == null) {
-            throw new IllegalStateException("TurretSubsystem not initialized. Call getInstance(hardwareMap) first.");
+            throw new IllegalStateException("TurretSubsystem not initialized.");
         }
         return instance;
     }
 
+    public static void resetInstance() {
+        instance = null;
+    }
 }

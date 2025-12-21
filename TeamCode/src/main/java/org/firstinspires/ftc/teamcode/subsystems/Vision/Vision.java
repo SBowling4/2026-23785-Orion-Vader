@@ -5,6 +5,7 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -18,7 +19,6 @@ public class Vision {
     private final HardwareMap hardwareMap;
 
     public boolean llValid = true;
-    public boolean hasTag = true;
 
     private Pose3D visPose;
 
@@ -40,6 +40,10 @@ public class Vision {
         limelight = hardwareMap.get(Limelight3A.class, VisionConstants.LIMELIGHT_NAME);
 
         limelight.pipelineSwitch(0);
+
+        if (Robot.alliance == Alliance.UNKNOWN) {
+            throw new IllegalStateException("Alliance not set");
+        }
     }
 
     /**
@@ -84,6 +88,12 @@ public class Vision {
      */
     public void setVisPose(Pose3D pose) {
         this.visPose = pose;
+    }
+
+    private void setTelemetry(Telemetry telemetry) {
+        telemetry.addLine("//Vision//");
+        telemetry.addData("Limelight Valid", llValid);
+        telemetry.addLine();
     }
 
 
