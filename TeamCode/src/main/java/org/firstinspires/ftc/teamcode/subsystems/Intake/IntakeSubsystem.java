@@ -61,7 +61,7 @@ public class IntakeSubsystem {
         return this.intakeState;
     }
 
-    private void setTelemetry(Telemetry telemetry) {
+    public void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Intake//");
         telemetry.addData("Intake State", intakeState.toString());
         telemetry.addLine();

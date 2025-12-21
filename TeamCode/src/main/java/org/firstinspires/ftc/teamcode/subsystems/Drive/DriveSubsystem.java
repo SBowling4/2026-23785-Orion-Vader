@@ -70,9 +70,9 @@ public class DriveSubsystem {
 //        follower.setStartingPose(new Pose());
     }
 
-//    public void start() {
+    public void start() {
 //        follower.startTeleopDrive();
-//    }
+    }
 
     public void loop() {
 
@@ -146,7 +146,7 @@ public class DriveSubsystem {
         backRight.stopMotor();
     }
 
-    private void setTelemetry(Telemetry telemetry) {
+    public void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Drive//");
         telemetry.addData("X", getPose().getX());
         telemetry.addData("Y", getPose().getY());

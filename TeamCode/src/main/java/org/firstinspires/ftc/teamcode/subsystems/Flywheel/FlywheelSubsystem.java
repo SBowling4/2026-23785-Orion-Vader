@@ -148,7 +148,7 @@ public class FlywheelSubsystem {
         rightMotor.set(power);
     }
 
-    private void setTelemetry(Telemetry telemetry) {
+    public void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Flywheel//");
         telemetry.addData("Flywheel Velocity", getVelocity());
         telemetry.addData("Flywheel Target", lastTargetRadPerSec);

@@ -19,11 +19,11 @@ import org.firstinspires.ftc.teamcode.util.Alliance;
 public class Vader_Blue extends OpMode {
     DriveSubsystem driveSubsystem;
     IntakeSubsystem intakeSubsystem;
-//    HoodSubsystem hoodSubsystem;
+    HoodSubsystem hoodSubsystem;
 //    Vision vision;
     FlywheelSubsystem flywheelSubsystem;
     FeederSubsystem feederSubsystem;
-//    TurretSubsystem turretSubsystem;
+    TurretSubsystem turretSubsystem;
 
 
 
@@ -36,26 +36,26 @@ public class Vader_Blue extends OpMode {
         driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
         intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1);
         flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
-//        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
+        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
         feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
 //        vision = Vision.getInstance(hardwareMap);
-//        turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1);
+        turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1);
 
 
 //        vision.init();
         driveSubsystem.init();
         intakeSubsystem.init();
         flywheelSubsystem.init();
-//        hoodSubsystem.init();
+        hoodSubsystem.init();
         feederSubsystem.init();
-//        turretSubsystem.init();
+        turretSubsystem.init();
 
         Robot.sendHardwareMap(hardwareMap);
     }
 
     @Override
     public void start() {
-//        driveSubsystem.start();
+        driveSubsystem.start();
 //        vision.start();
     }
 
@@ -63,13 +63,19 @@ public class Vader_Blue extends OpMode {
     public void loop() {
         driveSubsystem.loop();
         intakeSubsystem.loop();
-//        hoodSubsystem.loop();
+        hoodSubsystem.loop();
         flywheelSubsystem.loop();
         feederSubsystem.loop();
 //        vision.loop();
 
+        turretSubsystem.setPosition(0);
 
-
+        driveSubsystem.setTelemetry(telemetry);
+        intakeSubsystem.setTelemetry(telemetry);
+        hoodSubsystem.setTelemetry(telemetry);
+        flywheelSubsystem.setTelemetry(telemetry);
+        feederSubsystem.setTelemetry(telemetry);
+//        vision.setTelemetry(telemetry);
 
         telemetry.update();
     }

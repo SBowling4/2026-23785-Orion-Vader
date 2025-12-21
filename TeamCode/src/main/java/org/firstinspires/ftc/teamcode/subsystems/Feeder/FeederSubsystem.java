@@ -144,7 +144,7 @@ public class FeederSubsystem {
         return feederState;
     }
 
-    private void setTelemetry(Telemetry telemetry) {
+    public void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Feeder//");
         telemetry.addData("Feeder State", feederState.toString());
         telemetry.addLine("---------------");
