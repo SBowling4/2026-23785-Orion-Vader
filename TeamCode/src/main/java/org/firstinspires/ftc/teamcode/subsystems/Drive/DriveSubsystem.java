@@ -108,14 +108,12 @@ public class DriveSubsystem {
 
     }
 
-    public void addVisionMeasurement(Pose3D visPose) {
-        Pose pose = new Pose(visPose.getPosition().x, visPose.getPosition().y, visPose.getOrientation().getYaw(), FTCCoordinates.INSTANCE).getAsCoordinateSystem(PedroCoordinates.INSTANCE);
-
+    public void addVisionMeasurement(Pose visPose) {
 //        KalmanFilter filter = new KalmanFilter(new KalmanFilterParameters(0 ,0)); //TODO: Figure how this works, and if I should use it
 //
 //        filter.update();
 
-        follower.setPose(pose);
+        follower.setPose(visPose);
 
 
     }

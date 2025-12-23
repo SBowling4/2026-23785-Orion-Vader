@@ -68,7 +68,7 @@ public class TurretSubsystem {
     }
 
     public void setPosition(double pos) {
-        turretPower = -pidController.calculate(turretAngle, pos);
+        turretPower = -pidController.calculate(getPosition(), pos);
         setTurretPower(turretPower);
     }
 

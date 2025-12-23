@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.subsystems.Hood;
 
 import com.bylazar.configurables.annotations.Configurable;
 
-@Configurable
 public class HoodConstants {
     public static final String SERVO_NAME = "hood";
     public static double kP = 0.25;

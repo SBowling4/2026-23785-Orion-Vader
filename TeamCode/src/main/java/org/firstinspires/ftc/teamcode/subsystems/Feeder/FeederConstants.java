@@ -2,13 +2,10 @@ package org.firstinspires.ftc.teamcode.subsystems.Feeder;
 
 import com.bylazar.configurables.annotations.Configurable;
 
-@Configurable
 public class FeederConstants {
     public static final String FEEDER_MOTOR_NAME = "feeder";
     public static final String KICKER_SERVO_NAME = "kicker";
     public static final String STOPPER_SERVO_NAME = "stopper";
-
-    public static double kickerTarget = 0;
 
     public enum FEEDER_STATE {
         IN(1),
