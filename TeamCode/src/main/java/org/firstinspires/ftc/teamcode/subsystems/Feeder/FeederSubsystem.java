@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems.Feeder;
 
-import static org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.kickerTarget;
 
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 
@@ -150,7 +149,6 @@ public class FeederSubsystem {
         telemetry.addLine("---------------");
         telemetry.addData("Kicker State", kickerState.toString());
         telemetry.addData("Kicker Pos", kickerServo.getController().getServoPosition(0));
-        telemetry.addData("Kicker Target", kickerTarget);
         telemetry.addLine("---------------");
         telemetry.addData("Stopper State", stopperState.toString());
         telemetry.addData("Stopper Pos", stopperServo.getController().getServoPosition(2));

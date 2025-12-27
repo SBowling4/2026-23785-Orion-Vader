@@ -1,11 +1,18 @@
 package org.firstinspires.ftc.teamcode.subsystems.Vision;
 
+import com.pedropathing.ftc.FTCCoordinates;
+import com.pedropathing.ftc.InvertedFTCCoordinates;
+import com.pedropathing.ftc.PoseConverter;
+import com.pedropathing.geometry.PedroCoordinates;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.util.Alliance;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -14,11 +21,8 @@ import java.util.Optional;
 
 public class Vision {
     private Limelight3A limelight;
-    private LLResultTypes.FiducialResult goodTag;
 
     private final HardwareMap hardwareMap;
-
-    public boolean llValid = true;
 
     private Pose3D visPose;
 
@@ -58,28 +62,37 @@ public class Vision {
      */
     public void loop() {
         if (limelight == null) {
-            llValid = false;
             return;
         }
 
-        llValid = true;
-
         LLResult result = limelight.getLatestResult();
 
-        if (result == null) return;
+        if (result == null || !result.isValid() || result.getFiducialResults().isEmpty()) return;
 
         setVisPose(result.getBotpose());
     }
 
 
     /**
-     * * Get the current vision pose.
+     * Get the current vision pose.
      *
      * @return The current vision pose.
      */
-    public Pose3D getVisPose() {
-        return visPose;
+    public Optional<Pose> getVisPose() {
+        if (visPose == null) {
+            return Optional.empty();
+        }
+
+        Pose2D visPose2d = new Pose2D(DistanceUnit.METER, visPose.getPosition().x, visPose.getPosition().y, AngleUnit.DEGREES, visPose.getOrientation().getYaw());
+
+        Pose ftcStandard = PoseConverter.pose2DToPose(visPose2d, FTCCoordinates.INSTANCE);
+
+        Pose pedroPose = ftcStandard.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+
+        return Optional.of(new Pose(pedroPose.getX() + 72, pedroPose.getY() + 72, pedroPose.getHeading(), PedroCoordinates.INSTANCE));
+
     }
+
 
     /**
      * Set the current vision pose.
@@ -90,9 +103,21 @@ public class Vision {
         this.visPose = pose;
     }
 
-    private void setTelemetry(Telemetry telemetry) {
+    public void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Vision//");
-        telemetry.addData("Limelight Valid", llValid);
+        telemetry.addData("Limelight Connected", limelight.isConnected());
+        telemetry.addData("Limelight Running", limelight.isRunning());
+        telemetry.addLine("------------");
+
+        if (getVisPose().isEmpty()) {
+            telemetry.addLine("Pose Invalid");
+            telemetry.addLine();
+            return;
+        }
+
+        telemetry.addData("X", getVisPose().get().getX());
+        telemetry.addData("Y", getVisPose().get().getY());
+        telemetry.addData("Yaw", getVisPose().get().getHeading());
         telemetry.addLine();
     }
 
