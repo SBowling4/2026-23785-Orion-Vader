@@ -72,7 +72,7 @@ public class FeederSubsystem {
     public void loop() {
         if (gamepad1.a) {
             setFeederState(FEEDER_STATE.IN);
-        } else if (gamepad1.y || gamepad1.b) {
+        } else if (gamepad1.y) {
             setFeederState(FEEDER_STATE.OUT);
         } else {
             setFeederState(FEEDER_STATE.STOP);
@@ -92,12 +92,6 @@ public class FeederSubsystem {
 
 
 
-
-
-
-//        kickerTarget = Range.clip(kickerTarget, 0, 1);
-
-//        kickerServo.setPosition(kickerTarget);
 
 
     }

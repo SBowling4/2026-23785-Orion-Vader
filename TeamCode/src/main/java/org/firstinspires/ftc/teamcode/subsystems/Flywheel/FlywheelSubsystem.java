@@ -63,7 +63,7 @@ public class FlywheelSubsystem {
      * Main loop for the Flywheel Subsystem
      */
     public void loop() {
-        if (gamepad1.right_bumper) {
+        if (gamepad1.right_bumper || gamepad1.left_bumper) {
             setPower(1);
         } else {
             stop();
