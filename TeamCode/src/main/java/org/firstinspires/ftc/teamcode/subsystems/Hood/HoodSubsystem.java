@@ -66,9 +66,6 @@ public class HoodSubsystem {
      * Loops the Shooter Subsystem
      */
     public void loop() {
-        pid.setP(HoodConstants.kP);
-        pid.setD(HoodConstants.kD);
-        pid.setF(HoodConstants.kF);
 //        if (Robot.tuningMode) {
 //            if (gamepad1.dpad_up) {
 //                tuningPos += .5;
@@ -82,13 +79,12 @@ public class HoodSubsystem {
 //      }
 
         if (gamepad1.right_bumper) {
-            tuningPos = 3;
+            setAngle(17);
         } else if (gamepad1.left_bumper) {
-            tuningPos = 15;
+            setAngle(3);
+        } else {
+            setAngle(0);
         }
-
-        setAngle(tuningPos);
-
     }
 
     /**

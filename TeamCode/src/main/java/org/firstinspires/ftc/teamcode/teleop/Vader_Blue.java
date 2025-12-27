@@ -70,7 +70,7 @@ public class Vader_Blue extends OpMode {
 
         turretSubsystem.setPosition(0);
 
-        driveSubsystem.setTelemetry(telemetry);
+//        driveSubsystem.setTelemetry(telemetry);
         intakeSubsystem.setTelemetry(telemetry);
         hoodSubsystem.setTelemetry(telemetry);
         flywheelSubsystem.setTelemetry(telemetry);

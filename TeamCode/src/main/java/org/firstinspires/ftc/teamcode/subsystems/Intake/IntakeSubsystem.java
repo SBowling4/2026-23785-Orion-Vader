@@ -43,7 +43,7 @@ public class IntakeSubsystem {
      * Main loop for the Intake Subsystem
      */
     public void loop() {
-        if (gamepad1.a || gamepad1.b) {
+        if (gamepad1.a) {
             setState(INTAKE_STATE.INTAKE);
         } else if (gamepad1.y){
             setState(INTAKE_STATE.OUT);
