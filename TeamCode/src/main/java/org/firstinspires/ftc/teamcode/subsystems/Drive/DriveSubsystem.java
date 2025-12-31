@@ -1,21 +1,21 @@
 package org.firstinspires.ftc.teamcode.subsystems.Drive;
 
-import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.drivebase.MecanumDrive;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.ftc.FTCCoordinates;
-import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.lib.orion.Field;
+import org.firstinspires.ftc.lib.orion.odometry.Odometry;
+import org.firstinspires.ftc.lib.orion.odometry.PoseEstimator;
+import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
-import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.lib.orion.util.Alliance;
 
 public class DriveSubsystem {
 
@@ -28,11 +28,12 @@ public class DriveSubsystem {
 
     public Follower follower;
 
+    public Odometry odometry;
+    public PoseEstimator poseEstimator;
+
     private Pose pose;
 
     private double lastHeading = 0;
-
-//    private Vision vision;
 
     private static DriveSubsystem instance;
 
@@ -61,13 +62,14 @@ public class DriveSubsystem {
 
         mecanum = new MecanumDrive(frontLeft, frontRight, backLeft, backRight);
 
-//        vision = Vision.getInstance();
+        odometry = new Odometry();
 
+        poseEstimator = new PoseEstimator(odometry, VecBuilder.fill(0,0,0), VecBuilder.fill(0,0,0)); //TODO: fill these in
 
 
 
 //        follower = Constants.createFollower(hardwareMap);
-//        follower.setStartingPose(new Pose());
+//        follower.setStartingPose(new Pose()); //TODO: idk smthn here
     }
 
     public void start() {
@@ -90,15 +92,18 @@ public class DriveSubsystem {
 //            resetHeading();
 //        }
 
-//        setTelemetry();
-//        addVisionMeasurement(vision.getVisPose());
-
 //        follower.update();
+//        odometry.update(getPose());
+//        poseEstimator.update();
 
     }
 
-    public Pose getPose() {
-        return new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading() + lastHeading, PedroCoordinates.INSTANCE);
+    private Pose getFollowerPose() {
+        return new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading() + lastHeading);
+    }
+
+    public Pose2d getEstimatedPose() {
+        return poseEstimator.getEstimatedPosition();
     }
 
     public void resetHeading() {
@@ -108,29 +113,15 @@ public class DriveSubsystem {
 
     }
 
-    public void addVisionMeasurement(Pose visPose) {
-//        KalmanFilter filter = new KalmanFilter(new KalmanFilterParameters(0 ,0)); //TODO: Figure how this works, and if I should use it
-//
-//        filter.update();
-
-        follower.setPose(visPose);
-
-
+    public void addVisionMeasurement(Pose2d visPose, double timestampSeconds) {
+        poseEstimator.addVisionMeasurement(visPose, timestampSeconds);
     }
 
     public double getDistanceToGoal() {
         if (Robot.alliance == Alliance.BLUE) {
-            double x = pose.getX();
-            double y = 144 - pose.getY();
-
-            return Math.hypot(x, y);
-        } else if (Robot.alliance == Alliance.RED) {
-            double x = 144 - pose.getX();
-            double y = 144 - pose.getY();
-
-            return Math.hypot(x, y);
+            return getEstimatedPose().getTranslation().getDistance(Field.BLUE_GOAL);
         } else {
-            throw new IllegalStateException("Alliance not set");
+            return getEstimatedPose().getTranslation().getDistance(Field.RED_GOAL);
         }
     }
 
@@ -146,9 +137,9 @@ public class DriveSubsystem {
 
     public void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Drive//");
-        telemetry.addData("X", getPose().getX());
-        telemetry.addData("Y", getPose().getY());
-        telemetry.addData("Heading", Math.toDegrees(getPose().getHeading()));
+        telemetry.addData("X", getEstimatedPose().getX());
+        telemetry.addData("Y", getEstimatedPose().getY());
+        telemetry.addData("Heading", getEstimatedPose().getRotation().getDegrees());
         telemetry.addData("Distance to Goal", getDistanceToGoal());
     }
 

@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.util;
+package org.firstinspires.ftc.lib.orion.util;
 
 /**
  * FeedForward class to calculate feedforward control outputs based on static, velocity, and acceleration gains.

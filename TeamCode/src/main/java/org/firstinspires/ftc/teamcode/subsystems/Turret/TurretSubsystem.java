@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems.Turret;
 
-import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.pedropathing.geometry.Pose;
@@ -8,10 +7,12 @@ import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.lib.orion.Field;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
-import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.lib.orion.util.Alliance;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class TurretSubsystem {
@@ -73,27 +74,23 @@ public class TurretSubsystem {
     }
 
     public double findPosition() {
-        double x, y;
         double robotHeading;
         double overallAngle;
 
         if (Robot.alliance == Alliance.BLUE) {
-            x = robotPose.getX();
-            y = 144 - robotPose.getY();
+            Translation2d delta = driveSubsystem.getEstimatedPose().getTranslation().minus(Field.BLUE_GOAL);
 
-            robotHeading = robotPose.getHeading();
-            overallAngle = Math.PI - Math.atan2(y, x);
+            overallAngle = delta.getAngle().getRadians();
 
         } else if (Robot.alliance == Alliance.RED) {
-            x = 144 - robotPose.getX();
-            y = 144 - robotPose.getY();
+            Translation2d delta = driveSubsystem.getEstimatedPose().getTranslation().minus(Field.RED_GOAL);
 
-            robotHeading = robotPose.getHeading();
-            overallAngle = Math.atan2(y, x);
-
+            overallAngle = delta.getAngle().getRadians();
         } else {
             return 0.0;
         }
+
+        robotHeading = driveSubsystem.getEstimatedPose().getRotation().getRadians();
 
         double target = overallAngle - robotHeading;
 

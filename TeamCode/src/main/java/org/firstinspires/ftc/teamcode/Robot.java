@@ -4,9 +4,7 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
-import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
-import org.firstinspires.ftc.teamcode.subsystems.Hood.HoodConstants;
-import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.lib.orion.util.Alliance;
 
 @Configurable
 public class Robot {

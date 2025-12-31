@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.util.FeedForward;
+import org.firstinspires.ftc.lib.orion.util.FeedForward;
 
 
 public class FlywheelSubsystem {
