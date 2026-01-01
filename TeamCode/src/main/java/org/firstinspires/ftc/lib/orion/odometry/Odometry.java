@@ -46,7 +46,7 @@ public class Odometry {
     }
 
     public void resetPose(Pose2D pose2D) {
-        pose = new Pose(pose2D.getX(DistanceUnit.METER), pose2D.getY(DistanceUnit.METER), pose.getHeading());
+        pose = new Pose(pose2D.getX(DistanceUnit.METER), pose2D.getY(DistanceUnit.METER), pose2D.getHeading(AngleUnit.RADIANS));
     }
 
 

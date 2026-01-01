@@ -45,14 +45,14 @@ public final class CoordinateSystems {
                 zMeters = position.z;
                 break;
             case CM:
-                xMeters = position.x * 100;
-                yMeters = position.y * 100;
-                zMeters = position.z * 100;
+                xMeters = position.x / 100;
+                yMeters = position.y / 100;
+                zMeters = position.z / 100;
                 break;
             case MM:
-                xMeters = position.x * 1000;
-                yMeters = position.y * 1000;
-                zMeters = position.z * 1000;
+                xMeters = position.x / 1000;
+                yMeters = position.y / 1000;
+                zMeters = position.z / 1000;
                 break;
             case INCH:
                 xMeters = Units.inchesToMeters(position.x);
@@ -97,14 +97,14 @@ public final class CoordinateSystems {
                 zMeters = position.z;
                 break;
             case CM:
-                xMeters = position.x * 100;
-                yMeters = position.y * 100;
-                zMeters = position.z * 100;
+                xMeters = position.x / 100;
+                yMeters = position.y / 100;
+                zMeters = position.z / 100;
                 break;
             case MM:
-                xMeters = position.x * 1000;
-                yMeters = position.y * 1000;
-                zMeters = position.z * 1000;
+                xMeters = position.x / 1000;
+                yMeters = position.y / 1000;
+                zMeters = position.z / 1000;
                 break;
             case INCH:
                 xMeters = Units.inchesToMeters(position.x);

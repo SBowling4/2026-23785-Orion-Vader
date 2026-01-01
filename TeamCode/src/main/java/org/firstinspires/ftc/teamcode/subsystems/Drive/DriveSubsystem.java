@@ -93,7 +93,7 @@ public class DriveSubsystem {
 //        }
 
 //        follower.update();
-//        odometry.update(getPose());
+//        odometry.update(getFollowerPose());
 //        poseEstimator.update();
 
     }
@@ -107,7 +107,7 @@ public class DriveSubsystem {
     }
 
     public void resetHeading() {
-        lastHeading = follower.getHeading();
+        lastHeading += follower.getHeading();
 
         follower.setPose(follower.getPose().setHeading(0));
 
