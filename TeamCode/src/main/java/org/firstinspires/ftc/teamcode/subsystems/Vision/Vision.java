@@ -1,21 +1,19 @@
 package org.firstinspires.ftc.teamcode.subsystems.Vision;
 
-import com.pedropathing.ftc.FTCCoordinates;
-import com.pedropathing.ftc.InvertedFTCCoordinates;
-import com.pedropathing.ftc.PoseConverter;
-import com.pedropathing.geometry.PedroCoordinates;
-import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.util.Alliance;
+import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 
 import java.util.Optional;
 
@@ -24,7 +22,9 @@ public class Vision {
 
     private final HardwareMap hardwareMap;
 
-    private Pose3D visPose;
+    private Optional<Pose3D> botPose;
+
+    DriveSubsystem driveSubsystem;
 
     private static Vision instance;
 
@@ -67,41 +67,22 @@ public class Vision {
 
         LLResult result = limelight.getLatestResult();
 
-        if (result == null || !result.isValid() || result.getFiducialResults().isEmpty()) return;
-
-        setVisPose(result.getBotpose());
-    }
-
-
-    /**
-     * Get the current vision pose.
-     *
-     * @return The current vision pose.
-     */
-    public Optional<Pose> getVisPose() {
-        if (visPose == null) {
-            return Optional.empty();
+        if (result == null || !result.isValid() || result.getFiducialResults().isEmpty()) {
+            botPose = Optional.empty();
+            return;
         }
 
-        Pose2D visPose2d = new Pose2D(DistanceUnit.METER, visPose.getPosition().x, visPose.getPosition().y, AngleUnit.DEGREES, visPose.getOrientation().getYaw());
+        botPose = Optional.of(result.getBotpose());
 
-        Pose ftcStandard = PoseConverter.pose2DToPose(visPose2d, FTCCoordinates.INSTANCE);
+        Translation3d translation = CoordinateSystems.fieldCoordinatesToWPILib(botPose.get().getPosition());
 
-        Pose pedroPose = ftcStandard.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+        Pose2d pose = new Pose2d(translation.toTranslation2d(), Rotation2d.fromRadians(botPose.get().getOrientation().getYaw(AngleUnit.RADIANS)));
 
-        return Optional.of(new Pose(pedroPose.getX() + 72, pedroPose.getY() + 72, pedroPose.getHeading(), PedroCoordinates.INSTANCE));
-
+        driveSubsystem.addVisionMeasurement(pose, result.getTimestamp());
     }
 
 
-    /**
-     * Set the current vision pose.
-     *
-     * @param pose The new vision pose.
-     */
-    public void setVisPose(Pose3D pose) {
-        this.visPose = pose;
-    }
+
 
     public void setTelemetry(Telemetry telemetry) {
         telemetry.addLine("//Vision//");
@@ -109,15 +90,15 @@ public class Vision {
         telemetry.addData("Limelight Running", limelight.isRunning());
         telemetry.addLine("------------");
 
-        if (getVisPose().isEmpty()) {
+        if (botPose.isEmpty()) {
             telemetry.addLine("Pose Invalid");
             telemetry.addLine();
             return;
         }
 
-        telemetry.addData("X", getVisPose().get().getX());
-        telemetry.addData("Y", getVisPose().get().getY());
-        telemetry.addData("Yaw", getVisPose().get().getHeading());
+        telemetry.addData("X", botPose.get().getPosition().x);
+        telemetry.addData("Y", botPose.get().getPosition().y);
+        telemetry.addData("Yaw", botPose.get().getOrientation().getYaw());
         telemetry.addLine();
     }
 
