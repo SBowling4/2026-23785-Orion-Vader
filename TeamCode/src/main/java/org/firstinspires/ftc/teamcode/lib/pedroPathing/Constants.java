@@ -1,6 +1,5 @@
-package org.firstinspires.ftc.teamcode.lib.pedropathing;
+package org.firstinspires.ftc.teamcode.lib.pedroPathing;
 
-import com.bylazar.configurables.annotations.Configurable;
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
@@ -12,25 +11,21 @@ import com.pedropathing.ftc.localization.constants.ThreeWheelConstants;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveConstants;
+import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(30.6)
-            .forwardZeroPowerAcceleration(-42.233538015420116)
-            .lateralZeroPowerAcceleration(-114.49997897772923)
-            .translationalPIDFCoefficients(new PIDFCoefficients(.15, 0, .002, .004))
-            .headingPIDFCoefficients(new PIDFCoefficients(1.5, 0, .02, .03))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(.02, 0, .00001, .6, .03))
-            .centripetalScaling(0.0003);
+            .mass(30)
+            .forwardZeroPowerAcceleration(-72.78069448430112)
+            .lateralZeroPowerAcceleration(-64.8184983519383);
 
     public static PathConstraints pathConstraints = new PathConstraints(
             .99,
             100,
-            1.5,
+            1,
             1
     );
 
@@ -42,24 +37,25 @@ public class Constants {
             .leftRearMotorName(DriveConstants.LEFT_BACK_MOTOR_NAME)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(62.88012216535767)
-            .yVelocity(56.218767813481534);
+            .xVelocity( 68.98701234066769)
+            .yVelocity(43.998690576845966);
+
 
 
     public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
-            .forwardTicksToInches(-5.562e-4)
-            .strafeTicksToInches(5.597e-4)
-            .turnTicksToInches(5.376443633716166E-4)
+            .forwardTicksToInches(5.423439148461267E-4)
+            .strafeTicksToInches(5.620489192415667E-4)
+            .turnTicksToInches(5.433265310997508E-4)
             .leftPodY(-6.140628)
             .rightPodY(6.140628)
-            .strafePodX(-2.139)
-            .leftEncoder_HardwareMapName(DriveConstants.LEFT_BACK_MOTOR_NAME)
-            .rightEncoder_HardwareMapName(IntakeConstants.INTAKE_MOTOR_NAME)
-            .strafeEncoder_HardwareMapName(DriveConstants.LEFT_FRONT_MOTOR_NAME)
-            .rightEncoderDirection(Encoder.FORWARD)
-            .leftEncoderDirection(Encoder.REVERSE)
+            .strafePodX(-4.195)
+            .leftEncoder_HardwareMapName(FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME)
+            .rightEncoder_HardwareMapName(DriveConstants.RIGHT_BACK_MOTOR_NAME)
+            .strafeEncoder_HardwareMapName(DriveConstants.RIGHT_FRONT_MOTOR_NAME)
+            .leftEncoderDirection(Encoder.FORWARD)
+            .rightEncoderDirection(Encoder.REVERSE)
             .strafeEncoderDirection(Encoder.FORWARD);
 
 
