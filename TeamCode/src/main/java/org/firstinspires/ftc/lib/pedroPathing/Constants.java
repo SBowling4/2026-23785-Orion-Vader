@@ -41,10 +41,10 @@ public class Constants {
 
 
 
-    public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
-            .forwardTicksToInches(5.431931944E-4)
-            .strafeTicksToInches(5.561564344E-4)
-            .turnTicksToInches(5.441599634E-4)
+    public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants() //TODO: Something is wrong here and I will find it
+            .forwardTicksToInches(5.2843826E-4)
+            .strafeTicksToInches(5.2843826E-4)
+            .turnTicksToInches(5.2843826E-4)
             .leftPodY(-6.140628)
             .rightPodY(6.140628)
             .strafePodX(-4.195)
