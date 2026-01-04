@@ -1,13 +1,18 @@
 package org.firstinspires.ftc.teamcode.subsystems.Vision;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
+import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
@@ -15,23 +20,20 @@ import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 
-import java.util.Optional;
-
 public class Vision {
     private Limelight3A limelight;
+    private LLResult result;
 
     private final HardwareMap hardwareMap;
 
-    private Optional<Pose3D> botPose;
+    private Pose3D botPose;
 
-    DriveSubsystem driveSubsystem;
+    private DriveSubsystem driveSubsystem;
 
     private static Vision instance;
 
     /**
      * Private constructor for singleton pattern.
-     *
-     * @param hardwareMap Hardware map from the robot.
      */
     private Vision(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
@@ -48,6 +50,8 @@ public class Vision {
         if (Robot.alliance == Alliance.UNKNOWN) {
             throw new IllegalStateException("Alliance not set");
         }
+
+        driveSubsystem = DriveSubsystem.getInstance();
     }
 
     /**
@@ -65,18 +69,18 @@ public class Vision {
             return;
         }
 
-        LLResult result = limelight.getLatestResult();
+        result = limelight.getLatestResult();
 
         if (result == null || !result.isValid() || result.getFiducialResults().isEmpty()) {
-            botPose = Optional.empty();
+            botPose = null;
             return;
         }
 
-        botPose = Optional.of(result.getBotpose());
+        botPose = result.getBotpose();
 
-        Translation3d translation = CoordinateSystems.fieldCoordinatesToWPILib(botPose.get().getPosition());
+        Translation3d translation = CoordinateSystems.fieldCoordinatesToWPILib(botPose.getPosition());
 
-        Pose2d pose = new Pose2d(translation.toTranslation2d(), Rotation2d.fromRadians(botPose.get().getOrientation().getYaw(AngleUnit.RADIANS)));
+        Pose2d pose = new Pose2d(translation.toTranslation2d(), Rotation2d.fromRadians(botPose.getOrientation().getYaw(AngleUnit.RADIANS)));
 
         driveSubsystem.addVisionMeasurement(pose, result.getTimestamp());
     }
@@ -90,23 +94,37 @@ public class Vision {
         telemetry.addData("Limelight Running", limelight.isRunning());
         telemetry.addLine("------------");
 
-        if (botPose.isEmpty()) {
+        TelemetryPacket packet = new TelemetryPacket();
+
+        if (botPose == null) {
             telemetry.addLine("Pose Invalid");
             telemetry.addLine();
+
+            packet.put("Vision/Pose/Pose x", 0);
+            packet.put("Vision/Pose/Pose y", 0);
+            packet.put("Vision/Pose/Pose heading", 0);
+
+            FtcDashboard.getInstance().sendTelemetryPacket(packet);
             return;
         }
 
-        telemetry.addData("X", botPose.get().getPosition().x);
-        telemetry.addData("Y", botPose.get().getPosition().y);
-        telemetry.addData("Yaw", botPose.get().getOrientation().getYaw());
-        telemetry.addLine();
-    }
+        packet.put("Vision/Pose/Pose x", Units.metersToInches(botPose.getPosition().x));
+        packet.put("Vision/Pose/Pose y", Units.metersToInches(botPose.getPosition().y));
+        packet.put("Vision/Pose/Pose heading", botPose.getOrientation().getYaw());
 
+
+
+        for (int i = 0; i < result.getFiducialResults().size(); i++) {
+            packet.put("Vision/Apriltags/Detections/" +  i + "/id", result.getFiducialResults().get(i).getFiducialId());
+        }
+
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
+
+    }
 
     /**
      * Get the singleton instance of the Vision subsystem.
      *
-     * @param hardwareMap The hardware map to use for initialization.
      * @return The singleton instance of the Vision subsystem.
      */
     public static Vision getInstance(HardwareMap hardwareMap) {
@@ -115,6 +133,7 @@ public class Vision {
         }
         return instance;
     }
+
 
     /**
      * Get the singleton instance of the Vision subsystem.

@@ -1,15 +1,15 @@
 package org.firstinspires.ftc.teamcode.subsystems.Feeder;
 
 
-import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
-import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
-import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.lib.orion.hardware.Motor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Hood.HoodSubsystem;
@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.FEEDER_S
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class FeederSubsystem {
-    private MotorEx feederMotor;
+    private Motor feederMotor;
     public ServoImplEx kickerServo;
     private ServoImplEx stopperServo;
 
@@ -49,7 +49,7 @@ public class FeederSubsystem {
      * Initializes the Feeder Subsystem
      */
     public void init() {
-        feederMotor = new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME);
+        feederMotor = new Motor(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME);
 
         kickerServo = hardwareMap.get(ServoImplEx.class, FeederConstants.KICKER_SERVO_NAME);
         stopperServo = hardwareMap.get(ServoImplEx.class, FeederConstants.STOPPER_SERVO_NAME);
@@ -110,7 +110,7 @@ public class FeederSubsystem {
     public void setFeederState(FEEDER_STATE state) {
         this.feederState = state;
 
-        feederMotor.set(state.getPower());
+        feederMotor.setPower(state.getPower());
     }
 
     public void setStopperState(STOPPER_STATE state) {
@@ -148,11 +148,19 @@ public class FeederSubsystem {
         telemetry.addData("Stopper Pos", stopperServo.getController().getServoPosition(2));
 
         telemetry.addLine();
+
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("Feeder/FeederState", feederState.toString());
+        packet.put("Feeder/Kicker/KickerState", kickerState.toString());
+        packet.put("Feeder/Kicker/KickerPos", kickerServo.getController().getServoPosition(0));
+        packet.put("Feeder/Stopper/StopperState", stopperState.toString());
+        packet.put("Feeder/Stopper/StopperPos", stopperServo.getController().getServoPosition(2));
+
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
     /**
      * Singleton pattern to get the instance of FeederSubsystem.
-     * @param hardwareMap The hardware map to initialize the subsystem.
      * @param gamepad1 The gamepad to control the subsystem.
      *                 prepare for BDR
      */

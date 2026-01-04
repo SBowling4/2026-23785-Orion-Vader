@@ -1,7 +1,5 @@
-package org.firstinspires.ftc.teamcode.lib.pedroPathing;
+package org.firstinspires.ftc.lib.pedroPathing;
 
-import com.pedropathing.control.FilteredPIDFCoefficients;
-import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
@@ -14,7 +12,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
-import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
@@ -39,24 +36,24 @@ public class Constants {
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity( 68.98701234066769)
+            .xVelocity(68.98701234066769)
             .yVelocity(43.998690576845966);
 
 
 
     public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
-            .forwardTicksToInches(5.423439148461267E-4)
-            .strafeTicksToInches(5.620489192415667E-4)
-            .turnTicksToInches(5.433265310997508E-4)
+            .forwardTicksToInches(5.431931944E-4)
+            .strafeTicksToInches(5.561564344E-4)
+            .turnTicksToInches(5.441599634E-4)
             .leftPodY(-6.140628)
             .rightPodY(6.140628)
             .strafePodX(-4.195)
             .leftEncoder_HardwareMapName(FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME)
             .rightEncoder_HardwareMapName(DriveConstants.RIGHT_BACK_MOTOR_NAME)
             .strafeEncoder_HardwareMapName(DriveConstants.RIGHT_FRONT_MOTOR_NAME)
-            .leftEncoderDirection(Encoder.FORWARD)
-            .rightEncoderDirection(Encoder.REVERSE)
-            .strafeEncoderDirection(Encoder.FORWARD);
+            .leftEncoderDirection(Encoder.REVERSE)
+            .rightEncoderDirection(Encoder.FORWARD)
+            .strafeEncoderDirection(Encoder.REVERSE);
 
 
     public static Follower createFollower(HardwareMap hardwareMap) {

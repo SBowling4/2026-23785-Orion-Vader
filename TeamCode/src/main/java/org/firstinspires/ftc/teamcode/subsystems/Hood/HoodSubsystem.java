@@ -1,18 +1,16 @@
 package org.firstinspires.ftc.teamcode.subsystems.Hood;
 
-import com.arcrobotics.ftclib.controller.PIDController;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 
 public class HoodSubsystem {
     public CRServoImplEx hoodServo;
@@ -40,7 +38,7 @@ public class HoodSubsystem {
     public void init() {
         hoodServo = hardwareMap.get(CRServoImplEx.class, HoodConstants.SERVO_NAME);
 
-        hoodEncoder = FlywheelSubsystem.getInstance().rightMotor.encoder;
+        hoodEncoder = FlywheelSubsystem.getInstance().rightMotor.getEncoder();
 
         pid = new PIDFController(
                 HoodConstants.kP,
@@ -130,13 +128,18 @@ public class HoodSubsystem {
         telemetry.addData("Position", getPosition());
         telemetry.addData("Target", targetPos);
         telemetry.addLine();
+
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("Hood/Position", getPosition());
+        packet.put("Hood/Target", targetPos);
+
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
 
     /**
      * Singleton pattern to get the instance of the ShooterSubsystem
      *
-     * @param hardwareMap HardwareMap from the OpMode
      * @param gamepad1    Gamepad1 from the OpMode
      * @return Instance of the ShooterSubsystem
      */

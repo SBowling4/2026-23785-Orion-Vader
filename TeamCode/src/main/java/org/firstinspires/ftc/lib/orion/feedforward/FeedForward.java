@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.lib.orion.util;
+package org.firstinspires.ftc.lib.orion.feedforward;
 
 /**
  * FeedForward class to calculate feedforward control outputs based on static, velocity, and acceleration gains.
@@ -29,6 +29,18 @@ public class FeedForward {
      */
     public FeedForward(double ks, double kv) {
         this(ks, kv, 0);
+    }
+
+    /**
+     * Constructor for FeedForward with only static gain.
+     * @param ks
+     */
+    public FeedForward(double ks) {
+        this(ks, 0, 0);
+    }
+
+    public FeedForward(FeedForwardCoefficients coefficients) {
+        this(coefficients.kS, coefficients.kV, coefficients.kA);
     }
 
     /**
