@@ -1,20 +1,19 @@
 package org.firstinspires.ftc.teamcode.subsystems.Intake;
 
-import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.lib.orion.hardware.Motor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants.INTAKE_STATE;
 
-
-import org.firstinspires.ftc.teamcode.Robot;
-
 public class IntakeSubsystem {
-    private MotorEx intakeMotor;
+    private Motor intakeMotor;
 
-    private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
+    private final HardwareMap hardwareMap;
 
     private INTAKE_STATE intakeState;
 
@@ -34,7 +33,7 @@ public class IntakeSubsystem {
      * Initializes the Intake Subsystem
      */
     public void init() {
-        intakeMotor = new MotorEx(hardwareMap, IntakeConstants.INTAKE_MOTOR_NAME);
+        intakeMotor = new Motor(hardwareMap, IntakeConstants.INTAKE_MOTOR_NAME);
 
         intakeState = INTAKE_STATE.STOP;
     }
@@ -54,7 +53,7 @@ public class IntakeSubsystem {
 
     public void setState(INTAKE_STATE state) {
         this.intakeState = state;
-        intakeMotor.set(state.getPower());
+        intakeMotor.setPower(state.getPower());
     }
 
     public INTAKE_STATE getState() {
@@ -65,6 +64,11 @@ public class IntakeSubsystem {
         telemetry.addLine("//Intake//");
         telemetry.addData("Intake State", intakeState.toString());
         telemetry.addLine();
+
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("Intake/IntakeState", intakeState.toString());
+
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
 

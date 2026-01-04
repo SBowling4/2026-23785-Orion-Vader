@@ -12,16 +12,15 @@ public class Robot {
 
     public static boolean tuningMode = false;
 
-    private static HardwareMap hardwareMap;
-
+    public static HardwareMap hardwareMap;
 
     public static void sendHardwareMap(HardwareMap hm) {
-        hardwareMap = hm;
+        Robot.hardwareMap = hm;
     }
 
     public static double getRobotVoltage() {
         try {
-            for (VoltageSensor vs : hardwareMap.voltageSensor) {
+            for (VoltageSensor vs : Robot.hardwareMap.voltageSensor) {
                 return vs.getVoltage();
             }
         } catch (NullPointerException npe) {

@@ -1,11 +1,11 @@
-package org.firstinspires.ftc.teamcode.lib.pedroPathing;
+package org.firstinspires.ftc.teamcode.teleop;
 
-import static org.firstinspires.ftc.teamcode.lib.pedroPathing.Tuning.changes;
-import static org.firstinspires.ftc.teamcode.lib.pedroPathing.Tuning.drawOnlyCurrent;
-import static org.firstinspires.ftc.teamcode.lib.pedroPathing.Tuning.draw;
-import static org.firstinspires.ftc.teamcode.lib.pedroPathing.Tuning.follower;
-import static org.firstinspires.ftc.teamcode.lib.pedroPathing.Tuning.stopRobot;
-import static org.firstinspires.ftc.teamcode.lib.pedroPathing.Tuning.telemetryM;
+import static org.firstinspires.ftc.teamcode.teleop.Tuning.changes;
+import static org.firstinspires.ftc.teamcode.teleop.Tuning.drawOnlyCurrent;
+import static org.firstinspires.ftc.teamcode.teleop.Tuning.draw;
+import static org.firstinspires.ftc.teamcode.teleop.Tuning.follower;
+import static org.firstinspires.ftc.teamcode.teleop.Tuning.stopRobot;
+import static org.firstinspires.ftc.teamcode.teleop.Tuning.telemetryM;
 
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.configurables.annotations.Configurable;
@@ -15,7 +15,6 @@ import com.bylazar.field.PanelsField;
 import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.ErrorCalculator;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.*;
 import com.pedropathing.math.*;
@@ -24,6 +23,8 @@ import com.pedropathing.telemetry.SelectableOpMode;
 import com.pedropathing.util.*;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
+import org.firstinspires.ftc.lib.pedroPathing.Constants;
 
 import java.util.ArrayList;
 import java.util.List;

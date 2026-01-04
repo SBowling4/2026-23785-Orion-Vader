@@ -1,16 +1,28 @@
 package org.firstinspires.ftc.teamcode.subsystems.Turret;
 
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.lib.orion.Field;
+import org.firstinspires.ftc.lib.orion.PoseConverter;
+import org.firstinspires.ftc.lib.orion.util.Field;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
+import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.lib.orion.util.Alliance;
 
@@ -42,7 +54,7 @@ public class TurretSubsystem {
          driveSubsystem = DriveSubsystem.getInstance();
 
         turretServo = hardwareMap.get(CRServoImplEx.class, TurretConstants.TURRET_SERVO_NAME);
-        encoder = driveSubsystem.backLeft.encoder;
+        encoder = new MotorEx(hardwareMap, DriveConstants.LEFT_BACK_MOTOR_NAME).encoder;
 
         pidController = new PIDFController(
                 TurretConstants.kP,
@@ -77,20 +89,24 @@ public class TurretSubsystem {
         double robotHeading;
         double overallAngle;
 
+        Pose3D estPose = new Pose3D(new Position(DistanceUnit.METER, driveSubsystem.getEstimatedPose().getX(DistanceUnit.METER), driveSubsystem.getEstimatedPose().getY(DistanceUnit.METER), 0.0, 0), new YawPitchRollAngles(AngleUnit.RADIANS, driveSubsystem.getEstimatedPose().getHeading(AngleUnit.RADIANS), 0, 0, 0));
+
+        Pose2d wpiLibPose = PoseConverter.ftcToWPILib(estPose).toPose2d();
+
         if (Robot.alliance == Alliance.BLUE) {
-            Translation2d delta = driveSubsystem.getEstimatedPose().getTranslation().minus(Field.BLUE_GOAL);
+            Translation2d delta = wpiLibPose.getTranslation().minus(Field.BLUE_GOAL);
 
             overallAngle = delta.getAngle().getRadians();
 
         } else if (Robot.alliance == Alliance.RED) {
-            Translation2d delta = driveSubsystem.getEstimatedPose().getTranslation().minus(Field.RED_GOAL);
+            Translation2d delta = wpiLibPose.getTranslation().minus(Field.RED_GOAL);
 
             overallAngle = delta.getAngle().getRadians();
         } else {
             return 0.0;
         }
 
-        robotHeading = driveSubsystem.getEstimatedPose().getRotation().getRadians();
+        robotHeading = wpiLibPose.getRotation().getRadians();
 
         double target = overallAngle - robotHeading;
 
@@ -123,8 +139,13 @@ public class TurretSubsystem {
         telemetry.addLine("// Turret //");
         telemetry.addData("Turret Angle (rad)", turretAngle);
         telemetry.addData("Turret Setpoint (rad)", turretSetpoint);
-        telemetry.addData("Turret Error (deg)", (Math.abs(turretAngle - turretSetpoint) * 180) / Math.PI);
         telemetry.addLine();
+
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("Turret/Position", Units.radiansToDegrees(turretAngle));
+        packet.put("Turret/Setpoint", Units.radiansToDegrees(turretSetpoint));
+
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
     public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {

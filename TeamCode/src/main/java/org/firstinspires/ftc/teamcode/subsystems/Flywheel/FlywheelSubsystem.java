@@ -1,30 +1,27 @@
 package org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 
 
-import com.arcrobotics.ftclib.controller.PIDController;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.arcrobotics.ftclib.hardware.motors.MotorEx;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
+import org.firstinspires.ftc.lib.orion.feedforward.FeedForwardCoefficients;
+import org.firstinspires.ftc.lib.orion.hardware.Motor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.lib.orion.util.FeedForward;
 
 
 public class FlywheelSubsystem {
-    public MotorEx leftMotor;
-    public MotorEx rightMotor;
+    public Motor leftMotor;
+    public Motor rightMotor;
 
-    private FeedForward ff;
-    private PIDController pid;
     public double lastTargetRadPerSec = 0.0;
 
     public double lastTargetVolts = 0.0;
 
-    private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
+    private final HardwareMap hardwareMap;
 
     public double tuningVelocity = 0.0;
 
@@ -42,12 +39,8 @@ public class FlywheelSubsystem {
      * Initializes the Flywheel Subsystem
      */
     public void init() {
-        leftMotor = new MotorEx(hardwareMap, FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME);
-        rightMotor = new MotorEx(hardwareMap, FlywheelConstants.RIGHT_FLYWHEEL_MOTOR_NAME);
-
-        ff = new FeedForward(FlywheelConstants.kS, FlywheelConstants.kV);
-
-        pid = new PIDController(FlywheelConstants.kP, FlywheelConstants.kI, FlywheelConstants.kD);
+        leftMotor = new Motor(hardwareMap, FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME);
+        rightMotor = new Motor(hardwareMap, FlywheelConstants.RIGHT_FLYWHEEL_MOTOR_NAME);
 
         leftMotor.resetEncoder();
         rightMotor.resetEncoder();
@@ -55,8 +48,26 @@ public class FlywheelSubsystem {
         leftMotor.setInverted(false);
         rightMotor.setInverted(false);
 
-        leftMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
-        rightMotor.setZeroPowerBehavior(Motor.ZeroPowerBehavior.BRAKE);
+        leftMotor.setBrake(false);
+        rightMotor.setBrake(false);
+
+        leftMotor.setCoefficients(new PIDCoefficients(
+                    FlywheelConstants.kP,
+                    FlywheelConstants.kI,
+                    FlywheelConstants.kD
+                ), new FeedForwardCoefficients(
+                    FlywheelConstants.kS,
+                    FlywheelConstants.kV
+                ));
+
+        rightMotor.setCoefficients(new PIDCoefficients(
+                    FlywheelConstants.kP,
+                    FlywheelConstants.kI,
+                    FlywheelConstants.kD
+            ), new FeedForwardCoefficients(
+                    FlywheelConstants.kS,
+                    FlywheelConstants.kV
+            ));
     }
 
     /**
@@ -74,17 +85,17 @@ public class FlywheelSubsystem {
      * Stops the flywheel motors
      */
     public void stop() {
-        leftMotor.stopMotor();
-        rightMotor.stopMotor();
+        leftMotor.stop();
+        rightMotor.stop();
     }
 
     /**
      * Gets the current velocity of the flywheel in radians per second
      *
-     * @return Current velocity (rad/s)
+     * @return Current velocity (RPM)
      */
     public double getVelocity() {
-        return -(leftMotor.getVelocity()  / FlywheelConstants.TICKS_PER_REVOLUTION) * 2 * Math.PI;
+        return -(leftMotor.getVelocity()  / FlywheelConstants.TICKS_PER_REVOLUTION) / 60.0;
     }
 
     /**
@@ -93,18 +104,8 @@ public class FlywheelSubsystem {
      * @param targetRadPerSec Target velocity (rad/s)
      */
     public void setVelocity(double targetRadPerSec) {
-        double currentRadPerSec = getVelocity();
-        lastTargetRadPerSec = targetRadPerSec;
-
-        // Remove the Math.abs() - let feedforward handle the sign
-        double ffVolts = ff.calculate(targetRadPerSec);
-        double pidOutput = pid.calculate(currentRadPerSec, targetRadPerSec);
-
-        // Combine feedforward and feedback
-        double volts = ffVolts + pidOutput;
-        lastTargetVolts = volts;
-
-        setVoltage(volts);
+        leftMotor.setVelocity(targetRadPerSec);
+        rightMotor.setVelocity(targetRadPerSec);
     }
 
     /**
@@ -116,17 +117,6 @@ public class FlywheelSubsystem {
         return Math.abs(getVelocity() - lastTargetRadPerSec) < 5;
     }
 
-
-    /**
-     * Sets the motor power based on the desired voltage
-     *
-     * @param volts Desired voltage
-     */
-    public void setVoltage(double volts) {
-        double power = Range.clip(volts / Robot.getRobotVoltage(), -1.0, 1.0);
-        leftMotor.set(power);
-        rightMotor.set(power);
-    }
 
     /**
      * Equation obtained from here: <a href="https://docs.google.com/spreadsheets/d/1m6Tb_BewsEm0vuEWVIr-rKV5Jfy468Ui95xVuQbh-_I/edit?usp=sharing">Spreadsheet</a>
@@ -144,8 +134,8 @@ public class FlywheelSubsystem {
      * @param power Power value (-1.0 to 1.0)
      */
     public void setPower(double power) {
-        leftMotor.set(power);
-        rightMotor.set(power);
+        leftMotor.setPower(power);
+        rightMotor.setPower(power);
     }
 
     public void setTelemetry(Telemetry telemetry) {
@@ -155,12 +145,18 @@ public class FlywheelSubsystem {
         telemetry.addData("Flywheel Volts", lastTargetVolts);
         telemetry.addLine();
 
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("Flywheel/Velocity", getVelocity());
+        packet.put("Flywheel/Target", lastTargetRadPerSec);
+        packet.put("Flywheel/Volts", lastTargetVolts);
+
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
+
     }
 
     /**
      * Singleton pattern to get the instance of FlywheelSubsystem
      *
-     * @param hardwareMap HardwareMap from the robot
      * @param gamepad1    Gamepad for user input
      * @return Instance of FlywheelSubsystem
      */
