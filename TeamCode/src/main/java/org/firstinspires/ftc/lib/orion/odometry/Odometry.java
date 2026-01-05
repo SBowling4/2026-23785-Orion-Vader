@@ -26,7 +26,7 @@ public class Odometry {
         double ftcY = pedroY - 72;
         double ftcX = pedroX - 72;
 
-        return new Pose2D(DistanceUnit.INCH, ftcX, ftcY, AngleUnit.RADIANS, pose.getHeading());
+        return new Pose2D(DistanceUnit.INCH, -ftcX, -ftcY, AngleUnit.RADIANS, pose.getHeading());
 
 //        return PoseConverter.poseToPose2D(pose, FTCCoordinates.INSTANCE);
     }
