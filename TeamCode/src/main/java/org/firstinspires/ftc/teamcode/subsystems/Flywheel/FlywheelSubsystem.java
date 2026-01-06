@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems.Flywheel;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
@@ -10,6 +11,8 @@ import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import org.firstinspires.ftc.lib.orion.feedforward.FeedForwardCoefficients;
 import org.firstinspires.ftc.lib.orion.hardware.Motor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
 
 
 public class FlywheelSubsystem {
@@ -45,11 +48,11 @@ public class FlywheelSubsystem {
         leftMotor.resetEncoder();
         rightMotor.resetEncoder();
 
-        leftMotor.setInverted(false);
-        rightMotor.setInverted(false);
-
         leftMotor.setBrake(false);
         rightMotor.setBrake(false);
+
+        leftMotor.setInverted(false);
+        rightMotor.setInverted(false);
 
         leftMotor.setCoefficients(new PIDCoefficients(
                     FlywheelConstants.kP,
@@ -74,11 +77,34 @@ public class FlywheelSubsystem {
      * Main loop for the Flywheel Subsystem
      */
     public void loop() {
-        if (gamepad1.right_bumper || gamepad1.left_bumper) {
-            setPower(1);
+        leftMotor.setCoefficients(new PIDCoefficients(
+                FlywheelConstants.kP,
+                FlywheelConstants.kI,
+                FlywheelConstants.kD
+        ), new FeedForwardCoefficients(
+                FlywheelConstants.kS,
+                FlywheelConstants.kV
+        ));
+
+        rightMotor.setCoefficients(new PIDCoefficients(
+                FlywheelConstants.kP,
+                FlywheelConstants.kI,
+                FlywheelConstants.kD
+        ), new FeedForwardCoefficients(
+                FlywheelConstants.kS,
+                FlywheelConstants.kV
+        ));
+
+        if (Robot.tuningMode) {
+            setVelocity(FlywheelConstants.target);
         } else {
-            stop();
+            if (gamepad1.right_bumper || gamepad1.left_bumper) {
+                setPower(1);
+            } else {
+                stop();
+            }
         }
+
     }
 
     /**
@@ -90,22 +116,31 @@ public class FlywheelSubsystem {
     }
 
     /**
-     * Gets the current velocity of the flywheel in radians per second
+     * Gets the current velocity of the flywheel in revolutions per minute
      *
      * @return Current velocity (RPM)
      */
     public double getVelocity() {
-        return -(leftMotor.getVelocity()  / FlywheelConstants.TICKS_PER_REVOLUTION) / 60.0;
+        return (new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME).getVelocity() / Motor.TICKS_PER_REVOLUTION) * 60;
     }
 
     /**
      * Sets the target velocity for the flywheel using a combination of feedforward and PID control
      *
-     * @param targetRadPerSec Target velocity (rad/s)
+     * @param targetRPM Target velocity (rpm)
      */
-    public void setVelocity(double targetRadPerSec) {
-        leftMotor.setVelocity(targetRadPerSec);
-        rightMotor.setVelocity(targetRadPerSec);
+    public void setVelocity(double targetRPM) {
+        lastTargetRadPerSec = targetRPM;
+
+        leftMotor.setVelocity(targetRPM, getVelocity());
+        rightMotor.setVelocity(targetRPM, getVelocity());
+    }
+
+    public void setVoltage(double volts) {
+        lastTargetVolts = volts;
+
+        leftMotor.setVoltage(volts);
+        rightMotor.setVoltage(volts);
     }
 
     /**
@@ -142,13 +177,14 @@ public class FlywheelSubsystem {
         telemetry.addLine("//Flywheel//");
         telemetry.addData("Flywheel Velocity", getVelocity());
         telemetry.addData("Flywheel Target", lastTargetRadPerSec);
-        telemetry.addData("Flywheel Volts", lastTargetVolts);
+        telemetry.addData("Flywheel Tuning Target", FlywheelConstants.target);
+        telemetry.addData("Flywheel Volts", leftMotor.lastAppliedVoltage);
         telemetry.addLine();
 
         TelemetryPacket packet = new TelemetryPacket();
         packet.put("Flywheel/Velocity", getVelocity());
         packet.put("Flywheel/Target", lastTargetRadPerSec);
-        packet.put("Flywheel/Volts", lastTargetVolts);
+        packet.put("Flywheel/Volts", leftMotor.lastAppliedVoltage);
 
         FtcDashboard.getInstance().sendTelemetryPacket(packet);
 

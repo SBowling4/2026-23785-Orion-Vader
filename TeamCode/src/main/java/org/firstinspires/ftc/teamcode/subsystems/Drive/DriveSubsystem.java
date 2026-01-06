@@ -131,11 +131,11 @@ public class DriveSubsystem {
 
 
     public void setTelemetry(Telemetry telemetry) {
-//        telemetry.addLine("//Drive//");
-//        telemetry.addData("X", getEstimatedPose().getX());
-//        telemetry.addData("Y", getEstimatedPose().getY());
-//        telemetry.addData("Heading", getEstimatedPose().getRotation().getDegrees());
-//        telemetry.addData("Distance to Goal", getDistanceToGoal());
+        telemetry.addLine("//Drive//");
+        telemetry.addData("X", getEstimatedPose().getX(DistanceUnit.METER));
+        telemetry.addData("Y", getEstimatedPose().getY(DistanceUnit.METER));
+        telemetry.addData("Heading", getEstimatedPose().getHeading(AngleUnit.RADIANS));
+        telemetry.addData("Distance to Goal", getDistanceToGoal());
 
 
         TelemetryPacket packet = new TelemetryPacket();
@@ -146,6 +146,8 @@ public class DriveSubsystem {
         packet.put("Drive/Odometry Pose/Pose x", odometry.getPoseFTCStandard().getX(DistanceUnit.INCH));
         packet.put("Drive/Odometry Pose/Pose y", odometry.getPoseFTCStandard().getY(DistanceUnit.INCH));
         packet.put("Drive/Odometry Pose/Pose heading", odometry.getPoseFTCStandard().getHeading(AngleUnit.RADIANS));
+
+        packet.put("Drive/Distance to Goal", getDistanceToGoal());
 //        packet.put("Drive/PedroPose/Pose x", getFollowerPose().getX());
 //        packet.put("Drive/PedroPose/Pose y", getFollowerPose().getY());
 //        packet.put("Drive/PedroPose/Pose heading", getFollowerPose().getHeading());

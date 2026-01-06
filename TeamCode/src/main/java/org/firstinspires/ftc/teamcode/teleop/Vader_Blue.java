@@ -70,6 +70,9 @@ public class Vader_Blue extends OpMode {
 
         turretSubsystem.setPosition(0);
 
+        telemetry.addLine("Robot");
+        telemetry.addData("Voltage", Robot.getRobotVoltage());
+
         driveSubsystem.setTelemetry(telemetry);
         intakeSubsystem.setTelemetry(telemetry);
         hoodSubsystem.setTelemetry(telemetry);
