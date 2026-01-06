@@ -13,11 +13,14 @@ import org.firstinspires.ftc.lib.orion.odometry.Odometry;
 import org.firstinspires.ftc.lib.orion.odometry.PoseEstimator;
 import org.firstinspires.ftc.lib.pedroPathing.Constants;
 import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
+import org.firstinspires.ftc.lib.wpilib.math.Matrix;
 import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N1;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N3;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -109,6 +112,10 @@ public class DriveSubsystem {
         poseEstimator.addVisionMeasurement(visPose, timestampSeconds);
     }
 
+    public void addVisionMeasurement(Pose2d visPose, double timestampSeconds, Matrix<N3, N1> visionStdDev) {
+        poseEstimator.addVisionMeasurement(visPose, timestampSeconds, visionStdDev);
+    }
+
     public double getDistanceToGoal() {
         Pose3D estPose = new Pose3D(new Position(DistanceUnit.METER, getEstimatedPose().getX(DistanceUnit.METER), getEstimatedPose().getY(DistanceUnit.METER), 0.0, 0), new YawPitchRollAngles(AngleUnit.RADIANS, getEstimatedPose().getHeading(AngleUnit.RADIANS), 0, 0, 0));
 
@@ -124,11 +131,11 @@ public class DriveSubsystem {
 
 
     public void setTelemetry(Telemetry telemetry) {
-//        telemetry.addLine("//Drive//");
-//        telemetry.addData("X", getEstimatedPose().getX());
-//        telemetry.addData("Y", getEstimatedPose().getY());
-//        telemetry.addData("Heading", getEstimatedPose().getRotation().getDegrees());
-//        telemetry.addData("Distance to Goal", getDistanceToGoal());
+        telemetry.addLine("//Drive//");
+        telemetry.addData("X", getEstimatedPose().getX(DistanceUnit.METER));
+        telemetry.addData("Y", getEstimatedPose().getY(DistanceUnit.METER));
+        telemetry.addData("Heading", getEstimatedPose().getHeading(AngleUnit.RADIANS));
+        telemetry.addData("Distance to Goal", getDistanceToGoal());
 
 
         TelemetryPacket packet = new TelemetryPacket();
@@ -139,6 +146,8 @@ public class DriveSubsystem {
         packet.put("Drive/Odometry Pose/Pose x", odometry.getPoseFTCStandard().getX(DistanceUnit.INCH));
         packet.put("Drive/Odometry Pose/Pose y", odometry.getPoseFTCStandard().getY(DistanceUnit.INCH));
         packet.put("Drive/Odometry Pose/Pose heading", odometry.getPoseFTCStandard().getHeading(AngleUnit.RADIANS));
+
+        packet.put("Drive/Distance to Goal", getDistanceToGoal());
 //        packet.put("Drive/PedroPose/Pose x", getFollowerPose().getX());
 //        packet.put("Drive/PedroPose/Pose y", getFollowerPose().getY());
 //        packet.put("Drive/PedroPose/Pose heading", getFollowerPose().getHeading());

@@ -41,19 +41,19 @@ public class Constants {
 
 
 
-    public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants()
+    public static ThreeWheelConstants localizerConstants = new ThreeWheelConstants() //TODO: Something is wrong here and I will find it
             .forwardTicksToInches(5.431931944E-4)
-            .strafeTicksToInches(5.561564344E-4)
+            .strafeTicksToInches(5.56156434E-4)
             .turnTicksToInches(5.441599634E-4)
-            .leftPodY(-6.140628)
-            .rightPodY(6.140628)
-            .strafePodX(-4.195)
+            .leftPodY(6.140628)
+            .rightPodY(-6.140628)
+            .strafePodX(-4.305)
             .leftEncoder_HardwareMapName(FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME)
             .rightEncoder_HardwareMapName(DriveConstants.RIGHT_BACK_MOTOR_NAME)
             .strafeEncoder_HardwareMapName(DriveConstants.RIGHT_FRONT_MOTOR_NAME)
-            .leftEncoderDirection(Encoder.REVERSE)
-            .rightEncoderDirection(Encoder.FORWARD)
-            .strafeEncoderDirection(Encoder.REVERSE);
+            .leftEncoderDirection(Encoder.FORWARD)
+            .rightEncoderDirection(Encoder.REVERSE)
+            .strafeEncoderDirection(Encoder.FORWARD);
 
 
     public static Follower createFollower(HardwareMap hardwareMap) {

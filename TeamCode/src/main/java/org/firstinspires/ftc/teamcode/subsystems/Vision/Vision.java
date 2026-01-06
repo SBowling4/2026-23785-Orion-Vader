@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
+import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
@@ -69,6 +70,8 @@ public class Vision {
             return;
         }
 
+        limelight.updateRobotOrientation(driveSubsystem.getEstimatedPose().getHeading(AngleUnit.DEGREES));
+
         result = limelight.getLatestResult();
 
         if (result == null || !result.isValid() || result.getFiducialResults().isEmpty()) {
@@ -76,13 +79,21 @@ public class Vision {
             return;
         }
 
-        botPose = result.getBotpose();
+        botPose = result.getBotpose_MT2();
 
         Translation3d translation = CoordinateSystems.fieldCoordinatesToWPILib(botPose.getPosition());
 
-        Pose2d pose = new Pose2d(translation.toTranslation2d(), Rotation2d.fromRadians(botPose.getOrientation().getYaw(AngleUnit.RADIANS)));
+        Pose2d pose = new Pose2d(translation.toTranslation2d(), Rotation2d.fromDegrees(botPose.getOrientation().getYaw()));
 
-        driveSubsystem.addVisionMeasurement(pose, result.getTimestamp());
+        driveSubsystem.addVisionMeasurement(
+                pose,
+                result.getTimestamp()
+//                VecBuilder.fill(
+//                        pose.getX() * .5, //TODO: Figure out how to do this
+//                        pose.getX() * .5,
+//                        pose.getX() * .5
+//                )
+        );
     }
 
 
@@ -110,7 +121,8 @@ public class Vision {
 
         packet.put("Vision/Pose/Pose x", Units.metersToInches(botPose.getPosition().x));
         packet.put("Vision/Pose/Pose y", Units.metersToInches(botPose.getPosition().y));
-        packet.put("Vision/Pose/Pose heading", botPose.getOrientation().getYaw());
+        packet.put("Vision/Pose/Pose heading",Units.degreesToRadians(botPose.getOrientation().getYaw()));
+
 
 
 
