@@ -60,7 +60,7 @@ public class DriveSubsystem {
         poseEstimator = new PoseEstimator(odometry, VecBuilder.fill(0.6,0.6,0.6), VecBuilder.fill(0.1,0.1,1)); //TODO: fill these in
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(72,72)); //TODO: idk smthn here
+        follower.setStartingPose(Robot.lastPose); //TODO: idk smthn here
     }
 
     public void start() {
@@ -68,8 +68,6 @@ public class DriveSubsystem {
     }
 
     public void loop() {
-
-//        mecanum.driveRobotCentric(gamepad1.left_stick_x, -gamepad1.left_stick_y, gamepad1.right_stick_x);
 
         follower.setTeleOpDrive(
                 -gamepad1.left_stick_y,
@@ -81,6 +79,10 @@ public class DriveSubsystem {
 
         if (gamepad1.share) {
             resetHeading();
+        }
+
+        if (gamepad1.left_stick_button && gamepad1.right_stick_button) {
+            follower.setPose(new Pose(9, 144 - 9, Units.radiansToDegrees(-90))); //TODO: Check
         }
 
         follower.update();

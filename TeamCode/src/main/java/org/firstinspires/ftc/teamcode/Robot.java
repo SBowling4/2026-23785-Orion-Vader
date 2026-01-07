@@ -1,16 +1,22 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.lib.orion.util.Alliance;
+import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 
 @Configurable
 public class Robot {
     public static Alliance alliance = Alliance.UNKNOWN;
 
     public static boolean tuningMode = false;
+
+    public static Pose lastPose = new Pose(9, 144 - 9, Units.degreesToRadians(0));
+    public static double lastHood = 0;
+    public static double lastTurret = 0;
 
     public static HardwareMap hardwareMap;
 

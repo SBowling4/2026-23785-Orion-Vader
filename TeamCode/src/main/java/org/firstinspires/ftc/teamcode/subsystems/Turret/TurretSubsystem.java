@@ -121,7 +121,7 @@ public class TurretSubsystem {
         int ticksPerRev = 8192;
         double revolutions = (double) encoder.getPosition() / ticksPerRev;
 
-        return -revolutions * 2 * Math.PI * TurretConstants.GEAR_RATIO;
+        return Robot.lastTurret -revolutions * 2 * Math.PI * TurretConstants.GEAR_RATIO;
     }
 
 

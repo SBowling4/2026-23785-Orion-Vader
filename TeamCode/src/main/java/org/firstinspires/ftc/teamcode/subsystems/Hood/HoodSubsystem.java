@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 
@@ -58,7 +59,6 @@ public class HoodSubsystem {
 
         pid.setTolerance(1);
 
-
         tuningPos = 0;
     }
 
@@ -66,25 +66,19 @@ public class HoodSubsystem {
      * Loops the Shooter Subsystem
      */
     public void loop() {
-//        if (Robot.tuningMode) {
-//            if (gamepad1.dpad_up) {
-//                tuningPos += .5;
-//            } else if (gamepad1.dpad_down) {
-//                tuningPos -= .5;
-//            }
-//
-//            tuningPos = Range.clip(tuningPos, 0, 25);
-//
-//            setAngle(tuningPos);
-//      }
-
-        if (gamepad1.right_bumper) {
-            setAngle(17);
-        } else if (gamepad1.left_bumper) {
-            setAngle(3);
+        if (Robot.tuningMode) {
+            setAngle(HoodConstants.target);
         } else {
-            setAngle(0);
+            if (gamepad1.right_bumper) {
+                setAngle(17);
+            } else if (gamepad1.left_bumper) {
+                setAngle(3);
+            } else {
+                setAngle(0);
+            }
         }
+
+
     }
 
     /**
@@ -105,7 +99,7 @@ public class HoodSubsystem {
         int ticksPerRev = 8192;
         double revolutions = (double) hoodEncoder.getPosition() / ticksPerRev;
 
-        return revolutions * 360.0 * HoodConstants.GEAR_RATIO;
+        return Robot.lastHood + revolutions * 360.0 * HoodConstants.GEAR_RATIO;
     }
 
 

@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.lib.orion.hardware.Motor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Hood.HoodSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.KICKER_STATE;
@@ -70,24 +71,30 @@ public class FeederSubsystem {
      * Main loop for the Feeder Subsystem
      */
     public void loop() {
-        if (gamepad1.a) {
+        if (Robot.tuningMode) {
             setFeederState(FEEDER_STATE.IN);
-        } else if (gamepad1.y) {
-            setFeederState(FEEDER_STATE.OUT);
-        } else {
-            setFeederState(FEEDER_STATE.STOP);
-        }
-
-        if (gamepad1.dpad_up) {
-            setKickerState(KICKER_STATE.IN);
-        } else if (gamepad1.dpad_down) {
-           setKickerState(KICKER_STATE.OUT);
-        }
-
-        if (gamepad1.dpad_right) {
-            setStopperState(STOPPER_STATE.CLOSED);
-        } else if (gamepad1.dpad_left) {
             setStopperState(STOPPER_STATE.OPEN);
+            setKickerState(KICKER_STATE.OUT);
+        } else {
+            if (gamepad1.a) {
+                setFeederState(FEEDER_STATE.IN);
+            } else if (gamepad1.y) {
+                setFeederState(FEEDER_STATE.OUT);
+            } else {
+                setFeederState(FEEDER_STATE.STOP);
+            }
+
+            if (gamepad1.dpad_up) {
+                setKickerState(KICKER_STATE.IN);
+            } else if (gamepad1.dpad_down) {
+                setKickerState(KICKER_STATE.OUT);
+            }
+
+            if (gamepad1.dpad_right) {
+                setStopperState(STOPPER_STATE.CLOSED);
+            } else if (gamepad1.dpad_left) {
+                setStopperState(STOPPER_STATE.OPEN);
+            }
         }
 
 
