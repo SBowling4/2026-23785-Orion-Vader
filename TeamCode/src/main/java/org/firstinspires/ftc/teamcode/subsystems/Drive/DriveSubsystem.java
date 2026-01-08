@@ -82,7 +82,8 @@ public class DriveSubsystem {
         }
 
         if (gamepad1.left_stick_button && gamepad1.right_stick_button) {
-            follower.setPose(new Pose(9, 144 - 9, Units.radiansToDegrees(-90))); //TODO: Check
+            follower.setPose(new Pose(72,72,lastHeading)); //TODO: Check
+            lastHeading = 0;
         }
 
         follower.update();
@@ -94,6 +95,11 @@ public class DriveSubsystem {
     public Pose getFollowerPose() {
         return new Pose(follower.getPose().getX(), follower.getPose().getY(), follower.getHeading() + lastHeading);
     }
+
+    public Pose getFollowerPoseFieldAdj() {
+        return new Pose(getFollowerPose().getX() - 72, getFollowerPose().getY() - 72, getFollowerPose().getHeading());
+    }
+
 
     public Pose2D getEstimatedPose() {
         Pose2d poseEstimatorPose = poseEstimator.getEstimatedPosition();

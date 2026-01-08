@@ -14,7 +14,7 @@ public class Robot {
 
     public static boolean tuningMode = false;
 
-    public static Pose lastPose = new Pose(9, 144 - 9, Units.degreesToRadians(0));
+    public static Pose lastPose = new Pose(72,72,0);
     public static double lastHood = 0;
     public static double lastTurret = 0;
 
