@@ -63,8 +63,8 @@ public class FeederSubsystem {
         feederState = FEEDER_STATE.STOP;
 
 
-//        flywheelSubsystem = FlywheelSubsystem.getInstance();
-//        shooterSubsystem = ShooterSubsystem.getInstance();
+        flywheelSubsystem = FlywheelSubsystem.getInstance();
+        hoodSubsystem = HoodSubsystem.getInstance();
     }
 
     /**
@@ -76,7 +76,13 @@ public class FeederSubsystem {
             setStopperState(STOPPER_STATE.OPEN);
             setKickerState(KICKER_STATE.OUT);
         } else {
-            if (gamepad1.a) {
+            if (gamepad1.right_bumper) {
+                if (flywheelSubsystem.atVelocity()) {
+                    setFeederState(FEEDER_STATE.IN);
+                } else {
+                    setFeederState(FEEDER_STATE.STOP);
+                }
+            } else if (gamepad1.a) {
                 setFeederState(FEEDER_STATE.IN);
             } else if (gamepad1.y) {
                 setFeederState(FEEDER_STATE.OUT);
@@ -90,10 +96,10 @@ public class FeederSubsystem {
                 setKickerState(KICKER_STATE.OUT);
             }
 
-            if (gamepad1.dpad_right) {
-                setStopperState(STOPPER_STATE.CLOSED);
-            } else if (gamepad1.dpad_left) {
+            if (gamepad1.right_bumper) {
                 setStopperState(STOPPER_STATE.OPEN);
+            } else {
+                setStopperState(STOPPER_STATE.CLOSED);
             }
         }
 

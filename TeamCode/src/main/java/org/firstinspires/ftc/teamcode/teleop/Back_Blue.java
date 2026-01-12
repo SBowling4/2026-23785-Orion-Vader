@@ -16,8 +16,8 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Turret.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 
-@TeleOp(name = "Vader_Blue", group = "Orion")
-public class Vader_Blue extends OpMode {
+@TeleOp(name = "Back_Blue", group = "Orion")
+public class Back_Blue extends OpMode {
     DriveSubsystem driveSubsystem;
     IntakeSubsystem intakeSubsystem;
     HoodSubsystem hoodSubsystem;
@@ -32,6 +32,7 @@ public class Vader_Blue extends OpMode {
     public void init() {
         Robot.alliance = Alliance.BLUE;
         Robot.sendHardwareMap(hardwareMap);
+        Robot.lastPose = Robot.blueBackStart;
 
         telemetry = new MultipleTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 

@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 
@@ -23,6 +24,8 @@ public class HoodSubsystem {
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
     private static HoodSubsystem instance;
+    private DriveSubsystem driveSubsystem;
+    private FlywheelSubsystem flywheelSubsystem;
 
     public double tuningPos = 0;
     public double targetPos = 0;
@@ -60,6 +63,9 @@ public class HoodSubsystem {
         pid.setTolerance(1);
 
         tuningPos = 0;
+
+        driveSubsystem = DriveSubsystem.getInstance();
+        flywheelSubsystem = FlywheelSubsystem.getInstance();
     }
 
     /**
@@ -70,15 +76,22 @@ public class HoodSubsystem {
             setAngle(HoodConstants.target);
         } else {
             if (gamepad1.right_bumper) {
-                setAngle(17);
-            } else if (gamepad1.left_bumper) {
-                setAngle(3);
+                setAngle(findAngle(driveSubsystem.getDistanceToGoal()));
             } else {
                 setAngle(0);
             }
         }
 
 
+    }
+
+    public double findAngle(double distance) {
+        double baseAngle = -255 + 593 * distance - 435 * Math.pow(distance, 2) + 107 * Math.pow(distance, 3);
+        return baseAngle;
+//        double baseRPM = flywheelSubsystem.findVelocity(distance);
+//
+//        double angleAdj = baseAngle - 1 * (baseRPM - flywheelSubsystem.getVelocity());
+//        return angleAdj;
     }
 
     /**

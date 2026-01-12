@@ -4,12 +4,9 @@ import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
-import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
@@ -70,7 +67,7 @@ public class Vision {
             return;
         }
 
-        limelight.updateRobotOrientation(driveSubsystem.getEstimatedPose().getHeading(AngleUnit.DEGREES));
+        limelight.updateRobotOrientation(driveSubsystem.getEstimatedPoseFTC().getHeading(AngleUnit.DEGREES));
 
         result = limelight.getLatestResult();
 

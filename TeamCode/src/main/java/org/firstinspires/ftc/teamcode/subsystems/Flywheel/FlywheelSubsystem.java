@@ -12,6 +12,7 @@ import org.firstinspires.ftc.lib.orion.feedforward.FeedForwardCoefficients;
 import org.firstinspires.ftc.lib.orion.hardware.Motor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
 
 
@@ -25,6 +26,7 @@ public class FlywheelSubsystem {
 
     private final Gamepad gamepad1;
     private final HardwareMap hardwareMap;
+    private DriveSubsystem driveSubsystem;
 
     public double tuningVelocity = 0.0;
 
@@ -71,6 +73,8 @@ public class FlywheelSubsystem {
                     FlywheelConstants.kS,
                     FlywheelConstants.kV
             ));
+
+        driveSubsystem = DriveSubsystem.getInstance();
     }
 
     /**
@@ -98,8 +102,10 @@ public class FlywheelSubsystem {
         if (Robot.tuningMode) {
             setVelocity(FlywheelConstants.target);
         } else {
-            if (gamepad1.right_bumper || gamepad1.left_bumper) {
-                setPower(1);
+            if (gamepad1.right_bumper) {
+                setVelocity(findVelocity(driveSubsystem.getDistanceToGoal()));
+            } else if (gamepad1.y) {
+                setPower(-1);
             } else {
                 stop();
             }
@@ -149,7 +155,15 @@ public class FlywheelSubsystem {
      * @return true if at target velocity, false otherwise
      */
     public boolean atVelocity() {
-        return Math.abs(getVelocity() - lastTargetRadPerSec) < 5;
+        if (lastTargetRadPerSec < getVelocity()) {
+            return true;
+        }
+
+        if (Math.abs(lastTargetRadPerSec - getVelocity()) < 100) {
+            return true;
+        }
+
+        return false;
     }
 
 
@@ -160,7 +174,7 @@ public class FlywheelSubsystem {
      * @return Desired velocity for flywheel (rad/s)
      */
     public double findVelocity(double distance) {
-        return 204 + 74.4 * distance + -23.8 * Math.pow(distance, 2) + 5.36 * Math.pow(distance, 3);
+        return 2558 + -769 * distance + 634 * Math.pow(distance, 2) + -98.3 * Math.pow(distance, 3);
     }
 
     /**
