@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -72,15 +73,18 @@ public class Vader_Red extends OpMode {
         telemetry.addLine("Robot");
         telemetry.addData("Voltage", Robot.getRobotVoltage());
 
-        driveSubsystem.setTelemetry(telemetry);
-        intakeSubsystem.setTelemetry(telemetry);
-        hoodSubsystem.setTelemetry(telemetry);
-        flywheelSubsystem.setTelemetry(telemetry);
-        feederSubsystem.setTelemetry(telemetry);
-        vision.setTelemetry(telemetry);
-        turretSubsystem.setTelemetry(telemetry);
+        TelemetryPacket packet = new TelemetryPacket();
+        packet.put("Robot/Loop Time", 0);
 
-        telemetry.update();
+        driveSubsystem.setTelemetry(packet);
+        intakeSubsystem.setTelemetry(packet);
+        hoodSubsystem.setTelemetry(packet);
+        flywheelSubsystem.setTelemetry(packet);
+        feederSubsystem.setTelemetry(packet);
+        vision.setTelemetry(packet);
+        turretSubsystem.setTelemetry(packet);
+
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
     @Override

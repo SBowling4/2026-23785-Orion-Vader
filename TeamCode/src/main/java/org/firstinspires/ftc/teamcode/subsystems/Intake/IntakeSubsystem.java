@@ -58,6 +58,10 @@ public class IntakeSubsystem {
     }
 
     public void setState(INTAKE_STATE state) {
+        if (this.intakeState == state) {
+            return;
+        }
+
         this.intakeState = state;
         intakeMotor.setPower(state.getPower());
     }
@@ -66,15 +70,8 @@ public class IntakeSubsystem {
         return this.intakeState;
     }
 
-    public void setTelemetry(Telemetry telemetry) {
-        telemetry.addLine("//Intake//");
-        telemetry.addData("Intake State", intakeState.toString());
-        telemetry.addLine();
-
-        TelemetryPacket packet = new TelemetryPacket();
+    public void setTelemetry(TelemetryPacket packet) {
         packet.put("Intake/IntakeState", intakeState.toString());
-
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
 

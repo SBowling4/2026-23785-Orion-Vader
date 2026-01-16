@@ -2,9 +2,11 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -20,13 +22,13 @@ import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 public class Vader_Blue extends OpMode {
     DriveSubsystem driveSubsystem;
     IntakeSubsystem intakeSubsystem;
-    HoodSubsystem hoodSubsystem;
+//    HoodSubsystem hoodSubsystem;
     Vision vision;
     FlywheelSubsystem flywheelSubsystem;
     FeederSubsystem feederSubsystem;
     TurretSubsystem turretSubsystem;
 
-
+    ElapsedTime timer;
 
     @Override
     public void init() {
@@ -38,7 +40,7 @@ public class Vader_Blue extends OpMode {
         driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
         intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1);
         flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
-        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
+//        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
         feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
         vision = Vision.getInstance(hardwareMap);
         turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1);
@@ -48,45 +50,50 @@ public class Vader_Blue extends OpMode {
         driveSubsystem.init();
         intakeSubsystem.init();
         flywheelSubsystem.init();
-        hoodSubsystem.init();
+//        hoodSubsystem.init();
         feederSubsystem.init();
         turretSubsystem.init();
+
+        timer = new ElapsedTime();
     }
 
     @Override
     public void start() {
         driveSubsystem.start();
         vision.start();
+        timer.startTime();
     }
 
     @Override
     public void loop() {
         driveSubsystem.loop();
         intakeSubsystem.loop();
-        hoodSubsystem.loop();
+//        hoodSubsystem.loop();
         flywheelSubsystem.loop();
         feederSubsystem.loop();
         vision.loop();
         turretSubsystem.loop();
 
-        telemetry.addLine("Robot");
-        telemetry.addData("Voltage", Robot.getRobotVoltage());
 
-        driveSubsystem.setTelemetry(telemetry);
-        intakeSubsystem.setTelemetry(telemetry);
-        hoodSubsystem.setTelemetry(telemetry);
-        flywheelSubsystem.setTelemetry(telemetry);
-        feederSubsystem.setTelemetry(telemetry);
-        vision.setTelemetry(telemetry);
-        turretSubsystem.setTelemetry(telemetry);
+        TelemetryPacket packet = new TelemetryPacket();
 
-        telemetry.update();
+        driveSubsystem.setTelemetry(packet);
+        intakeSubsystem.setTelemetry(packet);
+//        hoodSubsystem.setTelemetry(packet);
+        flywheelSubsystem.setTelemetry(packet);
+        feederSubsystem.setTelemetry(packet);
+        vision.setTelemetry(packet);
+        turretSubsystem.setTelemetry(packet);
+
+        packet.put("Robot/Loop Time", timer.milliseconds());
+        timer.reset();
+
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
     @Override
     public void stop() {
         Robot.lastPose = driveSubsystem.getFollowerPose();
-        Robot.lastHood = hoodSubsystem.getPosition();
         Robot.lastTurret = turretSubsystem.getPosition();
     }
 }

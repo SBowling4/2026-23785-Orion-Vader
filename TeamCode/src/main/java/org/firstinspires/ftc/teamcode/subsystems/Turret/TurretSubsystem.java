@@ -9,17 +9,23 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.lib.orion.PoseConverter;
 import org.firstinspires.ftc.lib.orion.util.Field;
+import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Transform2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Transform3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
@@ -39,9 +45,8 @@ public class TurretSubsystem {
 
     private double turretSetpoint = 0.0;
     private double turretPower = 0.0;
+    private double manualAdjust = 0.0;
 
-    double overall;
-    double heading;
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
@@ -70,52 +75,77 @@ public class TurretSubsystem {
     }
 
     public void loop() {
-//        if (Robot.tuningMode) {
-//            setPosition(TurretConstants.target);
-//        } else {
+        if (Robot.tuningMode) {
+            setPosition(TurretConstants.target);
+        } else {
             turretSetpoint = findPosition();
 
-            setPosition(turretSetpoint);
-//        }
+            if (gamepad1.dpad_left) {
+                manualAdjust += .1;
+            } else if (gamepad1.dpad_right) {
+                manualAdjust -= .1;
+            } else if (gamepad1.dpad_down) {
+                manualAdjust = 0;
+            }
+
+            if (gamepad1.right_bumper) {
+                setPosition(turretSetpoint + manualAdjust);
+
+            } else {
+                stop();
+            }
+        }
     }
 
     public void setPosition(double pos) {
+        pos = Range.clip(pos, -Math.PI/2, Math.PI/2);
+
         turretPower = -pidController.calculate(getPosition(), pos);
         setTurretPower(turretPower);
     }
 
+
     public Pose2d getTurretFieldPose() {
-        Pose2d robotPose = driveSubsystem.getEstimatedPoseWPILIB();
+        // Get the FTC pose instead
+        Pose2D ftcRobotPose = driveSubsystem.getEstimatedPoseFTC();
 
-        // Convert offset from inches to meters
-        double offsetMeters = Units.inchesToMeters(-3.376); // Negative because it's back from center
+        // Turret is 3.376 inches behind the robot center
+        double offsetMeters = Units.inchesToMeters(3.376);
 
-        // Create a transform representing only the turret's physical offset from robot center
-        // No rotation component - we only care about WHERE the turret is, not its angle
-        Transform2d turretOffset = new Transform2d(
-                new Translation2d(offsetMeters, 0.0), // X offset (backward), no Y offset
-                new Rotation2d(0.0) // No rotation in the transform
+        // Get robot's heading in FTC coordinates
+        double robotHeading = ftcRobotPose.getHeading(AngleUnit.RADIANS);
+
+        // In FTC robot coordinates, "back" is -Y direction
+        // So we calculate the offset in field coordinates
+        double turretOffsetX = -offsetMeters * Math.cos(robotHeading); // FTC: X is perpendicular to heading
+        double turretOffsetY = -offsetMeters * Math.sin(robotHeading); // FTC: Y is along heading
+
+        // Add the offset to the robot's position
+        double turretX = ftcRobotPose.getX(DistanceUnit.METER) + turretOffsetX;
+        double turretY = ftcRobotPose.getY(DistanceUnit.METER) + turretOffsetY;
+
+        // Convert back to WPILib Pose2d
+        Pose3D ftcTurretPose = new Pose3D(
+                new Position(DistanceUnit.METER, turretX, turretY, 0.0, 0),
+                new YawPitchRollAngles(AngleUnit.RADIANS, robotHeading, 0, 0, 0)
         );
 
-        // Apply the transform to get the turret's field position
-        Pose2d turretPose = robotPose.transformBy(turretOffset);
-
-        return turretPose;
+        return PoseConverter.ftcToWPILib(ftcTurretPose).toPose2d();
     }
 
     public double findPosition() {
         double robotHeading;
         double overallAngle;
 
-        Pose2d turretPose = getTurretFieldPose();
+        Translation2d turretPose = getTurretFieldPose().getTranslation();
 
         if (Robot.alliance == Alliance.BLUE) {
-            Translation2d delta = turretPose.getTranslation().minus(Field.BLUE_GOAL);
+            Translation2d delta = turretPose.minus(Field.BLUE_GOAL);
 
             overallAngle = Math.PI + delta.getAngle().getRadians();
 
         } else if (Robot.alliance == Alliance.RED) {
-            Translation2d delta = turretPose.getTranslation().minus(Field.RED_GOAL);
+            Translation2d delta = turretPose.minus(Field.RED_GOAL);
 
             overallAngle = delta.getAngle().getRadians();
         } else {
@@ -134,14 +164,14 @@ public class TurretSubsystem {
             return 0;
         }
 
-        return target;
+        return target + .1;//0.77; //0.175
     }
 
     public double getPosition() {
         int ticksPerRev = 8192;
         double revolutions = (double) encoder.getPosition() / ticksPerRev;
 
-        return -(-revolutions * 2 * Math.PI * TurretConstants.GEAR_RATIO);
+        return -revolutions * 2 * Math.PI * TurretConstants.GEAR_RATIO;
     }
 
 
@@ -155,24 +185,13 @@ public class TurretSubsystem {
         turretServo.setPower(power);
     }
 
-    public void setTelemetry(Telemetry telemetry) {
-        telemetry.addLine("// Turret //");
-        telemetry.addData("Turret Angle (rad)", getPosition());
-        telemetry.addData("Turret Setpoint (rad)", turretSetpoint);
-        telemetry.addData("Turret Needed Angle", findPosition());
-        telemetry.addData("Turret Overall Needed", overall);
-        telemetry.addData("Heading", heading);
-        telemetry.addLine();
-
-        TelemetryPacket packet = new TelemetryPacket();
+    public void setTelemetry(TelemetryPacket packet) {
         packet.put("Turret/Position", Units.radiansToDegrees(getPosition()));
         packet.put("Turret/Setpoint", Units.radiansToDegrees(turretSetpoint));
         packet.put("Turret/Needed Angle)", Units.radiansToDegrees(findPosition()));
-        packet.put("Turret/Pose/Pose x", Units.metersToInches(getTurretFieldPose().getTranslation().getX()));
-        packet.put("Turret/Pose/Pose y", Units.metersToInches(getTurretFieldPose().getTranslation().getY()));
-        packet.put("Turret/Pose/Pose heading", getTurretFieldPose().getRotation().getRadians());
-
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
+        packet.put("Turret/Pose/Pose x", Units.metersToInches(getTurretFieldPose().getX()));
+        packet.put("Turret/Pose/Pose y", Units.metersToInches(getTurretFieldPose().getY()));
+        packet.put("Turret/Pose/Pose heading", 0);
     }
 
     public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {

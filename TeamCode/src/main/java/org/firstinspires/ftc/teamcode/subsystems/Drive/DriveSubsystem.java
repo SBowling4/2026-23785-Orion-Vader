@@ -30,6 +30,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.lib.orion.util.Alliance;
+import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 
 public class DriveSubsystem {
 
@@ -43,6 +44,13 @@ public class DriveSubsystem {
 
     private double driverHeadingOffset = 0;
 
+    private double lastHeading = 0;
+    private boolean hasReset = false;
+
+    private Pose resetPose = new Pose(144 - 9.5, 9.5, Math.toRadians(270));
+
+    private Vision vision;
+
     private static DriveSubsystem instance;
 
     private DriveSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
@@ -55,13 +63,28 @@ public class DriveSubsystem {
 
         poseEstimator = new PoseEstimator(
                 odometry,
-                VecBuilder.fill(0.4, 0.4, 0.4),
-                VecBuilder.fill(0.3, 0.3, 0.3)
+                VecBuilder.fill(0.6, 0.6, .1),
+                VecBuilder.fill(0.2, 0.2, 99999)
         );
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Robot.lastPose);
+
+        vision = Vision.getInstance(hardwareMap);
     }
+
+    public void autoInit() {
+        odometry = new Odometry();
+
+        poseEstimator = new PoseEstimator(
+                odometry,
+                VecBuilder.fill(0.6, 0.6, .1),
+                VecBuilder.fill(0.2, 0.2, 99999)
+        );
+
+        vision = Vision.getInstance(hardwareMap);
+    }
+
 
     public void start() {
         follower.startTeleopDrive();
@@ -94,9 +117,33 @@ public class DriveSubsystem {
 
         // Full pose reset (resets both absolute and driver heading)
         if (gamepad1.left_stick_button && gamepad1.right_stick_button) {
-            follower.setPose(new Pose(72, 72, 0));
-            driverHeadingOffset = 0;
+            resetPose();
+
+            lastHeading = follower.getHeading();
+            follower.update();
+            odometry.update(follower.getPose());
+            poseEstimator.update();
+            return;
         }
+
+        if (Math.abs(lastHeading - follower.getHeading()) > Math.toRadians(40) && !hasReset) {
+            follower.setPose(new Pose(getFollowerPose().getX(), getFollowerPose().getY(), lastHeading));
+            vision.resetIMU(lastHeading);
+            hasReset = true;
+            lastHeading = follower.getHeading();
+            follower.update();
+            odometry.update(follower.getPose());
+            poseEstimator.update();
+            return;
+        }
+
+//        if (gamepad1.right_bumper) {
+//            follower.holdPoint(follower.getPose());
+//        }
+
+        hasReset = false;
+
+        lastHeading = follower.getHeading();
 
         // Update follower first
         follower.update();
@@ -106,6 +153,36 @@ public class DriveSubsystem {
 
         // Update pose estimator
         poseEstimator.update();
+    }
+
+
+    public void autoLoop(Follower follower) {
+        Pose poseAdj = convertPose(follower.getPose());
+
+        odometry.update(poseAdj);
+        poseEstimator.update();
+    }
+
+    private Pose convertPose(Pose pose) {
+        return new Pose(144 - pose.getY(),  pose.getX(),  pose.getHeading() + (Math.PI / 2));
+    }
+
+    public void resetPose() {
+        follower.setPose(resetPose);
+        driverHeadingOffset = 0;
+        odometry.resetPose(resetPose);
+        poseEstimator.resetPose(odometry.getPoseWPILib());
+        hasReset = true;
+    }
+
+    public void resetPoseHeading() {
+        double heading = Robot.alliance == Alliance.BLUE ? Math.toRadians(270) : Math.toRadians(90);
+        Pose headingResetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), heading);
+
+        follower.setPose(headingResetPose);
+        odometry.resetPose(headingResetPose);
+        poseEstimator.resetPose(odometry.getPoseWPILib());
+        hasReset = true;
     }
 
     /**
@@ -139,6 +216,10 @@ public class DriveSubsystem {
         );
     }
 
+    public Pose2D getOdometryPose() {
+        return odometry.getPoseFTCStandard();
+    }
+
     /**
      * Gets the estimated pose from the pose estimator (with vision fusion)
      */
@@ -150,6 +231,7 @@ public class DriveSubsystem {
                 0,
                 new Rotation3d(poseEstimatorPose.getRotation())
         );
+
         Pose3D ftcPose = CoordinateSystems.WPILibToFieldPose(pose3d);
 
         return new Pose2D(
@@ -161,16 +243,13 @@ public class DriveSubsystem {
         );
     }
 
-    public Pose2d getEstimatedPoseWPILIB() {
-        return poseEstimator.getEstimatedPosition();
-    }
-
     /**
      * Resets the driver's forward direction to the current robot heading
      * This does NOT affect the absolute field-relative heading used for odometry
      */
     public void resetDriverHeading() {
         driverHeadingOffset = follower.getHeading();
+        resetPoseHeading();
     }
 
     /**
@@ -222,15 +301,7 @@ public class DriveSubsystem {
         }
     }
 
-    public void setTelemetry(Telemetry telemetry) {
-        telemetry.addLine("//Drive//");
-        telemetry.addData("X", getEstimatedPoseFTC().getX(DistanceUnit.METER));
-        telemetry.addData("Y", getEstimatedPoseFTC().getY(DistanceUnit.METER));
-        telemetry.addData("Absolute Heading (deg)", Math.toDegrees(getAbsoluteHeading()));
-        telemetry.addData("Driver Heading (deg)", Math.toDegrees(getDriverRelativeHeading()));
-        telemetry.addData("Distance to Goal", getDistanceToGoal());
-
-        TelemetryPacket packet = new TelemetryPacket();
+    public void setTelemetry(TelemetryPacket packet) {
         packet.put("Drive/Estimated Pose/Pose x", Units.metersToInches(getEstimatedPoseFTC().getX(DistanceUnit.METER)));
         packet.put("Drive/Estimated Pose/Pose y", Units.metersToInches(getEstimatedPoseFTC().getY(DistanceUnit.METER)));
         packet.put("Drive/Estimated Pose/Pose heading", getEstimatedPoseFTC().getHeading(AngleUnit.RADIANS));
@@ -242,8 +313,7 @@ public class DriveSubsystem {
         packet.put("Drive/Absolute Heading (rad)", getAbsoluteHeading());
         packet.put("Drive/Driver Heading (rad)", getDriverRelativeHeading());
         packet.put("Drive/Distance to Goal", getDistanceToGoal());
-
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
+        packet.put("Drive/Heading diff", Math.abs(lastHeading - follower.getHeading()));
     }
 
     public static DriveSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {

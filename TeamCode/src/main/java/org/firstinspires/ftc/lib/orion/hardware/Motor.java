@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.lib.orion.hardware;
 
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,15 +14,14 @@ import org.firstinspires.ftc.lib.orion.feedforward.FeedForwardCoefficients;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
 import com.arcrobotics.ftclib.hardware.motors.Motor.Encoder;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 public class Motor {
     private final MotorEx internalMotor;
     private final com.arcrobotics.ftclib.hardware.motors.Motor.Encoder encoder;
     private final String name;
 
-    private PIDController pidController;
-    private FeedForward feedForward;
-
+    private PIDFController pidfController;
     public double lastAppliedVoltage = 0;
 
     public static final double TICKS_PER_REVOLUTION = 25;
@@ -57,26 +57,14 @@ public class Motor {
         return (internalMotor.getVelocity() / Motor.TICKS_PER_REVOLUTION) / 60.0;
     }
 
-    public void setPIDFCoefficients(PIDCoefficients pidCoefficients) {
-        pidController = new PIDController(
-                pidCoefficients.p,
-                pidCoefficients.i,
-                pidCoefficients.d
+
+    public void setCoefficients(PIDFCoefficients pidfCoefficients) {
+        pidfController = new PIDFController(
+                pidfCoefficients.p,
+                pidfCoefficients.i,
+                pidfCoefficients.d,
+                pidfCoefficients.f
         );
-    }
-
-    public void setFeedForwardCoefficients(FeedForwardCoefficients feedForwardCoefficients) {
-        feedForward = new FeedForward(feedForwardCoefficients);
-    }
-
-    public void setCoefficients(PIDCoefficients pidCoefficients, FeedForwardCoefficients feedForwardCoefficients) {
-        pidController = new PIDController(
-                pidCoefficients.p,
-                pidCoefficients.i,
-                pidCoefficients.d
-        );
-
-        feedForward = new FeedForward(feedForwardCoefficients);
     }
 
     public void setPower(double power) {
@@ -93,29 +81,23 @@ public class Motor {
     }
 
     public void setVelocity(double targetVelocity, double currentVelocity) {
-        if (pidController == null || feedForward == null) {
-            throw new IllegalStateException("PIDController and FeedForward must be set before using setVelocity.");
+        if (pidfController == null) {
+            throw new IllegalStateException("PIDFController must be set before using setVelocity.");
         }
 
-        double pidOutput = pidController.calculate(currentVelocity, targetVelocity);
-        double ffOutput = feedForward.calculate(targetVelocity);
+        double pidOutput = pidfController.calculate(currentVelocity, targetVelocity);
 
-        double totalOutput = pidOutput + ffOutput;
-
-        setVoltage(totalOutput);
+        setVoltage(pidOutput);
     }
 
     public void setVelocity(double targetVelocity) {
-        if (pidController == null || feedForward == null) {
-            throw new IllegalStateException("PIDController and FeedForward must be set before using setVelocity.");
+        if (pidfController == null) {
+            throw new IllegalStateException("PIDFController must be set before using setVelocity.");
         }
 
-        double pidOutput = pidController.calculate(internalMotor.getVelocity(), targetVelocity);
-        double ffOutput = feedForward.calculate(targetVelocity);
+        double pidOutput = pidfController.calculate(internalMotor.getVelocity(), targetVelocity);
 
-        double totalOutput = pidOutput + ffOutput;
-
-        setVoltage(totalOutput);
+        setVoltage(pidOutput);
     }
 
     public MotorEx getInternalMotor() {

@@ -40,7 +40,7 @@ public class Robot {
             throw new NullPointerException("Hardware map not sent to Robot");
         }
 
-        return -1;
+        throw new IllegalStateException("");
     }
 
 

@@ -82,11 +82,18 @@ public class HoodSubsystem {
             }
         }
 
+        if (gamepad1.options) {
+            reset();
+        }
 
     }
 
+    public void reset() {
+        hoodEncoder.reset();
+    }
+
     public double findAngle(double distance) {
-        double baseAngle = -255 + 593 * distance - 435 * Math.pow(distance, 2) + 107 * Math.pow(distance, 3);
+        double baseAngle = -348 + 728 * distance + -486 * Math.pow(distance, 2) + 108 * Math.pow(distance, 3);
         return baseAngle;
 //        double baseRPM = flywheelSubsystem.findVelocity(distance);
 //
@@ -132,17 +139,9 @@ public class HoodSubsystem {
     }
 
 
-    public void setTelemetry(Telemetry telemetry) {
-        telemetry.addLine("//Hood//");
-        telemetry.addData("Position", getPosition());
-        telemetry.addData("Target", targetPos);
-        telemetry.addLine();
-
-        TelemetryPacket packet = new TelemetryPacket();
+    public void setTelemetry(TelemetryPacket packet) {
         packet.put("Hood/Position", getPosition());
         packet.put("Hood/Target", targetPos);
-
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
 
