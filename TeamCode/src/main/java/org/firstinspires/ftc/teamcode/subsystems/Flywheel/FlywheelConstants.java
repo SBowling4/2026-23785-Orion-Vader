@@ -7,15 +7,10 @@ public class FlywheelConstants {
     public static final String LEFT_FLYWHEEL_MOTOR_NAME = "ls";
     public static final String RIGHT_FLYWHEEL_MOTOR_NAME = "rs";
 
-    public static final double TICKS_PER_REVOLUTION = 25.0;
-
-
-    public static double kP = 0.002;
+    public static double kP = 0.15;
     public static double kI = 0.0;
     public static double kD = 0.0;
-
-    public static double kS = 1.753;
-    public static double kV = .0028;
+    public static double kF = 0.0016;
 
     public static double target = 0;
 

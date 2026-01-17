@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.lib.orion.hardware.Motor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants.INTAKE_STATE;
 
 public class IntakeSubsystem {
@@ -42,16 +43,25 @@ public class IntakeSubsystem {
      * Main loop for the Intake Subsystem
      */
     public void loop() {
-        if (gamepad1.a) {
+        if (Robot.tuningMode) {
             setState(INTAKE_STATE.INTAKE);
-        } else if (gamepad1.y){
-            setState(INTAKE_STATE.OUT);
         } else {
-            setState(INTAKE_STATE.STOP);
+            if (gamepad1.a) {
+                setState(INTAKE_STATE.INTAKE);
+            } else if (gamepad1.y){
+                setState(INTAKE_STATE.OUT);
+            } else {
+                setState(INTAKE_STATE.STOP);
+            }
         }
+
     }
 
     public void setState(INTAKE_STATE state) {
+        if (this.intakeState == state) {
+            return;
+        }
+
         this.intakeState = state;
         intakeMotor.setPower(state.getPower());
     }
@@ -60,15 +70,8 @@ public class IntakeSubsystem {
         return this.intakeState;
     }
 
-    public void setTelemetry(Telemetry telemetry) {
-        telemetry.addLine("//Intake//");
-        telemetry.addData("Intake State", intakeState.toString());
-        telemetry.addLine();
-
-        TelemetryPacket packet = new TelemetryPacket();
+    public void setTelemetry(TelemetryPacket packet) {
         packet.put("Intake/IntakeState", intakeState.toString());
-
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
 

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystems.Hood;
 
 import com.bylazar.configurables.annotations.Configurable;
 
+@Configurable
 public class HoodConstants {
     public static final String SERVO_NAME = "hood";
     public static double kP = 0.25;
@@ -14,4 +15,5 @@ public class HoodConstants {
     public static final double MAX_ANGLE = 19;
 
 
+    public static double target = 0;
 }

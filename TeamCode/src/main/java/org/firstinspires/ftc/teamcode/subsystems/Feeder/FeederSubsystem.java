@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 
 import org.firstinspires.ftc.lib.orion.hardware.Motor;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Hood.HoodSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.KICKER_STATE;
@@ -23,6 +24,8 @@ public class FeederSubsystem {
     private Motor feederMotor;
     public ServoImplEx kickerServo;
     private ServoImplEx stopperServo;
+
+    private boolean atVelocity = false;
 
     private FlywheelSubsystem flywheelSubsystem;
     private HoodSubsystem hoodSubsystem;
@@ -58,68 +61,97 @@ public class FeederSubsystem {
 
 
         kickerState = KICKER_STATE.OUT;
-        stopperState = STOPPER_STATE.OPEN;
+        stopperState = STOPPER_STATE.CLOSED;
         feederState = FEEDER_STATE.STOP;
 
 
-//        flywheelSubsystem = FlywheelSubsystem.getInstance();
-//        shooterSubsystem = ShooterSubsystem.getInstance();
+        flywheelSubsystem = FlywheelSubsystem.getInstance();
     }
 
     /**
      * Main loop for the Feeder Subsystem
      */
     public void loop() {
-        if (gamepad1.a) {
+        if (Robot.tuningMode) {
             setFeederState(FEEDER_STATE.IN);
-        } else if (gamepad1.y) {
-            setFeederState(FEEDER_STATE.OUT);
-        } else {
-            setFeederState(FEEDER_STATE.STOP);
-        }
-
-        if (gamepad1.dpad_up) {
-            setKickerState(KICKER_STATE.IN);
-        } else if (gamepad1.dpad_down) {
-           setKickerState(KICKER_STATE.OUT);
-        }
-
-        if (gamepad1.dpad_right) {
-            setStopperState(STOPPER_STATE.CLOSED);
-        } else if (gamepad1.dpad_left) {
             setStopperState(STOPPER_STATE.OPEN);
+            setKickerState(KICKER_STATE.OUT);
+        } else {
+            if (gamepad1.right_bumper) {
+                if (flywheelSubsystem.atVelocity() && !atVelocity) {
+                    atVelocity = true;
+                }
+
+                if (atVelocity) {
+                    setFeederState(FEEDER_STATE.IN);
+                } else {
+                    setFeederState(FEEDER_STATE.STOP);
+                }
+            } else if (gamepad1.a) {
+                atVelocity = false;
+                setFeederState(FEEDER_STATE.IN);
+            } else if (gamepad1.y) {
+                atVelocity = false;
+                setFeederState(FEEDER_STATE.OUT);
+            } else {
+                atVelocity = false;
+                setFeederState(FEEDER_STATE.STOP);
+            }
+
+            if (gamepad1.left_bumper) {
+                setKickerState(KICKER_STATE.IN);
+            } else {
+                setKickerState(KICKER_STATE.OUT);
+            }
+
+            if (gamepad1.right_bumper) {
+                setStopperState(STOPPER_STATE.OPEN);
+            } else {
+                setStopperState(STOPPER_STATE.CLOSED);
+            }
         }
 
 
 
 
 
-    }
-
-    /**
-     * Automatically feeds objects when the flywheel and shooter are at their target states.
-     */
-    public void autoFeed() {
-//        if (flywheelSubsystem.atVelocity() && shooterSubsystem.atPosition()) {
-//            feed();
-//        } else {
-//            stop();
-//        }
     }
 
     public void setFeederState(FEEDER_STATE state) {
+        if (this.feederState == state) {
+            return;
+        }
+
         this.feederState = state;
 
         feederMotor.setPower(state.getPower());
     }
 
     public void setStopperState(STOPPER_STATE state) {
+        if (this.stopperState == state) {
+            return;
+        }
+
+        this.stopperState = state;
+
+        stopperServo.setPosition(state.getPosition());
+    }
+
+    public void setStopperState(STOPPER_STATE state, boolean force) {
+        if (this.stopperState == state && !force) {
+            return;
+        }
+
         this.stopperState = state;
 
         stopperServo.setPosition(state.getPosition());
     }
 
     public void setKickerState(KICKER_STATE state) {
+        if (this.kickerState == state) {
+            return;
+        }
+
         this.kickerState = state;
 
         kickerServo.setPosition(state.getPosition());
@@ -137,26 +169,12 @@ public class FeederSubsystem {
         return feederState;
     }
 
-    public void setTelemetry(Telemetry telemetry) {
-        telemetry.addLine("//Feeder//");
-        telemetry.addData("Feeder State", feederState.toString());
-        telemetry.addLine("---------------");
-        telemetry.addData("Kicker State", kickerState.toString());
-        telemetry.addData("Kicker Pos", kickerServo.getController().getServoPosition(0));
-        telemetry.addLine("---------------");
-        telemetry.addData("Stopper State", stopperState.toString());
-        telemetry.addData("Stopper Pos", stopperServo.getController().getServoPosition(2));
-
-        telemetry.addLine();
-
-        TelemetryPacket packet = new TelemetryPacket();
+    public void setTelemetry(TelemetryPacket packet) {
         packet.put("Feeder/FeederState", feederState.toString());
         packet.put("Feeder/Kicker/KickerState", kickerState.toString());
         packet.put("Feeder/Kicker/KickerPos", kickerServo.getController().getServoPosition(0));
         packet.put("Feeder/Stopper/StopperState", stopperState.toString());
         packet.put("Feeder/Stopper/StopperPos", stopperServo.getController().getServoPosition(2));
-
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
     }
 
     /**

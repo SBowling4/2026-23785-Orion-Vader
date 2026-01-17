@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems.Vision;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -9,17 +8,17 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
 import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
-import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
+
+import java.util.Optional;
 
 public class Vision {
     private Limelight3A limelight;
@@ -30,6 +29,10 @@ public class Vision {
     private Pose3D botPose;
 
     private DriveSubsystem driveSubsystem;
+
+    private IMU imu;
+    private double resetIMUVal = 0;
+    private double yaw;
 
     private static Vision instance;
 
@@ -53,6 +56,16 @@ public class Vision {
         }
 
         driveSubsystem = DriveSubsystem.getInstance();
+
+        IMU.Parameters parameters = new IMU.Parameters(
+                new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
+                )
+        );
+
+        imu = hardwareMap.get(IMU.class, "imu");
+        imu.initialize(parameters);
     }
 
     /**
@@ -70,7 +83,9 @@ public class Vision {
             return;
         }
 
-        limelight.updateRobotOrientation(driveSubsystem.getEstimatedPose().getHeading(AngleUnit.DEGREES));
+        yaw = driveSubsystem.getOdometryPose().getHeading(AngleUnit.DEGREES);
+
+        limelight.updateRobotOrientation(yaw < 0 ? yaw + 720 : yaw);
 
         result = limelight.getLatestResult();
 
@@ -96,26 +111,32 @@ public class Vision {
         );
     }
 
+    public void resetIMU() {
+        imu.resetYaw();
+    }
+
+    public void resetIMU(double resetVal) {
+        resetIMUVal = resetVal;
+        imu.resetYaw();
+    }
+
+    public Optional<Double> getTx() {
+        if (!result.isValid()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(result.getTx());
+    }
 
 
 
-    public void setTelemetry(Telemetry telemetry) {
-        telemetry.addLine("//Vision//");
-        telemetry.addData("Limelight Connected", limelight.isConnected());
-        telemetry.addData("Limelight Running", limelight.isRunning());
-        telemetry.addLine("------------");
 
-        TelemetryPacket packet = new TelemetryPacket();
-
+    public void setTelemetry(TelemetryPacket packet) {
         if (botPose == null) {
-            telemetry.addLine("Pose Invalid");
-            telemetry.addLine();
-
             packet.put("Vision/Pose/Pose x", 0);
             packet.put("Vision/Pose/Pose y", 0);
             packet.put("Vision/Pose/Pose heading", 0);
 
-            FtcDashboard.getInstance().sendTelemetryPacket(packet);
             return;
         }
 
@@ -123,14 +144,10 @@ public class Vision {
         packet.put("Vision/Pose/Pose y", Units.metersToInches(botPose.getPosition().y));
         packet.put("Vision/Pose/Pose heading",Units.degreesToRadians(botPose.getOrientation().getYaw()));
 
+        packet.put("Vision/IMU/Raw yaw",imu.getRobotYawPitchRollAngles().getYaw());
+        packet.put("Vision/IMU/Val", yaw);
+        packet.put("Vision/IMU/reset val", resetIMUVal);
 
-
-
-        for (int i = 0; i < result.getFiducialResults().size(); i++) {
-            packet.put("Vision/Apriltags/Detections/" +  i + "/id", result.getFiducialResults().get(i).getFiducialId());
-        }
-
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
     }
 

@@ -9,15 +9,23 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.lib.orion.PoseConverter;
 import org.firstinspires.ftc.lib.orion.util.Field;
+import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Transform2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Transform3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
@@ -35,19 +43,22 @@ public class TurretSubsystem {
 
     private Pose robotPose;
 
-    private double turretAngle = Math.PI / 2.0;
     private double turretSetpoint = 0.0;
     private double turretPower = 0.0;
+    private double manualAdjust = 0.0;
+
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
+    private final Gamepad gamepad2;
     private DriveSubsystem driveSubsystem;
     private static TurretSubsystem instance;
 
 
-    private TurretSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
+    private TurretSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
+        this.gamepad2 = gamepad2;
     }
 
     public void init() {
@@ -66,55 +77,101 @@ public class TurretSubsystem {
     }
 
     public void loop() {
-//        robotPose = driveSubsystem.getPose();
-
-        // Always update measured position
-        turretAngle = getPosition();
-
-        if (gamepad1.right_bumper) {
-            turretSetpoint = findPosition();
+        if (Robot.tuningMode) {
+            setPosition(TurretConstants.target);
         } else {
-            turretSetpoint = 0.0;
-        }
+            if (Robot.mode == Robot.RobotMode.VADER) {
+                turretSetpoint = findPosition();
 
-        setPosition(turretSetpoint);
+                if (gamepad2.dpad_left) {
+                    manualAdjust += .1;
+                } else if (gamepad2.dpad_right) {
+                    manualAdjust -= .1;
+                } else if (gamepad2.x) {
+                    manualAdjust = 0;
+                }
+
+                if (gamepad1.right_bumper) {
+                    setPosition(turretSetpoint + manualAdjust);
+
+                } else {
+                    stop();
+                }
+            } else {
+                setPosition(0);
+            }
+
+        }
     }
 
     public void setPosition(double pos) {
+        pos = Range.clip(pos, -Math.PI/2, Math.PI/2);
+
         turretPower = -pidController.calculate(getPosition(), pos);
         setTurretPower(turretPower);
+    }
+
+
+    public Pose2d getTurretFieldPose() {
+        // Get the FTC pose instead
+        Pose2D ftcRobotPose = driveSubsystem.getEstimatedPoseFTC();
+
+        // Turret is 3.376 inches behind the robot center
+        double offsetMeters = Units.inchesToMeters(3.376);
+
+        // Get robot's heading in FTC coordinates
+        double robotHeading = ftcRobotPose.getHeading(AngleUnit.RADIANS);
+
+        // In FTC robot coordinates, "back" is -Y direction
+        // So we calculate the offset in field coordinates
+        double turretOffsetX = -offsetMeters * Math.cos(robotHeading); // FTC: X is perpendicular to heading
+        double turretOffsetY = -offsetMeters * Math.sin(robotHeading); // FTC: Y is along heading
+
+        // Add the offset to the robot's position
+        double turretX = ftcRobotPose.getX(DistanceUnit.METER) + turretOffsetX;
+        double turretY = ftcRobotPose.getY(DistanceUnit.METER) + turretOffsetY;
+
+        // Convert back to WPILib Pose2d
+        Pose3D ftcTurretPose = new Pose3D(
+                new Position(DistanceUnit.METER, turretX, turretY, 0.0, 0),
+                new YawPitchRollAngles(AngleUnit.RADIANS, robotHeading, 0, 0, 0)
+        );
+
+        return PoseConverter.ftcToWPILib(ftcTurretPose).toPose2d();
     }
 
     public double findPosition() {
         double robotHeading;
         double overallAngle;
 
-        Pose3D estPose = new Pose3D(new Position(DistanceUnit.METER, driveSubsystem.getEstimatedPose().getX(DistanceUnit.METER), driveSubsystem.getEstimatedPose().getY(DistanceUnit.METER), 0.0, 0), new YawPitchRollAngles(AngleUnit.RADIANS, driveSubsystem.getEstimatedPose().getHeading(AngleUnit.RADIANS), 0, 0, 0));
-
-        Pose2d wpiLibPose = PoseConverter.ftcToWPILib(estPose).toPose2d();
+        Translation2d turretPose = getTurretFieldPose().getTranslation();
 
         if (Robot.alliance == Alliance.BLUE) {
-            Translation2d delta = wpiLibPose.getTranslation().minus(Field.BLUE_GOAL);
+            Translation2d delta = turretPose.minus(Field.BLUE_GOAL);
 
-            overallAngle = delta.getAngle().getRadians();
+            overallAngle = Math.PI + delta.getAngle().getRadians();
 
         } else if (Robot.alliance == Alliance.RED) {
-            Translation2d delta = wpiLibPose.getTranslation().minus(Field.RED_GOAL);
+            Translation2d delta = turretPose.minus(Field.RED_GOAL);
 
             overallAngle = delta.getAngle().getRadians();
         } else {
-            return 0.0;
+            throw new IllegalStateException("Alliance not set");
         }
 
-        robotHeading = wpiLibPose.getRotation().getRadians();
+        robotHeading = driveSubsystem.getEstimatedPoseFTC().getHeading(AngleUnit.RADIANS);
+
+        if (robotHeading < 0) {
+            robotHeading += (2 * Math.PI);
+        }
 
         double target = overallAngle - robotHeading;
 
         if (target < -Math.PI / 2.0 || target > Math.PI / 2.0) {
-            return 0.0;
+            return 0;
         }
 
-        return target;
+        return target + .1;//0.77; //0.175
     }
 
     public double getPosition() {
@@ -135,22 +192,18 @@ public class TurretSubsystem {
         turretServo.setPower(power);
     }
 
-    public void setTelemetry(Telemetry telemetry) {
-        telemetry.addLine("// Turret //");
-        telemetry.addData("Turret Angle (rad)", turretAngle);
-        telemetry.addData("Turret Setpoint (rad)", turretSetpoint);
-        telemetry.addLine();
-
-        TelemetryPacket packet = new TelemetryPacket();
-        packet.put("Turret/Position", Units.radiansToDegrees(turretAngle));
+    public void setTelemetry(TelemetryPacket packet) {
+        packet.put("Turret/Position", Units.radiansToDegrees(getPosition()));
         packet.put("Turret/Setpoint", Units.radiansToDegrees(turretSetpoint));
-
-        FtcDashboard.getInstance().sendTelemetryPacket(packet);
+        packet.put("Turret/Needed Angle)", Units.radiansToDegrees(findPosition()));
+        packet.put("Turret/Pose/Pose x", Units.metersToInches(getTurretFieldPose().getX()));
+        packet.put("Turret/Pose/Pose y", Units.metersToInches(getTurretFieldPose().getY()));
+        packet.put("Turret/Pose/Pose heading", 0);
     }
 
-    public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
+    public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
         if (instance == null) {
-            instance = new TurretSubsystem(hardwareMap, gamepad1);
+            instance = new TurretSubsystem(hardwareMap, gamepad1, gamepad2);
         }
         return instance;
     }
