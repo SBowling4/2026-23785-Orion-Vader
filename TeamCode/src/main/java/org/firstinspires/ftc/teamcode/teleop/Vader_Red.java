@@ -32,7 +32,7 @@ public class Vader_Red extends OpMode {
 
     @Override
     public void init() {
-        Robot.alliance = Alliance.BLUE;
+        Robot.alliance = Alliance.RED;
         Robot.sendHardwareMap(hardwareMap);
 
         telemetry = new MultipleTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
@@ -40,7 +40,6 @@ public class Vader_Red extends OpMode {
         driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
         intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1);
         flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
-//        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
         feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
         vision = Vision.getInstance(hardwareMap);
         turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1, gamepad2);
@@ -50,7 +49,6 @@ public class Vader_Red extends OpMode {
         driveSubsystem.init();
         intakeSubsystem.init();
         flywheelSubsystem.init();
-//        hoodSubsystem.init();
         feederSubsystem.init();
         turretSubsystem.init();
 
@@ -68,7 +66,6 @@ public class Vader_Red extends OpMode {
     public void loop() {
         driveSubsystem.loop();
         intakeSubsystem.loop();
-//        hoodSubsystem.loop();
         flywheelSubsystem.loop();
         feederSubsystem.loop();
         vision.loop();
@@ -87,7 +84,6 @@ public class Vader_Red extends OpMode {
 
         driveSubsystem.setTelemetry(packet);
         intakeSubsystem.setTelemetry(packet);
-//        hoodSubsystem.setTelemetry(packet);
         flywheelSubsystem.setTelemetry(packet);
         feederSubsystem.setTelemetry(packet);
         vision.setTelemetry(packet);
