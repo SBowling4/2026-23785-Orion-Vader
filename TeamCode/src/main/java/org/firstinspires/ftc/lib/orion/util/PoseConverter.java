@@ -1,6 +1,5 @@
-package org.firstinspires.ftc.lib.orion;
+package org.firstinspires.ftc.lib.orion.util;
 
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;

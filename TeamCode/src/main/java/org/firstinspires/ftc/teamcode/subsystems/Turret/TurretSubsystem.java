@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.subsystems.Turret;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -11,18 +10,11 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.lib.orion.PoseConverter;
+import org.firstinspires.ftc.lib.orion.util.PoseConverter;
 import org.firstinspires.ftc.lib.orion.util.Field;
-import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Transform2d;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Transform3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
@@ -97,8 +89,14 @@ public class TurretSubsystem {
                 } else {
                     stop();
                 }
-            } else {
-                setPosition(0);
+            } else if (Robot.mode == Robot.RobotMode.KAOS) {
+                if (gamepad2.dpad_left) {
+                    setTurretPower(-.5);
+                } else if (gamepad2.dpad_right) {
+                    setTurretPower(.5);
+                } else {
+                    setTurretPower(0);
+                }
             }
 
         }

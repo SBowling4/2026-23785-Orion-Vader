@@ -59,12 +59,6 @@ public class FeederSubsystem {
 
         stopperServo.setPwmRange(new PwmControl.PwmRange(450, 2550));
 
-
-        kickerState = KICKER_STATE.OUT;
-        stopperState = STOPPER_STATE.CLOSED;
-        feederState = FEEDER_STATE.STOP;
-
-
         flywheelSubsystem = FlywheelSubsystem.getInstance();
     }
 

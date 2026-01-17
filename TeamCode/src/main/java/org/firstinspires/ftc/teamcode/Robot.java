@@ -16,15 +16,7 @@ public class Robot {
 
     public static Pose lastPose = new Pose(72,72,0);
 
-    public static Pose blueBackStart = new Pose(144 - 9.010830324909742, 57.1841155234657, Units.degreesToRadians(90 + 90));
-    public static Pose blueFrontStart = new Pose(144 - 124.4187725631769, 144 - 120.60649819494586, Units.degreesToRadians(144 + 90));
-
-    public static Pose redBackStart = new Pose(144 - 8.664259927797834,    86.98916967509025, Units.degreesToRadians(90 + 90));
-    public static Pose redFrontStart = new Pose(144 - 124.4187725631769, 121.9927797833935, Units.degreesToRadians(121));
-
     public static double lastHood = 0;
-    public static double lastTurret = 0;
-
     public static HardwareMap hardwareMap;
 
     public static RobotMode mode = RobotMode.VADER;

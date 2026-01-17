@@ -32,7 +32,7 @@ public class Vader_Red extends OpMode {
 
     @Override
     public void init() {
-        Robot.alliance = Alliance.RED;
+        Robot.alliance = Alliance.BLUE;
         Robot.sendHardwareMap(hardwareMap);
 
         telemetry = new MultipleTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
@@ -102,6 +102,5 @@ public class Vader_Red extends OpMode {
     @Override
     public void stop() {
         Robot.lastPose = driveSubsystem.getFollowerPose();
-        Robot.lastTurret = turretSubsystem.getPosition();
     }
 }

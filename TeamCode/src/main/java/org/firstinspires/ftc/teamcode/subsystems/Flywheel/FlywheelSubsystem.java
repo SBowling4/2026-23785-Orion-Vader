@@ -82,11 +82,22 @@ public class FlywheelSubsystem {
         if (Robot.tuningMode) {
             setVelocity(FlywheelConstants.target);
         } else {
-            if (gamepad1.right_bumper) {
-                setVelocity(findVelocity(driveSubsystem.getDistanceToGoal()));
-            } else {
-                setPower(.35);
+            if (Robot.mode == Robot.RobotMode.VADER) {
+                if (gamepad1.right_bumper) {
+                    setVelocity(findVelocity(driveSubsystem.getDistanceToGoal()));
+                } else {
+                    setPower(.35);
+                }
+            } else if (Robot.mode == Robot.RobotMode.KAOS) {
+                if (gamepad1.right_bumper) {
+                    setVelocity(FlywheelConstants.CLOSE_SP);
+                } else if (gamepad1.right_trigger > 50) {
+                    setVelocity(FlywheelConstants.FAR_SP);
+                } else {
+                    setPower(.35);
+                }
             }
+
         }
 
     }

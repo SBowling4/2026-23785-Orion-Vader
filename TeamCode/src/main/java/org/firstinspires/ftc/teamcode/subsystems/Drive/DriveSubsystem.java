@@ -1,15 +1,13 @@
 package org.firstinspires.ftc.teamcode.subsystems.Drive;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.controller.PIDFController;
-import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.lib.orion.PoseConverter;
+import org.firstinspires.ftc.lib.orion.util.PoseConverter;
 import org.firstinspires.ftc.lib.orion.util.Field;
 import org.firstinspires.ftc.lib.orion.odometry.Odometry;
 import org.firstinspires.ftc.lib.orion.odometry.PoseEstimator;
@@ -17,14 +15,12 @@ import org.firstinspires.ftc.lib.pedroPathing.Constants;
 import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
 import org.firstinspires.ftc.lib.wpilib.math.Matrix;
 import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
-import org.firstinspires.ftc.lib.wpilib.math.controller.PIDController;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
 import org.firstinspires.ftc.lib.wpilib.math.numbers.N1;
 import org.firstinspires.ftc.lib.wpilib.math.numbers.N3;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
@@ -73,11 +69,11 @@ public class DriveSubsystem {
         );
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(Robot.lastPose);
+        follower.setStartingPose(convertPose(Robot.lastPose));
 
         vision = Vision.getInstance(hardwareMap);
 
-        alignPID = new PIDFController(.1,0,.03,.02);
+        alignPID = new PIDFController(DriveConstants.align_kP, DriveConstants.align_kI, DriveConstants.align_kD, 0);
     }
 
     public void autoInit() {
@@ -98,6 +94,9 @@ public class DriveSubsystem {
     }
 
     public void loop() {
+        alignPID.setP(DriveConstants.align_kP);
+        alignPID.setD(DriveConstants.align_kD);
+
         // Get driver inputs
         double inputX = -gamepad1.left_stick_y;
         double inputY = -gamepad1.left_stick_x;

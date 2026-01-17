@@ -102,6 +102,5 @@ public class Vader_Blue extends OpMode {
     @Override
     public void stop() {
         Robot.lastPose = driveSubsystem.getFollowerPose();
-        Robot.lastTurret = turretSubsystem.getPosition();
     }
 }
