@@ -247,41 +247,41 @@ public class Front_6 extends OpMode {
         public Paths(Follower follower) {
             driveStartToShoot = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(18.000, 121.540),
+                                    new Pose(125.929, 121.097),
 
-                                    new Pose(59.186, 84.903)
+                                    new Pose(85.310, 84.425)
                             )
-                    ).setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(180))
+                    ).setLinearHeadingInterpolation(Math.toRadians(36), Math.toRadians(0))
 
                     .build();
 
             drivePickup = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(59.186, 84.903),
+                                    new Pose(85.310, 84.425),
 
-                                    new Pose(14.929, 84.062)
+                                    new Pose(129.097, 83.690)
                             )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
+                    ).setConstantHeadingInterpolation(Math.toRadians(1))
 
                     .build();
 
             drivePickupToShoot = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(14.929, 84.062),
+                                    new Pose(129.097, 83.690),
 
-                                    new Pose(58.788, 85.389)
+                                    new Pose(85.221, 84.425)
                             )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
+                    ).setConstantHeadingInterpolation(Math.toRadians(1))
 
                     .build();
 
             driveOffline = follower.pathBuilder().addPath(
                             new BezierLine(
-                                    new Pose(58.788, 85.389),
+                                    new Pose(85.221, 84.425),
 
-                                    new Pose(20.124, 70.221)
+                                    new Pose(123.301, 72.301)
                             )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
+                    ).setConstantHeadingInterpolation(Math.toRadians(1))
 
                     .build();
         }
