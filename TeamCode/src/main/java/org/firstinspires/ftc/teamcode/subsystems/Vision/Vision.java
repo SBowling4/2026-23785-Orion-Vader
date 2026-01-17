@@ -18,6 +18,8 @@ import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 
+import java.util.Optional;
+
 public class Vision {
     private Limelight3A limelight;
     private LLResult result;
@@ -116,6 +118,14 @@ public class Vision {
     public void resetIMU(double resetVal) {
         resetIMUVal = resetVal;
         imu.resetYaw();
+    }
+
+    public Optional<Double> getTx() {
+        if (!result.isValid()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(result.getTx());
     }
 
 

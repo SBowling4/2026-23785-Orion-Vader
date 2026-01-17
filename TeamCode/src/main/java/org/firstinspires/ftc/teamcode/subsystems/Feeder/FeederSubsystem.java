@@ -25,6 +25,8 @@ public class FeederSubsystem {
     public ServoImplEx kickerServo;
     private ServoImplEx stopperServo;
 
+    private boolean atVelocity = false;
+
     private FlywheelSubsystem flywheelSubsystem;
     private HoodSubsystem hoodSubsystem;
 
@@ -76,20 +78,27 @@ public class FeederSubsystem {
             setKickerState(KICKER_STATE.OUT);
         } else {
             if (gamepad1.right_bumper) {
-                if (flywheelSubsystem.atVelocity()) {
+                if (flywheelSubsystem.atVelocity() && !atVelocity) {
+                    atVelocity = true;
+                }
+
+                if (atVelocity) {
                     setFeederState(FEEDER_STATE.IN);
                 } else {
                     setFeederState(FEEDER_STATE.STOP);
                 }
             } else if (gamepad1.a) {
+                atVelocity = false;
                 setFeederState(FEEDER_STATE.IN);
             } else if (gamepad1.y) {
+                atVelocity = false;
                 setFeederState(FEEDER_STATE.OUT);
             } else {
+                atVelocity = false;
                 setFeederState(FEEDER_STATE.STOP);
             }
 
-            if (gamepad1.dpad_up) {
+            if (gamepad1.left_bumper) {
                 setKickerState(KICKER_STATE.IN);
             } else {
                 setKickerState(KICKER_STATE.OUT);

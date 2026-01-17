@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.subsystems.Drive;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.arcrobotics.ftclib.controller.PIDFController;
+import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -15,6 +17,7 @@ import org.firstinspires.ftc.lib.pedroPathing.Constants;
 import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
 import org.firstinspires.ftc.lib.wpilib.math.Matrix;
 import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
+import org.firstinspires.ftc.lib.wpilib.math.controller.PIDController;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
@@ -49,6 +52,8 @@ public class DriveSubsystem {
 
     private Pose resetPose = new Pose(144 - 9.5, 9.5, Math.toRadians(270));
 
+    private PIDFController alignPID;
+
     private Vision vision;
 
     private static DriveSubsystem instance;
@@ -71,6 +76,8 @@ public class DriveSubsystem {
         follower.setStartingPose(Robot.lastPose);
 
         vision = Vision.getInstance(hardwareMap);
+
+        alignPID = new PIDFController(.1,0,.03,.02);
     }
 
     public void autoInit() {
@@ -113,6 +120,16 @@ public class DriveSubsystem {
         // Reset the driver's forward direction (doesn't affect absolute heading)
         if (gamepad1.share) {
             resetDriverHeading();
+        }
+
+        if (gamepad1.x) {
+            align();
+
+            lastHeading = follower.getHeading();
+            follower.update();
+            odometry.update(follower.getPose());
+            poseEstimator.update();
+            return;
         }
 
         // Full pose reset (resets both absolute and driver heading)
@@ -161,6 +178,14 @@ public class DriveSubsystem {
 
         odometry.update(poseAdj);
         poseEstimator.update();
+    }
+
+    public void align() {
+        if (vision.getTx().isEmpty()) return;
+
+        double pow = alignPID.calculate(vision.getTx().get(), 0);
+
+        follower.setTeleOpDrive(0,0,pow, true);
     }
 
     private Pose convertPose(Pose pose) {

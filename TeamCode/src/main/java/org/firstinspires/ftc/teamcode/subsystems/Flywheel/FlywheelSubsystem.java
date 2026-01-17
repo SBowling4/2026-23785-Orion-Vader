@@ -84,8 +84,6 @@ public class FlywheelSubsystem {
         } else {
             if (gamepad1.right_bumper) {
                 setVelocity(findVelocity(driveSubsystem.getDistanceToGoal()));
-            } else if (gamepad1.y) {
-                setPower(-1);
             } else {
                 setPower(.35);
             }

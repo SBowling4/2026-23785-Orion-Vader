@@ -50,13 +50,15 @@ public class TurretSubsystem {
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
+    private final Gamepad gamepad2;
     private DriveSubsystem driveSubsystem;
     private static TurretSubsystem instance;
 
 
-    private TurretSubsystem(HardwareMap hardwareMap, Gamepad gamepad1) {
+    private TurretSubsystem(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
         this.hardwareMap = hardwareMap;
         this.gamepad1 = gamepad1;
+        this.gamepad2 = gamepad2;
     }
 
     public void init() {
@@ -78,22 +80,27 @@ public class TurretSubsystem {
         if (Robot.tuningMode) {
             setPosition(TurretConstants.target);
         } else {
-            turretSetpoint = findPosition();
+            if (Robot.mode == Robot.RobotMode.VADER) {
+                turretSetpoint = findPosition();
 
-            if (gamepad1.dpad_left) {
-                manualAdjust += .1;
-            } else if (gamepad1.dpad_right) {
-                manualAdjust -= .1;
-            } else if (gamepad1.dpad_down) {
-                manualAdjust = 0;
-            }
+                if (gamepad2.dpad_left) {
+                    manualAdjust += .1;
+                } else if (gamepad2.dpad_right) {
+                    manualAdjust -= .1;
+                } else if (gamepad2.x) {
+                    manualAdjust = 0;
+                }
 
-            if (gamepad1.right_bumper) {
-                setPosition(turretSetpoint + manualAdjust);
+                if (gamepad1.right_bumper) {
+                    setPosition(turretSetpoint + manualAdjust);
 
+                } else {
+                    stop();
+                }
             } else {
-                stop();
+                setPosition(0);
             }
+
         }
     }
 
@@ -194,9 +201,9 @@ public class TurretSubsystem {
         packet.put("Turret/Pose/Pose heading", 0);
     }
 
-    public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
+    public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {
         if (instance == null) {
-            instance = new TurretSubsystem(hardwareMap, gamepad1);
+            instance = new TurretSubsystem(hardwareMap, gamepad1, gamepad2);
         }
         return instance;
     }

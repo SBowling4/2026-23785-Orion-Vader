@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.auto.blue;
+package org.firstinspires.ftc.teamcode.auto.red;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -26,7 +26,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Turret.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 
-@Autonomous(name = "Back_6_HP_Blue")
+@Autonomous(name = "Back_6_HP_Red")
 public class Back_6 extends OpMode {
     private Follower follower;
 
@@ -43,11 +43,11 @@ public class Back_6 extends OpMode {
 
     private PathState pathState;
 
-    private final Pose startPose = new Pose(44.014440433213, 9.184115523465712, Units.degreesToRadians(180));
-    private final Pose pickupPose = new Pose(9.010830324909747, 8.144404332129957, Units.degreesToRadians(180));
-    private final Pose wigglePose = new Pose(21.140794223826713, 8.837545126353788, Math.toRadians(180));
-    private final Pose shootPose = new Pose(48.51985559566786, 8.49097472924188, Units.degreesToRadians(180));
-    private final Pose offlinePose = new Pose(48.69314079422383, 34.65703971119134, Units.degreesToRadians(180));
+    private final Pose startPose = new Pose(44.014440433213, 9.184115523465712, Units.degreesToRadians(180)).mirror();
+    private final Pose pickupPose = new Pose(9.010830324909747, 8.144404332129957, Units.degreesToRadians(180)).mirror();
+    private final Pose wigglePose = new Pose(21.140794223826713, 8.837545126353788, Math.toRadians(180)).mirror();
+    private final Pose shootPose = new Pose(48.51985559566786, 8.49097472924188, Units.degreesToRadians(180)).mirror();
+    private final Pose offlinePose = new Pose(48.69314079422383, 34.65703971119134, Units.degreesToRadians(180)).mirror();
 
     private PathChain driveToPickup, driveToShoot, driveToOffline, wiggleBack, wiggleForward;
 
@@ -64,7 +64,7 @@ public class Back_6 extends OpMode {
 
     @Override
     public void init() {
-        Robot.alliance = Alliance.BLUE;
+        Robot.alliance = Alliance.RED;
         Robot.sendHardwareMap(hardwareMap);
 
         telemetry = new MultipleTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());

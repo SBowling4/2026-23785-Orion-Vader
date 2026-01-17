@@ -43,7 +43,7 @@ public class Vader_Blue extends OpMode {
 //        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
         feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
         vision = Vision.getInstance(hardwareMap);
-        turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1);
+        turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1, gamepad2);
 
 
         vision.init();
@@ -73,6 +73,14 @@ public class Vader_Blue extends OpMode {
         feederSubsystem.loop();
         vision.loop();
         turretSubsystem.loop();
+
+        if (gamepad2.a) {
+            Robot.mode = Robot.RobotMode.KAOS;
+        } else if (gamepad2.y) {
+            Robot.mode = Robot.RobotMode.VADER;
+        }
+
+
 
 
         TelemetryPacket packet = new TelemetryPacket();

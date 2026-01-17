@@ -27,6 +27,13 @@ public class Robot {
 
     public static HardwareMap hardwareMap;
 
+    public static RobotMode mode = RobotMode.VADER;
+
+    public enum RobotMode {
+        KAOS,
+        VADER
+    }
+
     public static void sendHardwareMap(HardwareMap hm) {
         Robot.hardwareMap = hm;
     }
