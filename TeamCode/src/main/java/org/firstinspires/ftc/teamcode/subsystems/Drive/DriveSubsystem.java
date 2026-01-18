@@ -7,12 +7,12 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.lib.orion.util.PoseConverter;
+import org.firstinspires.ftc.lib.orion.util.converters.PoseConverter;
 import org.firstinspires.ftc.lib.orion.util.Field;
 import org.firstinspires.ftc.lib.orion.odometry.Odometry;
 import org.firstinspires.ftc.lib.orion.odometry.PoseEstimator;
 import org.firstinspires.ftc.lib.pedroPathing.Constants;
-import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
+import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystems;
 import org.firstinspires.ftc.lib.wpilib.math.Matrix;
 import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
@@ -144,7 +144,6 @@ public class DriveSubsystem {
 
         if (Math.abs(lastHeading - follower.getHeading()) > Math.toRadians(40) && !hasReset) {
             follower.setPose(new Pose(getFollowerPose().getX(), getFollowerPose().getY(), lastHeading));
-            vision.resetIMU(lastHeading);
             hasReset = true;
             lastHeading = follower.getHeading();
             follower.update();

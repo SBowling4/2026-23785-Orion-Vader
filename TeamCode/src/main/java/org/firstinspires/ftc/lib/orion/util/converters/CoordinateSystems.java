@@ -1,11 +1,17 @@
-package org.firstinspires.ftc.lib.trobotix;
+package org.firstinspires.ftc.lib.orion.util.converters;
 
+import com.pedropathing.ftc.FTCCoordinates;
+import com.pedropathing.geometry.PedroCoordinates;
+import com.pedropathing.geometry.Pose;
+
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
@@ -143,6 +149,19 @@ public final class CoordinateSystems {
                 -yawPitchRollAngles.getRoll(AngleUnit.RADIANS),
                 yawPitchRollAngles.getPitch(AngleUnit.RADIANS),
                 yawPitchRollAngles.getYaw(AngleUnit.RADIANS));
+    }
+
+    public static Pose2D pedroToFieldCoordinates(Pose pose) {
+        double ftcX = Units.inchesToMeters(pose.getX());
+        double ftcY = Units.inchesToMeters(pose.getY());
+
+        Pose ftcPose = new Pose(ftcX, ftcY, pose.getHeading(), PedroCoordinates.INSTANCE).getAsCoordinateSystem(FTCCoordinates.INSTANCE);
+
+        return new Pose2D(DistanceUnit.METER, ftcPose.getX(), ftcPose.getY(), AngleUnit.RADIANS,ftcPose.getHeading());
+    }
+
+    public static Pose fieldCoordinatesToPedro(Pose2D pose2D) {
+        return new Pose(pose2D.getX(DistanceUnit.INCH), pose2D.getY(DistanceUnit.INCH), pose2D.getHeading(AngleUnit.RADIANS), FTCCoordinates.INSTANCE).getAsCoordinateSystem(PedroCoordinates.INSTANCE);
     }
 
     public static Pose3d fieldPoseToWPILib(Pose3D pose) {

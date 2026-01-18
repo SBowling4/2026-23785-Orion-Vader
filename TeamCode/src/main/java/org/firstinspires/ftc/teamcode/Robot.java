@@ -16,15 +16,7 @@ public class Robot {
 
     public static Pose lastPose = new Pose(72,72,0);
 
-    public static double lastHood = 0;
     public static HardwareMap hardwareMap;
-
-    public static RobotMode mode = RobotMode.VADER;
-
-    public enum RobotMode {
-        KAOS,
-        VADER
-    }
 
     public static void sendHardwareMap(HardwareMap hm) {
         Robot.hardwareMap = hm;
@@ -32,9 +24,7 @@ public class Robot {
 
     public static double getRobotVoltage() {
         try {
-            for (VoltageSensor vs : Robot.hardwareMap.voltageSensor) {
-                return vs.getVoltage();
-            }
+            Robot.hardwareMap.voltageSensor.iterator().next().getVoltage();
         } catch (NullPointerException npe) {
             throw new NullPointerException("Hardware map not sent to Robot");
         }

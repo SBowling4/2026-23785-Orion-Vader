@@ -1,10 +1,8 @@
 package org.firstinspires.ftc.lib.orion.odometry;
 
-import com.pedropathing.ftc.FTCCoordinates;
-import com.pedropathing.ftc.PoseConverter;
 import com.pedropathing.geometry.Pose;
 
-import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
+import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystems;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -20,15 +18,7 @@ public class Odometry {
     public Odometry() {}
 
     public Pose2D getPoseFTCStandard() {
-        double pedroX = pose.getX();
-        double pedroY = pose.getY();
-
-        double ftcY = pedroY - 72;
-        double ftcX = pedroX - 72;
-
-        return new Pose2D(DistanceUnit.INCH, ftcX, ftcY, AngleUnit.RADIANS, pose.getHeading());
-
-//        return PoseConverter.poseToPose2D(pose, FTCCoordinates.INSTANCE);
+        return CoordinateSystems.pedroToFieldCoordinates(pose);
     }
 
     public Pose2d getPoseWPILib() {

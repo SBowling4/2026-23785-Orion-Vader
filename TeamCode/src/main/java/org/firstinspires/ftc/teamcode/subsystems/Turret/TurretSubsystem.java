@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.lib.orion.util.PoseConverter;
+import org.firstinspires.ftc.lib.orion.util.converters.PoseConverter;
 import org.firstinspires.ftc.lib.orion.util.Field;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
@@ -68,39 +68,7 @@ public class TurretSubsystem {
 
     }
 
-    public void loop() {
-        if (Robot.tuningMode) {
-            setPosition(TurretConstants.target);
-        } else {
-            if (Robot.mode == Robot.RobotMode.VADER) {
-                turretSetpoint = findPosition();
-
-                if (gamepad2.dpad_left) {
-                    manualAdjust += .1;
-                } else if (gamepad2.dpad_right) {
-                    manualAdjust -= .1;
-                } else if (gamepad2.x) {
-                    manualAdjust = 0;
-                }
-
-                if (gamepad1.right_bumper) {
-                    setPosition(turretSetpoint + manualAdjust);
-
-                } else {
-                    stop();
-                }
-            } else if (Robot.mode == Robot.RobotMode.KAOS) {
-                if (gamepad2.dpad_left) {
-                    setTurretPower(-.5);
-                } else if (gamepad2.dpad_right) {
-                    setTurretPower(.5);
-                } else {
-                    setTurretPower(0);
-                }
-            }
-
-        }
-    }
+    public void loop() {}
 
     public void setPosition(double pos) {
         pos = Range.clip(pos, -Math.PI/2, Math.PI/2);

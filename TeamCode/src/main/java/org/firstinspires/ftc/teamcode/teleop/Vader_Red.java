@@ -71,12 +71,6 @@ public class Vader_Red extends OpMode {
         vision.loop();
         turretSubsystem.loop();
 
-        if (gamepad2.a) {
-            Robot.mode = Robot.RobotMode.KAOS;
-        } else if (gamepad2.y) {
-            Robot.mode = Robot.RobotMode.VADER;
-        }
-
 
 
 

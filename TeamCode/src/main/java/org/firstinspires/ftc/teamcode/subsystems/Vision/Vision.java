@@ -7,7 +7,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
-import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
+import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystems;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
@@ -29,10 +29,6 @@ public class Vision {
     private Pose3D botPose;
 
     private DriveSubsystem driveSubsystem;
-
-    private IMU imu;
-    private double resetIMUVal = 0;
-    private double yaw;
 
     private static Vision instance;
 
@@ -56,16 +52,6 @@ public class Vision {
         }
 
         driveSubsystem = DriveSubsystem.getInstance();
-
-        IMU.Parameters parameters = new IMU.Parameters(
-                new RevHubOrientationOnRobot(
-                        RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                        RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
-                )
-        );
-
-        imu = hardwareMap.get(IMU.class, "imu");
-        imu.initialize(parameters);
     }
 
     /**
@@ -83,7 +69,7 @@ public class Vision {
             return;
         }
 
-        yaw = driveSubsystem.getOdometryPose().getHeading(AngleUnit.DEGREES);
+        double yaw = driveSubsystem.getOdometryPose().getHeading(AngleUnit.DEGREES);
 
         limelight.updateRobotOrientation(yaw < 0 ? yaw + 720 : yaw);
 
@@ -111,15 +97,6 @@ public class Vision {
         );
     }
 
-    public void resetIMU() {
-        imu.resetYaw();
-    }
-
-    public void resetIMU(double resetVal) {
-        resetIMUVal = resetVal;
-        imu.resetYaw();
-    }
-
     public Optional<Double> getTx() {
         if (!result.isValid()) {
             return Optional.empty();
@@ -143,12 +120,6 @@ public class Vision {
         packet.put("Vision/Pose/Pose x", Units.metersToInches(botPose.getPosition().x));
         packet.put("Vision/Pose/Pose y", Units.metersToInches(botPose.getPosition().y));
         packet.put("Vision/Pose/Pose heading",Units.degreesToRadians(botPose.getOrientation().getYaw()));
-
-        packet.put("Vision/IMU/Raw yaw",imu.getRobotYawPitchRollAngles().getYaw());
-        packet.put("Vision/IMU/Val", yaw);
-        packet.put("Vision/IMU/reset val", resetIMUVal);
-
-
     }
 
     /**

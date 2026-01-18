@@ -74,13 +74,6 @@ public class Vader_Blue extends OpMode {
         vision.loop();
         turretSubsystem.loop();
 
-        if (gamepad2.a) {
-            Robot.mode = Robot.RobotMode.KAOS;
-        } else if (gamepad2.y) {
-            Robot.mode = Robot.RobotMode.VADER;
-        }
-
-
 
 
         TelemetryPacket packet = new TelemetryPacket();

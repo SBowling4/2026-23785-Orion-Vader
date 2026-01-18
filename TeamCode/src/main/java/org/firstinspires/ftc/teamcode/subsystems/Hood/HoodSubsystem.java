@@ -119,7 +119,7 @@ public class HoodSubsystem {
         int ticksPerRev = 8192;
         double revolutions = (double) hoodEncoder.getPosition() / ticksPerRev;
 
-        return Robot.lastHood + revolutions * 360.0 * HoodConstants.GEAR_RATIO;
+        return revolutions * 360.0 * HoodConstants.GEAR_RATIO;
     }
 
 
