@@ -6,6 +6,6 @@ import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 public class Field {
     public static final double FIELD_LENGTH = Units.inchesToMeters(144);
 
-    public static final Translation2d RED_GOAL = new Translation2d(Units.inchesToMeters(72),Units.inchesToMeters(-72));
-    public static final Translation2d BLUE_GOAL = new Translation2d(Units.inchesToMeters(-72), Units.inchesToMeters(-72));
+    public static final Translation2d RED_GOAL = new Translation2d(FIELD_LENGTH, FIELD_LENGTH);
+    public static final Translation2d BLUE_GOAL = new Translation2d(0, FIELD_LENGTH);
 }

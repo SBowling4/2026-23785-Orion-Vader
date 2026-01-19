@@ -7,12 +7,12 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.lib.orion.util.converters.PoseConverter;
+import org.firstinspires.ftc.lib.orion.util.converters.PoseObjectConverter;
 import org.firstinspires.ftc.lib.orion.util.Field;
 import org.firstinspires.ftc.lib.orion.odometry.Odometry;
 import org.firstinspires.ftc.lib.orion.odometry.PoseEstimator;
 import org.firstinspires.ftc.lib.pedroPathing.Constants;
-import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystems;
+import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
 import org.firstinspires.ftc.lib.wpilib.math.Matrix;
 import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
@@ -43,10 +43,7 @@ public class DriveSubsystem {
 
     private double driverHeadingOffset = 0;
 
-    private double lastHeading = 0;
-    private boolean hasReset = false;
-
-    private Pose resetPose = new Pose(144 - 9.5, 9.5, Math.toRadians(270));
+    private final Pose resetPose = new Pose(144 - 9.5, 9.5, Math.toRadians(270));
 
     private PIDFController alignPID;
 
@@ -124,10 +121,7 @@ public class DriveSubsystem {
         if (gamepad1.x) {
             align();
 
-            lastHeading = follower.getHeading();
-            follower.update();
-            odometry.update(follower.getPose());
-            poseEstimator.update();
+            update();
             return;
         }
 
@@ -135,38 +129,16 @@ public class DriveSubsystem {
         if (gamepad1.left_stick_button && gamepad1.right_stick_button) {
             resetPose();
 
-            lastHeading = follower.getHeading();
-            follower.update();
-            odometry.update(follower.getPose());
-            poseEstimator.update();
+            update();
             return;
         }
 
-        if (Math.abs(lastHeading - follower.getHeading()) > Math.toRadians(40) && !hasReset) {
-            follower.setPose(new Pose(getFollowerPose().getX(), getFollowerPose().getY(), lastHeading));
-            hasReset = true;
-            lastHeading = follower.getHeading();
-            follower.update();
-            odometry.update(follower.getPose());
-            poseEstimator.update();
-            return;
-        }
+       update();
+    }
 
-//        if (gamepad1.right_bumper) {
-//            follower.holdPoint(follower.getPose());
-//        }
-
-        hasReset = false;
-
-        lastHeading = follower.getHeading();
-
-        // Update follower first
+    private void update() {
         follower.update();
-
-        // Update odometry with the absolute field-relative pose
         odometry.update(follower.getPose());
-
-        // Update pose estimator
         poseEstimator.update();
     }
 
@@ -183,7 +155,6 @@ public class DriveSubsystem {
         driverHeadingOffset = 0;
         odometry.resetPose(resetPose);
         poseEstimator.resetPose(odometry.getPoseWPILib());
-        hasReset = true;
     }
 
     public void resetPoseHeading() {
@@ -193,7 +164,6 @@ public class DriveSubsystem {
         follower.setPose(headingResetPose);
         odometry.resetPose(headingResetPose);
         poseEstimator.resetPose(odometry.getPoseWPILib());
-        hasReset = true;
     }
 
     /**
@@ -204,17 +174,6 @@ public class DriveSubsystem {
         return follower.getPose();
     }
 
-    /**
-     * Returns the pose adjusted to field coordinates (origin at field center)
-     */
-    public Pose getFollowerPoseFieldAdj() {
-        return new Pose(
-                getFollowerPose().getX() - 72,
-                getFollowerPose().getY() - 72,
-                getFollowerPose().getHeading()
-        );
-    }
-
     public Pose2D getOdometryPose() {
         return odometry.getPoseFTCStandard();
     }
@@ -222,7 +181,7 @@ public class DriveSubsystem {
     /**
      * Gets the estimated pose from the pose estimator (with vision fusion)
      */
-    public Pose2D getEstimatedPoseFTC() {
+    public Pose2d getEstimatedPose() {
         Pose2d poseEstimatorPose = poseEstimator.getEstimatedPosition();
         Pose3d pose3d = new Pose3d(
                 poseEstimatorPose.getX(),
@@ -231,15 +190,7 @@ public class DriveSubsystem {
                 new Rotation3d(poseEstimatorPose.getRotation())
         );
 
-        Pose3D ftcPose = CoordinateSystems.WPILibToFieldPose(pose3d);
-
-        return new Pose2D(
-                DistanceUnit.METER,
-                ftcPose.getPosition().x,
-                ftcPose.getPosition().y,
-                AngleUnit.RADIANS,
-                ftcPose.getOrientation().getYaw(AngleUnit.RADIANS)
-        );
+        return CoordinateSystemConverter.WPILibToOrion(pose3d);
     }
 
     /**
@@ -251,18 +202,8 @@ public class DriveSubsystem {
         resetPoseHeading();
     }
 
-    /**
-     * Gets the absolute field-relative heading (for odometry/localization)
-     */
-    public double getAbsoluteHeading() {
-        return follower.getHeading();
-    }
-
-    /**
-     * Gets the heading relative to the driver's chosen forward direction
-     */
-    public double getDriverRelativeHeading() {
-        return follower.getHeading() - driverHeadingOffset;
+    public double getVelocity() {
+        return odometry.getVelocityMagnitude();
     }
 
     public void addVisionMeasurement(Pose2d visPose, double timestampSeconds) {
@@ -274,45 +215,25 @@ public class DriveSubsystem {
     }
 
     public double getDistanceToGoal() {
-        Pose3D estPose = new Pose3D(
-                new Position(
-                        DistanceUnit.METER,
-                        getEstimatedPoseFTC().getX(DistanceUnit.METER),
-                        getEstimatedPoseFTC().getY(DistanceUnit.METER),
-                        0.0,
-                        0
-                ),
-                new YawPitchRollAngles(
-                        AngleUnit.RADIANS,
-                        getEstimatedPoseFTC().getHeading(AngleUnit.RADIANS),
-                        0,
-                        0,
-                        0
-                )
-        );
-
-        Pose2d wpiLibPose = PoseConverter.ftcToWPILib(estPose).toPose2d();
-
         if (Robot.alliance == Alliance.BLUE) {
-            return wpiLibPose.getTranslation().getDistance(Field.BLUE_GOAL);
+            return getEstimatedPose().getTranslation().getDistance(Field.BLUE_GOAL);
         } else {
-            return wpiLibPose.getTranslation().getDistance(Field.RED_GOAL);
+            return getEstimatedPose().getTranslation().getDistance(Field.RED_GOAL);
         }
     }
 
     public void setTelemetry(TelemetryPacket packet) {
-        packet.put("Drive/Estimated Pose/Pose x", Units.metersToInches(getEstimatedPoseFTC().getX(DistanceUnit.METER)));
-        packet.put("Drive/Estimated Pose/Pose y", Units.metersToInches(getEstimatedPoseFTC().getY(DistanceUnit.METER)));
-        packet.put("Drive/Estimated Pose/Pose heading", getEstimatedPoseFTC().getHeading(AngleUnit.RADIANS));
+        Pose2D ftcPose = CoordinateSystemConverter.orionToFTC(getEstimatedPose());
+
+        packet.put("Drive/Estimated Pose/Pose x", ftcPose.getX(DistanceUnit.INCH));
+        packet.put("Drive/Estimated Pose/Pose y", ftcPose.getY(DistanceUnit.INCH));
+        packet.put("Drive/Estimated Pose/Pose heading", ftcPose.getHeading(AngleUnit.RADIANS));
 
         packet.put("Drive/Odometry Pose/Pose x", odometry.getPoseFTCStandard().getX(DistanceUnit.INCH));
         packet.put("Drive/Odometry Pose/Pose y", odometry.getPoseFTCStandard().getY(DistanceUnit.INCH));
         packet.put("Drive/Odometry Pose/Pose heading", odometry.getPoseFTCStandard().getHeading(AngleUnit.RADIANS));
 
-        packet.put("Drive/Absolute Heading (rad)", getAbsoluteHeading());
-        packet.put("Drive/Driver Heading (rad)", getDriverRelativeHeading());
         packet.put("Drive/Distance to Goal", getDistanceToGoal());
-        packet.put("Drive/Heading diff", Math.abs(lastHeading - follower.getHeading()));
     }
 
     public static DriveSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {

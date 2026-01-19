@@ -4,7 +4,9 @@ import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
@@ -15,8 +17,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
-public final class CoordinateSystems {
-    private CoordinateSystems() {}
+public final class CoordinateSystemConverter {
+    private CoordinateSystemConverter() {}
 
     /**
      * WPILib's field coordinate system has the origin in the blue right corner of the field, with +X
@@ -26,7 +28,7 @@ public final class CoordinateSystems {
      * @param translation3d A {@link Translation3d} in the WPILib coordinate system.
      * @return A {@link Position} transformed to be in the FTC SDK Field Coordinate System in meters.
      */
-    public static Position WPILibToFieldCoordinates(Translation3d translation3d) {
+    public static Position WPILibToFTCFieldCoordinates(Translation3d translation3d) {
         return new Position(
                 DistanceUnit.METER,
                 translation3d.getY() - Units.feetToMeters(6),
@@ -39,7 +41,7 @@ public final class CoordinateSystems {
      * @param position A {@link Position} in the FTC SDK Field Coordinate System.
      * @return A {@link Translation3d} transformed to be in the WPILib coordinate system.
      */
-    public static Translation3d fieldCoordinatesToWPILib(Position position) {
+    public static Translation3d ftcFieldCoordinatesToWPILib(Position position) {
         double xMeters;
         double yMeters;
         double zMeters;
@@ -150,7 +152,7 @@ public final class CoordinateSystems {
                 yawPitchRollAngles.getYaw(AngleUnit.RADIANS));
     }
 
-    public static Pose2D pedroToFieldCoordinates(Pose pose) {
+    public static Pose2D pedroToFTC(Pose pose) {
         double ftcX = Units.inchesToMeters(pose.getX());
         double ftcY = Units.inchesToMeters(pose.getY());
 
@@ -159,17 +161,62 @@ public final class CoordinateSystems {
         return new Pose2D(DistanceUnit.METER, ftcPose.getX(), ftcPose.getY(), AngleUnit.RADIANS,ftcPose.getHeading());
     }
 
-    public static Pose fieldCoordinatesToPedro(Pose2D pose2D) {
+    public static Pose ftcToPedro(Pose2D pose2D) {
         return new Pose(pose2D.getX(DistanceUnit.INCH), pose2D.getY(DistanceUnit.INCH), pose2D.getHeading(AngleUnit.RADIANS), FTCCoordinates.INSTANCE).getAsCoordinateSystem(PedroCoordinates.INSTANCE);
     }
 
     public static Pose3d fieldPoseToWPILib(Pose3D pose) {
         return new Pose3d(
-                fieldCoordinatesToWPILib(pose.getPosition()), SDKRotationToWPILib(pose.getOrientation()));
+                ftcFieldCoordinatesToWPILib(pose.getPosition()), SDKRotationToWPILib(pose.getOrientation()));
     }
 
     public static Pose3D WPILibToFieldPose(Pose3d pose) {
         return new Pose3D(
-                WPILibToFieldCoordinates(pose.getTranslation()), WPILibToSDKRotation(pose.getRotation()));
+                WPILibToFTCFieldCoordinates(pose.getTranslation()), WPILibToSDKRotation(pose.getRotation()));
+    }
+
+    public static Pose2d pedroToOrion(Pose pose) {
+        double x = Units.inchesToMeters(pose.getX());
+        double y = Units.inchesToMeters(pose.getY());
+
+        return new Pose2d(x, y, Rotation2d.fromRadians(pose.getHeading()));
+    }
+
+
+    public static Pose2d ftcToOrion(Pose2D pose2D) {
+        return pedroToOrion(ftcToPedro(pose2D));
+    }
+
+    public static Pose2d WPILibToOrion(Pose3d pose3d) {
+        Pose3D ftcPose = WPILibToFieldPose(pose3d);
+        Pose2D ftcPose2D = new Pose2D(
+                DistanceUnit.METER,
+                ftcPose.getPosition().x,
+                ftcPose.getPosition().y,
+                AngleUnit.RADIANS,
+                ftcPose.getOrientation().getYaw(AngleUnit.RADIANS)
+        );
+
+        return ftcToOrion(ftcPose2D);
+    }
+
+    public static Pose2D orionToFTC(Pose2d orionPose) {
+        return pedroToFTC(orionToPedro(orionPose));
+    }
+
+    public static Pose orionToPedro(Pose2d pose2d) {
+        double xInches = Units.metersToInches(pose2d.getX());
+        double yInches = Units.metersToInches(pose2d.getY());
+
+        return new Pose(xInches, yInches, pose2d.getRotation().getRadians(), PedroCoordinates.INSTANCE);
+    }
+
+    public static Pose2D limelightToFTC(Pose2D llPose) {
+        return new Pose2D(DistanceUnit.METER, llPose.getX(DistanceUnit.METER), llPose.getY(DistanceUnit.METER), AngleUnit.RADIANS, llPose.getHeading(AngleUnit.RADIANS));
+    }
+
+    public static Pose2d limelightToOrion(Pose2D llPose) {
+        Pose2D ftcPose = limelightToFTC(llPose);
+        return ftcToOrion(ftcPose);
     }
 }
