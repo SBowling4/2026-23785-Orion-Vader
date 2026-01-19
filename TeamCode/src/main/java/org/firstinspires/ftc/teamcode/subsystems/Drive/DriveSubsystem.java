@@ -69,7 +69,7 @@ public class DriveSubsystem {
         );
 
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(convertPose(Robot.lastPose));
+        follower.setStartingPose(Robot.lastPose);
 
         vision = Vision.getInstance(hardwareMap);
 
@@ -170,24 +170,12 @@ public class DriveSubsystem {
         poseEstimator.update();
     }
 
-
-    public void autoLoop(Follower follower) {
-        Pose poseAdj = convertPose(follower.getPose());
-
-        odometry.update(poseAdj);
-        poseEstimator.update();
-    }
-
     public void align() {
         if (vision.getTx().isEmpty()) return;
 
         double pow = alignPID.calculate(vision.getTx().get(), 0);
 
         follower.setTeleOpDrive(0,0,pow, true);
-    }
-
-    private Pose convertPose(Pose pose) {
-        return new Pose(144 - pose.getY(),  pose.getX(),  pose.getHeading() + (Math.PI / 2));
     }
 
     public void resetPose() {
@@ -224,18 +212,6 @@ public class DriveSubsystem {
                 getFollowerPose().getX() - 72,
                 getFollowerPose().getY() - 72,
                 getFollowerPose().getHeading()
-        );
-    }
-
-    /**
-     * Returns the pose relative to the driver's chosen forward direction
-     * This is useful for driver-station display but should NOT be used for odometry
-     */
-    public Pose getDriverRelativePose() {
-        return new Pose(
-                follower.getPose().getX(),
-                follower.getPose().getY(),
-                follower.getHeading() - driverHeadingOffset
         );
     }
 

@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems.Feeder;
 
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -9,8 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
-import org.firstinspires.ftc.lib.orion.hardware.Motor;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.lib.orion.hardware.OrionMotor;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Hood.HoodSubsystem;
@@ -21,7 +19,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.FEEDER_S
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class FeederSubsystem {
-    private Motor feederMotor;
+    private OrionMotor feederMotor;
     public ServoImplEx kickerServo;
     private ServoImplEx stopperServo;
 
@@ -52,7 +50,7 @@ public class FeederSubsystem {
      * Initializes the Feeder Subsystem
      */
     public void init() {
-        feederMotor = new Motor(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME);
+        feederMotor = new OrionMotor(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME);
 
         kickerServo = hardwareMap.get(ServoImplEx.class, FeederConstants.KICKER_SERVO_NAME);
         stopperServo = hardwareMap.get(ServoImplEx.class, FeederConstants.STOPPER_SERVO_NAME);
@@ -112,30 +110,12 @@ public class FeederSubsystem {
     }
 
     public void setFeederState(FEEDER_STATE state) {
-        if (this.feederState == state) {
-            return;
-        }
-
         this.feederState = state;
 
         feederMotor.setPower(state.getPower());
     }
 
     public void setStopperState(STOPPER_STATE state) {
-        if (this.stopperState == state) {
-            return;
-        }
-
-        this.stopperState = state;
-
-        stopperServo.setPosition(state.getPosition());
-    }
-
-    public void setStopperState(STOPPER_STATE state, boolean force) {
-        if (this.stopperState == state && !force) {
-            return;
-        }
-
         this.stopperState = state;
 
         stopperServo.setPosition(state.getPosition());

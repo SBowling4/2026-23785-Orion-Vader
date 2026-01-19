@@ -35,9 +35,9 @@ public class TurretSubsystem {
 
     private Pose robotPose;
 
-    private double turretSetpoint = 0.0;
-    private double turretPower = 0.0;
-    private double manualAdjust = 0.0;
+    private double setpoint = 0.0;
+    private double power = 0.0;
+    private double position = 0.0;
 
 
     private final HardwareMap hardwareMap;
@@ -59,6 +59,8 @@ public class TurretSubsystem {
         turretServo = hardwareMap.get(CRServoImplEx.class, TurretConstants.TURRET_SERVO_NAME);
         encoder = new MotorEx(hardwareMap, DriveConstants.LEFT_BACK_MOTOR_NAME).encoder;
 
+        encoder.reset();
+
         pidController = new PIDFController(
                 TurretConstants.kP,
                 TurretConstants.kI,
@@ -68,13 +70,15 @@ public class TurretSubsystem {
 
     }
 
-    public void loop() {}
+    public void loop() {
+        position = getPosition();
+    }
 
     public void setPosition(double pos) {
         pos = Range.clip(pos, -Math.PI/2, Math.PI/2);
 
-        turretPower = -pidController.calculate(getPosition(), pos);
-        setTurretPower(turretPower);
+        power = -pidController.calculate(position, pos);
+        setPower(power);
     }
 
 
@@ -142,25 +146,25 @@ public class TurretSubsystem {
 
     public double getPosition() {
         int ticksPerRev = 8192;
-        double revolutions = (double) encoder.getPosition() / ticksPerRev;
+        double revolutions = (double) position / ticksPerRev;
 
         return -revolutions * 2 * Math.PI * TurretConstants.GEAR_RATIO;
     }
 
 
     public void stop() {
-        turretPower = 0.0;
+        power = 0.0;
         turretServo.setPower(0.0);
     }
 
-    public void setTurretPower(double power) {
-        turretPower = power;
+    public void setPower(double power) {
+        this.power = power;
         turretServo.setPower(power);
     }
 
     public void setTelemetry(TelemetryPacket packet) {
         packet.put("Turret/Position", Units.radiansToDegrees(getPosition()));
-        packet.put("Turret/Setpoint", Units.radiansToDegrees(turretSetpoint));
+        packet.put("Turret/Setpoint", Units.radiansToDegrees(setpoint));
         packet.put("Turret/Needed Angle)", Units.radiansToDegrees(findPosition()));
         packet.put("Turret/Pose/Pose x", Units.metersToInches(getTurretFieldPose().getX()));
         packet.put("Turret/Pose/Pose y", Units.metersToInches(getTurretFieldPose().getY()));

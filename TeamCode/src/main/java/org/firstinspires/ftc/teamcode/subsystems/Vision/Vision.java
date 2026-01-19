@@ -7,6 +7,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.IMU;
 
+import org.firstinspires.ftc.lib.orion.BaseOpMode;
 import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystems;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
@@ -85,6 +86,10 @@ public class Vision {
         Translation3d translation = CoordinateSystems.fieldCoordinatesToWPILib(botPose.getPosition());
 
         Pose2d pose = new Pose2d(translation.toTranslation2d(), Rotation2d.fromDegrees(botPose.getOrientation().getYaw()));
+
+//        if (BaseOpMode.getOpModeTimeSeconds() > 20 /*and not moving*/) {
+//            //relocalize
+//        }
 
         driveSubsystem.addVisionMeasurement(
                 pose,

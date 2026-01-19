@@ -29,6 +29,7 @@ public class HoodSubsystem {
 
     public double tuningPos = 0;
     public double targetPos = 0;
+    public double position =  0;
 
     /**
      * Shooter Subsystem constructor
@@ -72,6 +73,8 @@ public class HoodSubsystem {
      * Loops the Shooter Subsystem
      */
     public void loop() {
+        position = getPosition();
+
         if (Robot.tuningMode) {
             setAngle(HoodConstants.target);
         } else {
@@ -106,7 +109,7 @@ public class HoodSubsystem {
      * @return if the shooter is at the target position
      */
     public boolean atPosition() {
-        return Math.abs(getPosition() - targetPos) < 1;
+        return Math.abs(position - targetPos) < 1;
     }
 
 
@@ -134,13 +137,13 @@ public class HoodSubsystem {
 
         targetPos = targetAngle;
 
-        double power = pid.calculate(getPosition(), targetAngle);
+        double power = pid.calculate(position, targetAngle);
         hoodServo.setPower(power);
     }
 
 
     public void setTelemetry(TelemetryPacket packet) {
-        packet.put("Hood/Position", getPosition());
+        packet.put("Hood/Position", position);
         packet.put("Hood/Target", targetPos);
     }
 

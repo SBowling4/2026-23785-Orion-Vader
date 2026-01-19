@@ -1,17 +1,15 @@
 package org.firstinspires.ftc.teamcode.subsystems.Intake;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.lib.orion.hardware.Motor;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.lib.orion.hardware.OrionMotor;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants.INTAKE_STATE;
 
 public class IntakeSubsystem {
-    private Motor intakeMotor;
+    private OrionMotor intakeMotor;
 
     private final Gamepad gamepad1;
     private final HardwareMap hardwareMap;
@@ -34,7 +32,7 @@ public class IntakeSubsystem {
      * Initializes the Intake Subsystem
      */
     public void init() {
-        intakeMotor = new Motor(hardwareMap, IntakeConstants.INTAKE_MOTOR_NAME);
+        intakeMotor = new OrionMotor(hardwareMap, IntakeConstants.INTAKE_MOTOR_NAME);
 
         intakeState = INTAKE_STATE.STOP;
     }
@@ -58,10 +56,6 @@ public class IntakeSubsystem {
     }
 
     public void setState(INTAKE_STATE state) {
-        if (this.intakeState == state) {
-            return;
-        }
-
         this.intakeState = state;
         intakeMotor.setPower(state.getPower());
     }

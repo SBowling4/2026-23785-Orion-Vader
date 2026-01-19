@@ -7,15 +7,15 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
-import org.firstinspires.ftc.lib.orion.hardware.Motor;
+import org.firstinspires.ftc.lib.orion.hardware.OrionMotor;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
 
 
 public class FlywheelSubsystem {
-    public Motor leftMotor;
-    public Motor rightMotor;
+    public OrionMotor leftMotor;
+    public OrionMotor rightMotor;
 
     public double lastTargetRPM = 0.0;
 
@@ -41,8 +41,8 @@ public class FlywheelSubsystem {
      * Initializes the Flywheel Subsystem
      */
     public void init() {
-        leftMotor = new Motor(hardwareMap, FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME);
-        rightMotor = new Motor(hardwareMap, FlywheelConstants.RIGHT_FLYWHEEL_MOTOR_NAME);
+        leftMotor = new OrionMotor(hardwareMap, FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME);
+        rightMotor = new OrionMotor(hardwareMap, FlywheelConstants.RIGHT_FLYWHEEL_MOTOR_NAME);
 
         leftMotor.resetEncoder();
         rightMotor.resetEncoder();
@@ -107,7 +107,7 @@ public class FlywheelSubsystem {
      * @return Current velocity (RPM)
      */
     public double getVelocity() {
-        return (new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME).getVelocity() / Motor.TICKS_PER_REVOLUTION) * 60;
+        return (new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME).getVelocity() / OrionMotor.TICKS_PER_REVOLUTION) * 60;
     }
 
     /**
