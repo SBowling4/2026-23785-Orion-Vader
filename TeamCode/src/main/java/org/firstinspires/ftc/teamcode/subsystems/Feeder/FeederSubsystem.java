@@ -71,7 +71,7 @@ public class FeederSubsystem {
             setStopperState(STOPPER_STATE.OPEN);
             setKickerState(KICKER_STATE.OUT);
         } else {
-            if (gamepad1.right_bumper) {
+            if (gamepad1.right_bumper || gamepad1.right_trigger > .5) {
                 if (flywheelSubsystem.atVelocity() && !atVelocity) {
                     atVelocity = true;
                 }
@@ -98,7 +98,7 @@ public class FeederSubsystem {
                 setKickerState(KICKER_STATE.OUT);
             }
 
-            if (gamepad1.right_bumper) {
+            if (gamepad1.right_bumper || gamepad1.right_trigger > .5) {
                 setStopperState(STOPPER_STATE.OPEN);
             } else {
                 setStopperState(STOPPER_STATE.CLOSED);

@@ -75,20 +75,14 @@ public class TurretSubsystem {
             if (Robot.mode == Robot.RobotMode.VADER) {
                 turretSetpoint = findPosition();
 
-                if (gamepad2.dpad_left) {
-                    manualAdjust += .1;
-                } else if (gamepad2.dpad_right) {
-                    manualAdjust -= .1;
-                } else if (gamepad2.x) {
-                    manualAdjust = 0;
+                if (Math.abs(gamepad2.right_stick_x) > .2) {
+                    setTurretPower(gamepad2.right_stick_x);
+                    return;
                 }
 
-                if (gamepad1.right_bumper) {
-                    setPosition(turretSetpoint + manualAdjust);
+                setTurretPower(0);
 
-                } else {
-                    stop();
-                }
+
             } else if (Robot.mode == Robot.RobotMode.KAOS) {
                 if (gamepad2.dpad_left) {
                     setTurretPower(-.5);

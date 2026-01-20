@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
@@ -42,9 +41,12 @@ public class Front_6 extends OpMode {
 
     private PathState pathState;
 
-    private Paths paths;
+    private final Pose startPose = new Pose(17.769911504424773, 121.41592920353982, Units.degreesToRadians(144));
+    private final Pose shootPose = new Pose(52.3362831858407, 91.78761061946905, Units.degreesToRadians(144));
+    private final Pose pickupPose = new Pose(16.490974729241874, 84.24548736462093, Units.degreesToRadians(180));
+    private final Pose offlinePose = new Pose(44.3716814159292, 44.3716814159292, Units.degreesToRadians(180));
 
-    private Pose startPose = new Pose(18, 121.54, Math.toRadians(144));
+    private PathChain driveStartToShoot, drivePickup, drivePickupToShoot, driveOffline;
     Timer opModeTimer, pathTimer, shootTimer;
 
     private boolean hasSpunUp = false;
@@ -64,9 +66,10 @@ public class Front_6 extends OpMode {
         telemetry = new MultipleTelemetry(telemetry, PanelsTelemetry.INSTANCE.getFtcTelemetry());
 
         follower = Constants.createFollower(hardwareMap);
-        paths = new Paths(follower);
 
         pathState = PathState.DRIVE_SHOOT_POS;
+
+        buildPaths();
 
         driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
         intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1);
@@ -109,6 +112,8 @@ public class Front_6 extends OpMode {
 
         vision.loop();
 
+        turretSubsystem.setTurretPower(0);
+
         statePathUpdate();
 
         TelemetryPacket packet = new TelemetryPacket();
@@ -137,7 +142,7 @@ public class Front_6 extends OpMode {
     private void statePathUpdate() {
         switch (pathState) {
             case DRIVE_SHOOT_POS:
-                follower.followPath(paths.driveStartToShoot);
+                follower.followPath(driveStartToShoot);
                 setPathState(PathState.SHOOT_PRELOAD);
                 break;
             case SHOOT_PRELOAD:
@@ -167,13 +172,13 @@ public class Front_6 extends OpMode {
 
                     hasSpunUp = false;
 
-                    follower.followPath(paths.drivePickup);
+                    follower.followPath(drivePickup);
                     setPathState(PathState.PICKUP);
                 }
                 break;
             case PICKUP:
                 if (!follower.isBusy()) {
-                    follower.followPath(paths.drivePickupToShoot);
+                    follower.followPath(drivePickupToShoot);
                     setPathState(PathState.DRIVE_PICKUP_SHOOT);
                 }
                 break;
@@ -213,7 +218,7 @@ public class Front_6 extends OpMode {
 
                     hasSpunUp = false;
 
-                    follower.followPath(paths.driveOffline);
+                    follower.followPath(driveOffline);
                     setPathState(PathState.OFFLINE);
                 }
                 break;
@@ -223,8 +228,12 @@ public class Front_6 extends OpMode {
                 }
                 break;
             case END:
-                terminateOpModeNow();
-
+                flywheelSubsystem.stop();
+                feederSubsystem.setKickerState(FeederConstants.KICKER_STATE.OUT);
+                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
+                feederSubsystem.setFeederState(FeederConstants.FEEDER_STATE.STOP);
+                intakeSubsystem.setState(IntakeConstants.INTAKE_STATE.STOP);
+                break;
         }
     }
 
@@ -238,56 +247,26 @@ public class Front_6 extends OpMode {
         }
     }
 
+    public void buildPaths() {
+        driveStartToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(startPose, shootPose))
+                .setConstantHeadingInterpolation(startPose.getHeading())
+                .build();
 
+        drivePickup = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, pickupPose))
+                .setLinearHeadingInterpolation(shootPose.getHeading(), pickupPose.getHeading(), .3)
+                .build();
 
-    public static class Paths {
-        public PathChain driveStartToShoot;
-        public PathChain drivePickup;
-        public PathChain drivePickupToShoot;
-        public PathChain driveOffline;
+        driveStartToShoot = follower.pathBuilder()
+                .addPath(new BezierLine(pickupPose, shootPose))
+                .setLinearHeadingInterpolation(pickupPose.getHeading(), shootPose.getHeading())
+                .build();
 
-        public Paths(Follower follower) {
-            driveStartToShoot = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(18.000, 121.540),
-
-                                    new Pose(59.186, 84.903)
-                            )
-                    ).setLinearHeadingInterpolation(Math.toRadians(144), Math.toRadians(180))
-
-                    .build();
-
-            drivePickup = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(59.186, 84.903),
-
-                                    new Pose(14.929, 84.062)
-                            )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
-
-                    .build();
-
-            drivePickupToShoot = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(14.929, 84.062),
-
-                                    new Pose(58.788, 85.389)
-                            )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
-
-                    .build();
-
-            driveOffline = follower.pathBuilder().addPath(
-                            new BezierLine(
-                                    new Pose(58.788, 85.389),
-
-                                    new Pose(20.124, 70.221)
-                            )
-                    ).setConstantHeadingInterpolation(Math.toRadians(180))
-
-                    .build();
-        }
+        driveOffline = follower.pathBuilder()
+                .addPath(new BezierLine(shootPose, offlinePose))
+                .setLinearHeadingInterpolation(shootPose.getHeading(), offlinePose.getHeading())
+                .build();
     }
-
 
 }

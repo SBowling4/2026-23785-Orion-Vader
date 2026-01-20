@@ -84,7 +84,9 @@ public class FlywheelSubsystem {
         } else {
             if (Robot.mode == Robot.RobotMode.VADER) {
                 if (gamepad1.right_bumper) {
-                    setVelocity(findVelocity(driveSubsystem.getDistanceToGoal()));
+                    setVelocity(FlywheelConstants.CLOSE_SP);
+                } else if (gamepad1.right_trigger > .5){
+                    setVelocity(FlywheelConstants.FAR_SP);
                 } else {
                     setPower(.35);
                 }
@@ -148,7 +150,7 @@ public class FlywheelSubsystem {
             return true;
         }
 
-        return Math.abs(lastTargetRPM - getVelocity()) < 150;
+        return Math.abs(lastTargetRPM - getVelocity()) < 125;
     }
 
 

@@ -47,6 +47,7 @@ public class DriveSubsystem {
     private boolean hasReset = false;
 
     private Pose resetPose = new Pose(144 - 9.5, 9.5, Math.toRadians(270));
+    private Pose redResetPose = new Pose(144 - 9.5, 144 - 9.5, Math.toRadians(90));
 
     private PIDFController alignPID;
 
@@ -192,9 +193,9 @@ public class DriveSubsystem {
     }
 
     public void resetPose() {
-        follower.setPose(resetPose);
+        follower.setPose(Robot.alliance == Alliance.BLUE ? resetPose : redResetPose);
         driverHeadingOffset = 0;
-        odometry.resetPose(resetPose);
+        odometry.resetPose(Robot.alliance == Alliance.BLUE ? resetPose : redResetPose);
         poseEstimator.resetPose(odometry.getPoseWPILib());
         hasReset = true;
     }
