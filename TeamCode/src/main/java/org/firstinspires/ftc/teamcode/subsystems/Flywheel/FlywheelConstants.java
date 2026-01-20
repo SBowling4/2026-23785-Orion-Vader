@@ -14,8 +14,8 @@ public class FlywheelConstants {
 
     public static double target = 0;
 
-    public static final double CLOSE_SP = 0;
-    public static final double FAR_SP = 0;
+    public static final double CLOSE_SP = 2350;
+    public static final double FAR_SP = 2925;
 
 
 }

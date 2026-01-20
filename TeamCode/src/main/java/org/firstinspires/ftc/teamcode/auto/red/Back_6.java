@@ -20,9 +20,11 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Turret.TurretConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Turret.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 
@@ -143,10 +145,10 @@ public class Back_6 extends OpMode {
     private void statePathUpdate() {
         switch (pathState) {
             case SHOOT_PRELOAD:
-                flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity(driveSubsystem.getDistanceToGoal()));
-                turretSubsystem.setPosition(turretSubsystem.findPosition());
+                flywheelSubsystem.setVelocity(FlywheelConstants.FAR_SP);
+                turretSubsystem.setPosition(TurretConstants.RED_FAR_SP);
 
-                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
+                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN, true);
 
                 if (flywheelSubsystem.atVelocity() && !hasSpunUp) {
                     hasSpunUp = true;
@@ -209,8 +211,8 @@ public class Back_6 extends OpMode {
                 }
                 break;
             case SHOOT_PICKUP:
-                flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity(driveSubsystem.getDistanceToGoal()));
-                turretSubsystem.setPosition(turretSubsystem.findPosition());
+                flywheelSubsystem.setVelocity(FlywheelConstants.FAR_SP);
+                turretSubsystem.setPosition(TurretConstants.RED_FAR_SP);
 
                 feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN, true);
 
@@ -243,7 +245,12 @@ public class Back_6 extends OpMode {
                 }
                 break;
             case END:
-                requestOpModeStop();
+                turretSubsystem.setPosition(0);
+                flywheelSubsystem.stop();
+                feederSubsystem.setKickerState(FeederConstants.KICKER_STATE.OUT);
+                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
+                feederSubsystem.setFeederState(FeederConstants.FEEDER_STATE.STOP);
+                intakeSubsystem.setState(IntakeConstants.INTAKE_STATE.STOP);
                 break;
 
 

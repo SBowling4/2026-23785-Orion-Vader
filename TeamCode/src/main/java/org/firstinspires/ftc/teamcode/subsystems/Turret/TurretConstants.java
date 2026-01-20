@@ -13,4 +13,6 @@ public class TurretConstants {
     public static final double GEAR_RATIO = 1.0 / 3.0;
 
     public static double target = 0;
+
+    public static double RED_FAR_SP = Math.toRadians(80);
 }

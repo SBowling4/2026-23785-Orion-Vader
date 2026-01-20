@@ -20,6 +20,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeSubsystem;
@@ -46,7 +47,7 @@ public class Back_6 extends OpMode {
     private final Pose startPose = new Pose(44.014440433213, 9.184115523465712, Units.degreesToRadians(180));
     private final Pose pickupPose = new Pose(9.010830324909747, 8.144404332129957, Units.degreesToRadians(180));
     private final Pose wigglePose = new Pose(21.140794223826713, 8.837545126353788, Math.toRadians(180));
-    private final Pose shootPose = new Pose(48.51985559566786, 8.49097472924188, Units.degreesToRadians(180));
+    private final Pose shootPose = new Pose(57.212996389891686, 10.079422382671439, Units.degreesToRadians(180));
     private final Pose offlinePose = new Pose(48.69314079422383, 34.65703971119134, Units.degreesToRadians(180));
 
     private PathChain driveToPickup, driveToShoot, driveToOffline, wiggleBack, wiggleForward;
@@ -143,7 +144,7 @@ public class Back_6 extends OpMode {
     private void statePathUpdate() {
         switch (pathState) {
             case SHOOT_PRELOAD:
-                flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity(driveSubsystem.getDistanceToGoal()));
+                flywheelSubsystem.setVelocity(FlywheelConstants.FAR_SP);
                 turretSubsystem.setPosition(turretSubsystem.findPosition());
 
                 feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
@@ -196,7 +197,7 @@ public class Back_6 extends OpMode {
                 feederSubsystem.setFeederState(FeederConstants.FEEDER_STATE.IN);
 
                 if (!follower.isBusy() || pathTimer.getElapsedTimeSeconds() > 2) {
-                    follower.followPath(driveToShoot);
+                    follower.followPath(driveToShoot, .75, false);
                     setPathState(PathState.DRIVE_PICKUP_TO_SHOOT);
                 }
                 break;
@@ -209,7 +210,7 @@ public class Back_6 extends OpMode {
                 }
                 break;
             case SHOOT_PICKUP:
-                flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity(driveSubsystem.getDistanceToGoal()));
+                flywheelSubsystem.setVelocity(FlywheelConstants.FAR_SP);
                 turretSubsystem.setPosition(turretSubsystem.findPosition());
 
                 feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN, true);
@@ -243,7 +244,12 @@ public class Back_6 extends OpMode {
                 }
                 break;
             case END:
-                requestOpModeStop();
+                turretSubsystem.setPosition(0);
+                flywheelSubsystem.stop();
+                feederSubsystem.setKickerState(FeederConstants.KICKER_STATE.OUT);
+                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
+                feederSubsystem.setFeederState(FeederConstants.FEEDER_STATE.STOP);
+                intakeSubsystem.setState(IntakeConstants.INTAKE_STATE.STOP);
                 break;
 
 
