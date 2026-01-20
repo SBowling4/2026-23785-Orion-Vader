@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode.subsystems.Vision;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.pedropathing.ftc.PoseConverter;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.lib.orion.BaseOpMode;
 import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
+import org.firstinspires.ftc.lib.orion.util.converters.PoseObjectConverter;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
@@ -27,7 +29,7 @@ public class Vision {
 
     private final HardwareMap hardwareMap;
 
-    private Pose3D llPose;
+    private Pose2D llPose;
     private double lastUpdateTime = 0;
 
     private DriveSubsystem driveSubsystem;
@@ -82,31 +84,20 @@ public class Vision {
             return;
         }
 
-        llPose = result.getBotpose_MT2();
+        llPose = PoseObjectConverter.pose3DToPose2D(result.getBotpose_MT2());
 
-        Translation3d translation = CoordinateSystemConverter.ftcFieldCoordinatesToWPILib(llPose.getPosition());
-
-        Pose2d wpiPose = new Pose2d(translation.toTranslation2d(), Rotation2d.fromDegrees(llPose.getOrientation().getYaw()));
-
-        double x = llPose.getPosition().x;;
-        double y = llPose.getPosition().y;;
-        double heading = llPose.getOrientation().getYaw();
-
-        Pose2D llPose2d = new Pose2D(
-                DistanceUnit.METER,
-                x,
-                y,
-                AngleUnit.DEGREES,
-                heading
-        );
-
-        Pose2d orionPose = CoordinateSystemConverter.limelightToOrion(llPose2d);
-
-        if ((BaseOpMode.getOpModeTimeSeconds() - lastUpdateTime) > 20 &&  driveSubsystem.getVelocity() < .25) {
-            //TODO: Make this code
-
+        if ((BaseOpMode.getOpModeTimeSeconds() - lastUpdateTime) > 20 && driveSubsystem.isMoving()) {
+            driveSubsystem.resetPose(CoordinateSystemConverter.limelightToPedro(llPose));
             lastUpdateTime = BaseOpMode.getOpModeTimeSeconds();
+
+            return;
         }
+
+        Pose3D llPose3D = PoseObjectConverter.pose2DToPose3D(llPose);
+
+        Translation3d translation = CoordinateSystemConverter.ftcFieldCoordinatesToWPILib(llPose3D.getPosition());
+
+        Pose2d wpiPose = new Pose2d(translation.toTranslation2d(), Rotation2d.fromDegrees(llPose3D.getOrientation().getYaw()));
 
         driveSubsystem.addVisionMeasurement(
                 wpiPose,
@@ -119,15 +110,6 @@ public class Vision {
         );
     }
 
-    public Optional<Double> getTx() {
-        if (!result.isValid()) {
-            return Optional.empty();
-        }
-
-        return Optional.of(result.getTx());
-    }
-
-
 
 
     public void setTelemetry(TelemetryPacket packet) {
@@ -139,9 +121,9 @@ public class Vision {
             return;
         }
 
-        packet.put("Vision/Pose/Pose x", Units.metersToInches(llPose.getPosition().x));
-        packet.put("Vision/Pose/Pose y", Units.metersToInches(llPose.getPosition().y));
-        packet.put("Vision/Pose/Pose heading",Units.degreesToRadians(llPose.getOrientation().getYaw()));
+        packet.put("Vision/Pose/Pose x", Units.metersToInches(llPose.getX(DistanceUnit.METER)));
+        packet.put("Vision/Pose/Pose y", Units.metersToInches(llPose.getY(DistanceUnit.METER)));
+        packet.put("Vision/Pose/Pose heading",Units.degreesToRadians(llPose.getHeading(AngleUnit.DEGREES)));
     }
 
     /**

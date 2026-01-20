@@ -112,8 +112,6 @@ public class Back_6 extends OpMode {
     public void loop() {
         follower.update();
 
-        driveSubsystem.autoLoop(follower);
-
         vision.loop();
 
         statePathUpdate();

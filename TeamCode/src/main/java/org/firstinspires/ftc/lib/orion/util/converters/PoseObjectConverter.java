@@ -5,6 +5,7 @@ import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
@@ -30,6 +31,17 @@ public class PoseObjectConverter {
                 pos,
                 angles
         );
+    }
+
+    public static Pose2D pose3DToPose2D(Pose3D pose) {
+        return new Pose2D(pose.getPosition().unit, pose.getPosition().x, pose.getPosition().y, AngleUnit.RADIANS, pose.getOrientation().getYaw(AngleUnit.RADIANS));
+    }
+
+    public static Pose3D pose2DToPose3D(Pose2D pose) {
+        Position pos = new Position(DistanceUnit.METER, pose.getX(DistanceUnit.METER), pose.getY(DistanceUnit.METER),0, 0 );
+        YawPitchRollAngles ang = new YawPitchRollAngles(AngleUnit.RADIANS, pose.getHeading(AngleUnit.RADIANS), 0,0,0);
+
+        return new Pose3D(pos, ang);
     }
 
 }

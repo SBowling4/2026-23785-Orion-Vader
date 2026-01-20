@@ -219,4 +219,9 @@ public final class CoordinateSystemConverter {
         Pose2D ftcPose = limelightToFTC(llPose);
         return ftcToOrion(ftcPose);
     }
+
+    public static Pose limelightToPedro(Pose2D llPose) {
+        Pose2D ftcPose = limelightToFTC(llPose);
+        return ftcToPedro(ftcPose);
+    }
 }
