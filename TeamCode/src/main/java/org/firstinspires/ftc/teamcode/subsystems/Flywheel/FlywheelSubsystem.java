@@ -87,7 +87,7 @@ public class FlywheelSubsystem {
             } else if (gamepad1.right_trigger > 50) {
                 setVelocity(FlywheelConstants.FAR_SP);
             } else {
-                setPower(.35);
+                setPower(.2);
             }
         }
 

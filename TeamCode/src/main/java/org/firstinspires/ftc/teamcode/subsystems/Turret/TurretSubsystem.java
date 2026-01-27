@@ -11,11 +11,15 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.lib.orion.util.Field;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Transform2d;
+import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
@@ -31,6 +35,7 @@ public class TurretSubsystem {
     private Pose robotPose;
 
     private double setpoint = 0.0;
+    private double lastSetpoint = 0;
     private double power = 0.0;
     private double position = 0.0;
 
@@ -66,10 +71,15 @@ public class TurretSubsystem {
     }
 
     public void loop() {
-        position = getPosition();
-        setpoint = findFieldRelativeAngle();
+        pidController.setP(TurretConstants.kP);
+        pidController.setF(TurretConstants.kF);
+        pidController.setD(TurretConstants.kD);
 
-//        setPosition(setpoint);
+        position = getPosition();
+//        setpoint = Units.degreesToRadians(TurretConstants.target);
+        setpoint = Math.abs(findFieldRelativeAngle() - setpoint) > Units.degreesToRadians(2) ? findFieldRelativeAngle() : setpoint;
+
+        setPosition(setpoint);
     }
 
     public void setPosition(double pos) {
@@ -80,19 +90,39 @@ public class TurretSubsystem {
     }
 
 
-    public Pose2d getTurretFieldPose() {
-        Pose2d robotPose = driveSubsystem.getEstimatedPose();
+    public Pose2D getTurretFieldPose() {
+        // Get the FTC pose instead
+        Pose2D ftcRobotPose = driveSubsystem.getOdometryPoseFTC();
 
-        Transform2d robotToTurret = new Transform2d(Units.inchesToMeters(-3.376), 0, Rotation2d.kZero);
+        // Turret is 3.376 inches behind the robot center
+        double offsetMeters = Units.inchesToMeters(3.376);
 
-        return robotPose.transformBy(robotToTurret);
+        // Get robot's heading in FTC coordinates
+        double robotHeading = ftcRobotPose.getHeading(AngleUnit.RADIANS);
+
+        // In FTC robot coordinates, "back" is -Y direction
+        // So we calculate the offset in field coordinates
+        double turretOffsetX = -offsetMeters * Math.cos(robotHeading); // FTC: X is perpendicular to heading
+        double turretOffsetY = -offsetMeters * Math.sin(robotHeading); // FTC: Y is along heading
+
+        // Add the offset to the robot's position
+        double turretX = ftcRobotPose.getX(DistanceUnit.METER) + turretOffsetX;
+        double turretY = ftcRobotPose.getY(DistanceUnit.METER) + turretOffsetY;
+
+        // Convert back to WPILib Pose2d
+        Pose3D ftcTurretPose = new Pose3D(
+                new Position(DistanceUnit.METER, turretX, turretY, 0.0, 0),
+                new YawPitchRollAngles(AngleUnit.RADIANS, robotHeading, 0, 0, 0)
+        );
+
+        return new Pose2D(ftcTurretPose.getPosition().unit, ftcTurretPose.getPosition().x, ftcTurretPose.getPosition().y, AngleUnit.RADIANS, ftcTurretPose.getOrientation().getYaw(AngleUnit.RADIANS));
     }
 
     public double findFieldRelativeAngle() {
         double robotHeading;
         double overallAngle;
 
-        Translation2d turretPose = getTurretFieldPose().getTranslation();
+        Translation2d turretPose = CoordinateSystemConverter.ftcToOrion(getTurretFieldPose()).getTranslation();
 
         if (Robot.alliance == Alliance.BLUE) {
             Translation2d delta = turretPose.minus(Field.BLUE_GOAL);
@@ -107,7 +137,7 @@ public class TurretSubsystem {
             throw new IllegalStateException("Alliance not set");
         }
 
-        robotHeading = driveSubsystem.getEstimatedPose().getRotation().getRadians();
+        robotHeading = driveSubsystem.getOdometryPoseOrion().getRotation().getRadians();
 
         double target = overallAngle - robotHeading;
 
@@ -120,9 +150,9 @@ public class TurretSubsystem {
 
     public double getPosition() {
         int ticksPerRev = 8192;
-        double revolutions = (double) position / ticksPerRev;
+        double revolutions = (double) encoder.getPosition() / ticksPerRev;
 
-        return -revolutions * 2 * Math.PI * TurretConstants.GEAR_RATIO;
+        return revolutions * 2 * Math.PI * TurretConstants.GEAR_RATIO;
     }
 
 
@@ -140,8 +170,8 @@ public class TurretSubsystem {
         packet.put("Turret/Position", Units.radiansToDegrees(getPosition()));
         packet.put("Turret/Setpoint", Units.radiansToDegrees(setpoint));
         packet.put("Turret/Needed Angle)", Units.radiansToDegrees(findFieldRelativeAngle()));
-        packet.put("Turret/Pose/Pose x", Units.metersToInches(getTurretFieldPose().getX()));
-        packet.put("Turret/Pose/Pose y", Units.metersToInches(getTurretFieldPose().getY()));
+        packet.put("Turret/Pose/Pose x", Units.metersToInches(getTurretFieldPose().getX(DistanceUnit.METER)));
+        packet.put("Turret/Pose/Pose y", Units.metersToInches(getTurretFieldPose().getY(DistanceUnit.METER)));
         packet.put("Turret/Pose/Pose heading", 0);
     }
 

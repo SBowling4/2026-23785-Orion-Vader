@@ -182,8 +182,17 @@ public final class CoordinateSystemConverter {
         double x = Units.inchesToMeters(pose.getX());
         double y = Units.inchesToMeters(pose.getY());
 
-        return new Pose2d(x, y, Rotation2d.fromRadians(pose.getHeading()));
+        double heading = pose.getHeading();
+
+        // normalize to [0, 2π)
+        heading = heading % (2 * Math.PI);
+        if (heading < 0) {
+            heading += 2 * Math.PI;
+        }
+
+        return new Pose2d(x, y, Rotation2d.fromRadians(heading));
     }
+
 
 
     public static Pose2d ftcToOrion(Pose2D pose2D) {
@@ -218,6 +227,10 @@ public final class CoordinateSystemConverter {
         double x = llPose.getX(DistanceUnit.INCH) + 72;
         double y = llPose.getY(DistanceUnit.INCH) + 72;
 
-        return new Pose(y,144 - x,llPose.getHeading(AngleUnit.RADIANS) + Math.PI / 2, PedroCoordinates.INSTANCE);
+        double heading = llPose.getHeading(AngleUnit.RADIANS);
+
+        double normalizedHeading = heading > 2 * Math.PI ? heading - 2 * Math.PI : heading;
+
+        return new Pose(y,144 - x,normalizedHeading, PedroCoordinates.INSTANCE);
     }
 }

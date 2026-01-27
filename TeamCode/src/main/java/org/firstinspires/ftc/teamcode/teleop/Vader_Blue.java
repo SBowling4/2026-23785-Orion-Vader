@@ -40,7 +40,7 @@ public class Vader_Blue extends BaseOpMode {
         flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
 //        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
         feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
-        vision = Vision.getInstance(hardwareMap);
+        vision = Vision.getInstance(hardwareMap, gamepad1);
         turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1, gamepad2);
 
 

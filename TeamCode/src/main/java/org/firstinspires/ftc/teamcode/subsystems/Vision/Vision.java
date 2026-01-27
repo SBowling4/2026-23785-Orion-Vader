@@ -5,8 +5,10 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.lib.orion.BaseOpMode;
 import org.firstinspires.ftc.lib.orion.hardware.OrionIMU;
 import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
@@ -23,8 +25,10 @@ public class Vision {
 
     private double lastYawDeg = 0.0;
     private boolean didReset = false;
+    private double lastTimeReset = 0;
 
     private final HardwareMap hardwareMap;
+    private final Gamepad gamepad1;
 
     private Pose2D llPose;
 
@@ -33,8 +37,9 @@ public class Vision {
 
     private static Vision instance;
 
-    private Vision(HardwareMap hardwareMap) {
+    private Vision(HardwareMap hardwareMap, Gamepad gamepad1) {
         this.hardwareMap = hardwareMap;
+        this.gamepad1 = gamepad1;
     }
 
     public void init() {
@@ -61,13 +66,9 @@ public class Vision {
     public void loop() {
         if (limelight == null) return;
 
-        double yawDeg = imu.getAbsoluteYaw(AngleUnit.DEGREES);
-
-        if (compensateForJump(yawDeg)) return;
-
-        limelight.updateRobotOrientation(yawDeg);
 
         result = limelight.getLatestResult();
+
         if (result == null || !result.isValid() || result.getFiducialResults().isEmpty()) {
             llPose = null;
             return;
@@ -75,7 +76,8 @@ public class Vision {
 
         llPose = PoseObjectConverter.pose3DToPose2D(result.getBotpose());
 
-        if (!driveSubsystem.isMoving()) {
+        if ((!driveSubsystem.isMoving() && (BaseOpMode.getOpModeTimeSeconds() - lastTimeReset) > 10) || gamepad1.x) {
+            lastTimeReset = BaseOpMode.getOpModeTimeSeconds();
             driveSubsystem.resetPoseVis(
                     CoordinateSystemConverter.ftcToPedro(llPose)
             );
@@ -92,8 +94,8 @@ public class Vision {
 //                Rotation2d.fromDegrees(llPose3D.getOrientation().getYaw())
 //        );
 
-        lastYawDeg = yawDeg;
-        didReset = false;
+//        lastYawDeg = yawDeg;
+//        didReset = false;
     }
 
     /**
@@ -127,8 +129,7 @@ public class Vision {
     }
 
     public void setTelemetry(TelemetryPacket packet) {
-        packet.put("Vision/IMU/Yaw", imu.getYaw(AngleUnit.DEGREES));
-        packet.put("Vision/IMU/Absolute Yaw", imu.getAbsoluteYaw(AngleUnit.DEGREES));
+        packet.put("Vision/Last ReLoc Time", lastTimeReset);
 
         if (llPose == null) {
             packet.put("Vision/PoseMT2/Pose x", 0);
@@ -174,9 +175,9 @@ public class Vision {
 
     }
 
-    public static Vision getInstance(HardwareMap hardwareMap) {
+    public static Vision getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {
         if (instance == null) {
-            instance = new Vision(hardwareMap);
+            instance = new Vision(hardwareMap, gamepad1);
         }
         return instance;
     }

@@ -6,11 +6,16 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.lib.orion.odometry.PoseEstimator;
 import org.firstinspires.ftc.lib.orion.util.Field;
 import org.firstinspires.ftc.lib.orion.odometry.Odometry;
 import org.firstinspires.ftc.lib.pedroPathing.Constants;
 import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
+import org.firstinspires.ftc.lib.wpilib.math.Matrix;
+import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N1;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N3;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
@@ -53,7 +58,7 @@ public class DriveSubsystem {
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Robot.lastPose);
 
-        vision = Vision.getInstance(hardwareMap);
+        vision = Vision.getInstance(hardwareMap, gamepad1);
     }
 
     public void autoInit() {
@@ -61,11 +66,11 @@ public class DriveSubsystem {
 
 //        poseEstimator = new PoseEstimator(
 //                odometry,
-//                VecBuilder.fill(0.6, 0.6, .1),
+//                VecBuilder.fill(0.6, 0.6, 99999),
 //                VecBuilder.fill(0.2, 0.2, 99999)
 //        );
 
-        vision = Vision.getInstance(hardwareMap);
+        vision = Vision.getInstance(hardwareMap, gamepad1);
     }
 
 
@@ -114,7 +119,7 @@ public class DriveSubsystem {
      */
     private void update() {
         follower.update();
-        odometry.update(follower.getPose());
+        odometry.update(follower.getPose(), follower.getVelocity());
 //        poseEstimator.update();
     }
 
@@ -137,8 +142,8 @@ public class DriveSubsystem {
      */
     public void resetPoseVis(Pose pose) {
         follower.setPose(new Pose(pose.getX(), pose.getY(), follower.getHeading()));
-        odometry.update(new Pose(pose.getX(), pose.getY(), follower.getHeading()));
-//        poseEstimator.resetPose(odometry.getPoseWPILib());
+
+        update();
     }
 
     /**
@@ -147,6 +152,18 @@ public class DriveSubsystem {
      */
     public void resetPoseHeading() {
         double heading = Robot.alliance == Alliance.BLUE ? Math.toRadians(270) : Math.toRadians(90);
+        Pose headingResetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), heading);
+
+        follower.setPose(headingResetPose);
+        odometry.resetPose(headingResetPose);
+//        poseEstimator.resetPose(odometry.getPoseWPILib());
+    }
+
+    /**
+     * Resets only the heading of the pose to the alliance standard
+     * Keeps the x and y coordinates the same
+     */
+    public void resetPoseHeading(double heading) {
         Pose headingResetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), heading);
 
         follower.setPose(headingResetPose);
@@ -167,7 +184,7 @@ public class DriveSubsystem {
      * Gets the odometry pose in FTC standard coordinates
      * Coordinates: FTC Standard
      */
-    public Pose2D getOdometryPose() {
+    public Pose2D getOdometryPoseFTC() {
         return odometry.getPoseFTCStandard();
     }
 
@@ -175,9 +192,8 @@ public class DriveSubsystem {
      * Gets the estimated pose from the pose estimator (with vision fusion)
      * Coordinates: Orion
      */
-    public Pose2d getEstimatedPose() {
+    public Pose2d getOdometryPoseOrion() {
         return odometry.getPoseOrion();
-//        return poseEstimator.getEstimatedPosition();
     }
 
     /**
@@ -196,7 +212,7 @@ public class DriveSubsystem {
         double mag = odometry.getVelocityMagnitude();
         double rot = odometry.getRotationalVelocity();
 
-        return mag > .2 && rot > .2;
+        return mag > .2 || Math.abs(rot) > .2;
     }
 
 //    /**
@@ -223,14 +239,14 @@ public class DriveSubsystem {
      */
     public double getDistanceToGoal() {
         if (Robot.alliance == Alliance.BLUE) {
-            return getEstimatedPose().getTranslation().getDistance(Field.BLUE_GOAL);
+            return getOdometryPoseOrion().getTranslation().getDistance(Field.BLUE_GOAL);
         } else {
-            return getEstimatedPose().getTranslation().getDistance(Field.RED_GOAL);
+            return getOdometryPoseOrion().getTranslation().getDistance(Field.RED_GOAL);
         }
     }
 
     public void setTelemetry(TelemetryPacket packet) {
-        Pose2D ftcPose = CoordinateSystemConverter.orionToFTC(getEstimatedPose());
+        Pose2D ftcPose = CoordinateSystemConverter.orionToFTC(getOdometryPoseOrion());
 
 //        packet.put("Drive/Estimated Pose/Pose x", ftcPose.getX(DistanceUnit.INCH));
 //        packet.put("Drive/Estimated Pose/Pose y", ftcPose.getY(DistanceUnit.INCH));
@@ -240,9 +256,9 @@ public class DriveSubsystem {
         packet.put("Drive/Odometry Pose/Pose y", odometry.getPoseFTCStandard().getY(DistanceUnit.INCH));
         packet.put("Drive/Odometry Pose/Pose heading", odometry.getPoseFTCStandard().getHeading(AngleUnit.RADIANS));
 
-        packet.put("Drive/Pose Orion/X", getEstimatedPose().getX());
-        packet.put("Drive/Pose Orion/Y", getEstimatedPose().getY());
-        packet.put("Drive/Pose Orion/Heading", getEstimatedPose().getRotation().getRadians());
+        packet.put("Drive/Pose Orion/X", getOdometryPoseOrion().getX());
+        packet.put("Drive/Pose Orion/Y", getOdometryPoseOrion().getY());
+        packet.put("Drive/Pose Orion/Heading", getOdometryPoseOrion().getRotation().getRadians());
 
         packet.put("Drive/Velocity/X", odometry.getXVelocity());
         packet.put("Drive/Velocity/Y", odometry.getYVelocity());
