@@ -103,11 +103,7 @@ public class Front_6 extends OpMode {
     public void loop() {
         follower.update();
 
-        driveSubsystem.autoLoop(follower);
-
         vision.loop();
-
-        turretSubsystem.setTurretPower(0);
 
         statePathUpdate();
 

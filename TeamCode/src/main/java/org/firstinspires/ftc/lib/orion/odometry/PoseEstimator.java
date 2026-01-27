@@ -108,7 +108,7 @@ public class PoseEstimator {
 
     /**
      *
-     * @return gets the estimated pose from the pose estimator WPILIB coordinates
+     * @return gets the estimated pose from the pose estimator in Orion coordinates
      */
     public Pose2d getEstimatedPosition() {
         Pose3d pose3d = new Pose3d(m_poseEstimate.getX(), m_poseEstimate.getY(), 0, new Rotation3d(0,0, m_poseEstimate.getRotation().getRadians()));

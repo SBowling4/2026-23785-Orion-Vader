@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
@@ -143,7 +142,7 @@ public class Back_6 extends OpMode {
         switch (pathState) {
             case SHOOT_PRELOAD:
                 flywheelSubsystem.setVelocity(FlywheelConstants.FAR_SP);
-                turretSubsystem.setPosition(turretSubsystem.findPosition());
+                turretSubsystem.setPosition(turretSubsystem.findFieldRelativeAngle());
 
                 feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
 
@@ -209,9 +208,9 @@ public class Back_6 extends OpMode {
                 break;
             case SHOOT_PICKUP:
                 flywheelSubsystem.setVelocity(FlywheelConstants.FAR_SP);
-                turretSubsystem.setPosition(turretSubsystem.findPosition());
+                turretSubsystem.setPosition(turretSubsystem.findFieldRelativeAngle());
 
-                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN, true);
+                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
 
                 if (flywheelSubsystem.atVelocity() && !hasSpunUp) {
                     hasSpunUp = true;

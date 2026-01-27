@@ -106,11 +106,9 @@ public class Front_3 extends OpMode {
     public void loop() {
         follower.update();
 
-        driveSubsystem.autoLoop(follower);
-
         vision.loop();
 
-        turretSubsystem.setTurretPower(0);
+        turretSubsystem.setPower(0);
 
         statePathUpdate();
 
@@ -146,7 +144,7 @@ public class Front_3 extends OpMode {
             case SHOOT_PRELOAD:
                 flywheelSubsystem.setVelocity(FlywheelConstants.CLOSE_SP);
 
-                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN, true);
+                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
 
                 if (flywheelSubsystem.atVelocity() && !hasSpunUp && !follower.isBusy()) {
                     hasSpunUp = true;

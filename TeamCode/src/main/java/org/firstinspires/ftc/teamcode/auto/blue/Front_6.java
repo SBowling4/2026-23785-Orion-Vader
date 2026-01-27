@@ -108,11 +108,8 @@ public class Front_6 extends OpMode {
     public void loop() {
         follower.update();
 
-        driveSubsystem.autoLoop(follower);
 
         vision.loop();
-
-        turretSubsystem.setTurretPower(0);
 
         statePathUpdate();
 
@@ -147,7 +144,7 @@ public class Front_6 extends OpMode {
                 break;
             case SHOOT_PRELOAD:
                 flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity(driveSubsystem.getDistanceToGoal()));
-                turretSubsystem.setPosition(turretSubsystem.findPosition());
+                turretSubsystem.setPosition(turretSubsystem.findFieldRelativeAngle());
 
                 feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
 
@@ -193,7 +190,7 @@ public class Front_6 extends OpMode {
                 break;
             case SHOOT_PICKUP:
                 flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity(driveSubsystem.getDistanceToGoal()));
-                turretSubsystem.setPosition(turretSubsystem.findPosition());
+                turretSubsystem.setPosition(turretSubsystem.findFieldRelativeAngle());
 
                 feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
 

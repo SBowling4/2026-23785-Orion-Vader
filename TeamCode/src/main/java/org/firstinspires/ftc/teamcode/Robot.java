@@ -12,7 +12,7 @@ public final class Robot {
     public static Alliance alliance = Alliance.UNKNOWN;
     public static boolean tuningMode = false;
 
-    public static Pose lastPose = new Pose(72, 72, 0);
+    public static Pose lastPose = new Pose(9, 9, 270);
 
     private static HardwareMap hardwareMap;
 

@@ -10,19 +10,12 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.lib.orion.util.converters.PoseObjectConverter;
 import org.firstinspires.ftc.lib.orion.util.Field;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Transform2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
@@ -74,6 +67,9 @@ public class TurretSubsystem {
 
     public void loop() {
         position = getPosition();
+        setpoint = findFieldRelativeAngle();
+
+//        setPosition(setpoint);
     }
 
     public void setPosition(double pos) {
@@ -87,12 +83,12 @@ public class TurretSubsystem {
     public Pose2d getTurretFieldPose() {
         Pose2d robotPose = driveSubsystem.getEstimatedPose();
 
-        Transform2d robotToTurret = new Transform2d(-3.376, 0, Rotation2d.kZero);
+        Transform2d robotToTurret = new Transform2d(Units.inchesToMeters(-3.376), 0, Rotation2d.kZero);
 
         return robotPose.transformBy(robotToTurret);
     }
 
-    public double findPosition() {
+    public double findFieldRelativeAngle() {
         double robotHeading;
         double overallAngle;
 
@@ -143,7 +139,7 @@ public class TurretSubsystem {
     public void setTelemetry(TelemetryPacket packet) {
         packet.put("Turret/Position", Units.radiansToDegrees(getPosition()));
         packet.put("Turret/Setpoint", Units.radiansToDegrees(setpoint));
-        packet.put("Turret/Needed Angle)", Units.radiansToDegrees(findPosition()));
+        packet.put("Turret/Needed Angle)", Units.radiansToDegrees(findFieldRelativeAngle()));
         packet.put("Turret/Pose/Pose x", Units.metersToInches(getTurretFieldPose().getX()));
         packet.put("Turret/Pose/Pose y", Units.metersToInches(getTurretFieldPose().getY()));
         packet.put("Turret/Pose/Pose heading", 0);

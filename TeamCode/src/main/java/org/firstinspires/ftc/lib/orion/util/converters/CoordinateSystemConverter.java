@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.lib.orion.util.converters;
 
-import com.pedropathing.ftc.FTCCoordinates;
+import com.pedropathing.ftc.InvertedFTCCoordinates;
+import com.pedropathing.ftc.PoseConverter;
 import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 
@@ -17,6 +18,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
+@SuppressWarnings("unused")
 public final class CoordinateSystemConverter {
     private CoordinateSystemConverter() {}
 
@@ -153,16 +155,17 @@ public final class CoordinateSystemConverter {
     }
 
     public static Pose2D pedroToFTC(Pose pose) {
-        double ftcX = Units.inchesToMeters(pose.getX());
-        double ftcY = Units.inchesToMeters(pose.getY());
+        // Transform first (in inches)
+        Pose ftcPoseInches = new Pose(pose.getX(), pose.getY(), pose.getHeading(),
+                PedroCoordinates.INSTANCE)
+                .getAsCoordinateSystem(InvertedFTCCoordinates.INSTANCE);
 
-        Pose ftcPose = new Pose(ftcX, ftcY, pose.getHeading(), PedroCoordinates.INSTANCE).getAsCoordinateSystem(FTCCoordinates.INSTANCE);
-
-        return new Pose2D(DistanceUnit.METER, ftcPose.getX(), ftcPose.getY(), AngleUnit.RADIANS,ftcPose.getHeading());
-    }
-
-    public static Pose ftcToPedro(Pose2D pose2D) {
-        return new Pose(pose2D.getX(DistanceUnit.INCH), pose2D.getY(DistanceUnit.INCH), pose2D.getHeading(AngleUnit.RADIANS), FTCCoordinates.INSTANCE).getAsCoordinateSystem(PedroCoordinates.INSTANCE);
+        // Then convert to meters
+        return new Pose2D(DistanceUnit.METER,
+                Units.inchesToMeters(ftcPoseInches.getX()),
+                Units.inchesToMeters(ftcPoseInches.getY()),
+                AngleUnit.RADIANS,
+                ftcPoseInches.getHeading());
     }
 
     public static Pose3d fieldPoseToWPILib(Pose3D pose) {
@@ -211,17 +214,10 @@ public final class CoordinateSystemConverter {
         return new Pose(xInches, yInches, pose2d.getRotation().getRadians(), PedroCoordinates.INSTANCE);
     }
 
-    public static Pose2D limelightToFTC(Pose2D llPose) {
-        return new Pose2D(DistanceUnit.METER, llPose.getX(DistanceUnit.METER), llPose.getY(DistanceUnit.METER), AngleUnit.RADIANS, llPose.getHeading(AngleUnit.RADIANS));
-    }
+    public static Pose ftcToPedro(Pose2D llPose) {
+        double x = llPose.getX(DistanceUnit.INCH) + 72;
+        double y = llPose.getY(DistanceUnit.INCH) + 72;
 
-    public static Pose2d limelightToOrion(Pose2D llPose) {
-        Pose2D ftcPose = limelightToFTC(llPose);
-        return ftcToOrion(ftcPose);
-    }
-
-    public static Pose limelightToPedro(Pose2D llPose) {
-        Pose2D ftcPose = limelightToFTC(llPose);
-        return ftcToPedro(ftcPose);
+        return new Pose(y,144 - x,llPose.getHeading(AngleUnit.RADIANS) + Math.PI / 2, PedroCoordinates.INSTANCE);
     }
 }

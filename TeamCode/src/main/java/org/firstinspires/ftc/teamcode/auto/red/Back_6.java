@@ -113,8 +113,6 @@ public class Back_6 extends OpMode {
     public void loop() {
         follower.update();
 
-        driveSubsystem.autoLoop(follower);
-
         vision.loop();
 
         statePathUpdate();
@@ -148,7 +146,7 @@ public class Back_6 extends OpMode {
                 flywheelSubsystem.setVelocity(FlywheelConstants.FAR_SP);
                 turretSubsystem.setPosition(TurretConstants.RED_FAR_SP);
 
-                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN, true);
+                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
 
                 if (flywheelSubsystem.atVelocity() && !hasSpunUp) {
                     hasSpunUp = true;
@@ -214,7 +212,7 @@ public class Back_6 extends OpMode {
                 flywheelSubsystem.setVelocity(FlywheelConstants.FAR_SP);
                 turretSubsystem.setPosition(TurretConstants.RED_FAR_SP);
 
-                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN, true);
+                feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
 
                 if (flywheelSubsystem.atVelocity() && !hasSpunUp) {
                     hasSpunUp = true;

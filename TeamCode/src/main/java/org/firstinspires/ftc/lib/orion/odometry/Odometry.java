@@ -18,7 +18,13 @@ public class Odometry {
     private Pose lastPose;
     private double lastTime;
 
-    public Odometry() {}
+    private boolean didReset;
+
+    public Odometry() {
+        pose = new Pose();
+        lastPose = new Pose();
+        lastTime = System.nanoTime() / 1e9;
+    }
 
     public Pose2d getPoseOrion() {
         return CoordinateSystemConverter.pedroToOrion(pose);
@@ -39,20 +45,27 @@ public class Odometry {
 
     public void resetPose() {
         pose = new Pose();
+        didReset = true;
     }
 
     public void resetPose(Pose pose) {
         this.pose = pose;
+        didReset = true;
     }
 
     public void resetPose(Pose2d pose2d) {
         Translation3d translation = new Translation3d(pose2d.getTranslation());
         Position pos = CoordinateSystemConverter.WPILibToFTCFieldCoordinates(translation);
         pose = new Pose(pos.x, pos.y, pose2d.getRotation().getRadians());
+        didReset = true;
+
+
     }
 
     public void resetPose(Pose2D pose2D) {
         pose = new Pose(pose2D.getX(DistanceUnit.METER), pose2D.getY(DistanceUnit.METER), pose2D.getHeading(AngleUnit.RADIANS));
+        didReset = true;
+
     }
     /**
      * Gets the x velocity of the Robot
@@ -60,9 +73,12 @@ public class Odometry {
      */
 
     public double getXVelocity() {
-        double time = System.nanoTime();
+        double time = System.nanoTime() / 1e9;
 
         double dt = time - lastTime;
+
+        if (dt < 1e-4) return 0;
+
         double dx = pose.getX() - lastPose.getX();
 
         double dxMeters = Units.inchesToMeters(dx);
@@ -75,9 +91,12 @@ public class Odometry {
      * @return the y velocity of the robot (m/s)
      */
     public double getYVelocity() {
-        double time = System.nanoTime();
+        double time = System.nanoTime() / 1e9;
 
         double dt = time - lastTime;
+
+        if (dt < 1e-4) return 0;
+
         double dy = pose.getY() - lastPose.getY();
 
         double dyMeters = Units.inchesToMeters(dy);
@@ -90,9 +109,12 @@ public class Odometry {
      * @return the rotation velocity of the robot in rad/s
      */
     public double getRotationalVelocity() {
-        double time = System.nanoTime();
+        double time = System.nanoTime() / 1e9;
 
         double dt = time - lastTime;
+
+        if (dt < 1e-4) return 0;
+
         double dtheta = pose.getHeading() - lastPose.getHeading();
 
         return dtheta/dt;
@@ -108,14 +130,21 @@ public class Odometry {
      * @param pose the latest pose from the Follower
      */
     public void update(Pose pose) {
-        // Prevent large jumps in heading (most likely from a bad gyro reading)
-        if (Math.abs(pose.getHeading() - lastPose.getHeading()) > Units.degreesToRadians(40)) {
+        if (Math.abs(pose.getHeading() - lastPose.getHeading()) >
+                Units.degreesToRadians(60) && !didReset) {
+            didReset = true;
             return;
         }
 
-        this.lastPose = this.pose;
-        this.pose = pose;
+        lastPose = new Pose(
+                this.pose.getX(),
+                this.pose.getY(),
+                this.pose.getHeading()
+        );
 
-        this.lastTime = System.nanoTime();
+        this.pose = pose;
+        this.lastTime = System.nanoTime() / 1e9;
+        this.didReset = false;
     }
+
 }
