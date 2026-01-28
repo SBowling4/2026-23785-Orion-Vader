@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems.Hood;
+package org.firstinspires.ftc.teamcode.subsystems.shooter.Hood;
 
 import com.bylazar.configurables.annotations.Configurable;
 

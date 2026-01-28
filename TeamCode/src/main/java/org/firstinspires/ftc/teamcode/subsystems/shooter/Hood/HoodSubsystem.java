@@ -1,6 +1,5 @@
-package org.firstinspires.ftc.teamcode.subsystems.Hood;
+package org.firstinspires.ftc.teamcode.subsystems.shooter.Hood;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
@@ -10,11 +9,11 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
-import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelConstants;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.ShotCalculator;
 
 public class HoodSubsystem {
     public CRServoImplEx hoodServo;
@@ -79,7 +78,7 @@ public class HoodSubsystem {
             setAngle(HoodConstants.target);
         } else {
             if (gamepad1.right_bumper) {
-                setAngle(findAngle(driveSubsystem.getDistanceToGoal()));
+                setAngle(findAngle());
             } else {
                 setAngle(0);
             }
@@ -95,8 +94,8 @@ public class HoodSubsystem {
         hoodEncoder.reset();
     }
 
-    public double findAngle(double distance) {
-        double baseAngle = -348 + 728 * distance + -486 * Math.pow(distance, 2) + 108 * Math.pow(distance, 3);
+    public double findAngle() {
+        double baseAngle = ShotCalculator.getInstance().getShootingParameters().hoodAngle();
         return baseAngle;
 //        double baseRPM = flywheelSubsystem.findVelocity(distance);
 //

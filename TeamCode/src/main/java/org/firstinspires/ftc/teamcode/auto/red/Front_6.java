@@ -18,10 +18,10 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Turret.TurretSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Turret.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 
 @Autonomous(name = "Front_6_Red")
@@ -137,7 +137,7 @@ public class Front_6 extends OpMode {
                 setPathState(PathState.SHOOT_PRELOAD);
                 break;
             case SHOOT_PRELOAD:
-                flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity(driveSubsystem.getDistanceToGoal()));
+                flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity());
 
                 feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
 
@@ -176,13 +176,13 @@ public class Front_6 extends OpMode {
                 intakeSubsystem.setState(IntakeConstants.INTAKE_STATE.STOP);
                 feederSubsystem.setFeederState(FeederConstants.FEEDER_STATE.STOP);
 
-                flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity(driveSubsystem.getDistanceToGoal()));
+                flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity());
                 if (!follower.isBusy()) {
                     setPathState(PathState.SHOOT_PICKUP);
                 }
                 break;
             case SHOOT_PICKUP:
-                flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity(driveSubsystem.getDistanceToGoal()));
+                flywheelSubsystem.setVelocity(flywheelSubsystem.findVelocity());
 
                 feederSubsystem.setStopperState(FeederConstants.STOPPER_STATE.OPEN);
 
