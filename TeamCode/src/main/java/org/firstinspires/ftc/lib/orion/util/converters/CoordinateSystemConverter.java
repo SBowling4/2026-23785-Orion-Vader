@@ -231,6 +231,6 @@ public final class CoordinateSystemConverter {
 
         double normalizedHeading = heading > 2 * Math.PI ? heading - 2 * Math.PI : heading;
 
-        return new Pose(y,144 - x,normalizedHeading, PedroCoordinates.INSTANCE);
+        return new Pose(y,144 - x, normalizedHeading, PedroCoordinates.INSTANCE);
     }
 }

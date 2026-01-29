@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems.Flywheel;
+package org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel;
 
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
@@ -11,6 +11,7 @@ import org.firstinspires.ftc.lib.orion.hardware.OrionMotor;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.ShotCalculator;
 
 
 public class FlywheelSubsystem {
@@ -143,14 +144,9 @@ public class FlywheelSubsystem {
     }
 
 
-    /**
-     * Equation obtained from here: <a href="https://docs.google.com/spreadsheets/d/1m6Tb_BewsEm0vuEWVIr-rKV5Jfy468Ui95xVuQbh-_I/edit?usp=sharing">Spreadsheet</a>
-     *
-     * @param distance distance (m) from target (Center of robot to back corner of goal)
-     * @return Desired velocity for flywheel (rad/s)
-     */
-    public double findVelocity(double distance) {
-        return 1474 + 1106 * distance + -451 * Math.pow(distance, 2) + 70.6 * Math.pow(distance, 3);
+
+    public double findVelocity() {
+        return ShotCalculator.getInstance().getShootingParameters().flywheelRPM();
     }
 
     /**

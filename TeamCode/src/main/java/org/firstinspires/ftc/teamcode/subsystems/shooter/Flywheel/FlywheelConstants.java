@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.subsystems.Flywheel;
+package org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel;
 
 import com.bylazar.configurables.annotations.Configurable;
 
