@@ -227,7 +227,7 @@ public final class CoordinateSystemConverter {
         double x = llPose.getX(DistanceUnit.INCH) + 72;
         double y = llPose.getY(DistanceUnit.INCH) + 72;
 
-        double heading = llPose.getHeading(AngleUnit.RADIANS);
+        double heading = llPose.getHeading(AngleUnit.RADIANS) - Math.PI / 2;
 
         double normalizedHeading = heading > 2 * Math.PI ? heading - 2 * Math.PI : heading;
 

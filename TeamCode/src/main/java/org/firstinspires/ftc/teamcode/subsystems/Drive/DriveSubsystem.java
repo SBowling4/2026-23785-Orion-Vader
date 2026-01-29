@@ -130,8 +130,6 @@ public class DriveSubsystem {
         follower.setPose(resetPose);
         driverHeadingOffset = 0;
         odometry.resetPose(resetPose);
-
-        vision.resetImu(Math.toRadians(-90));
 //        poseEstimator.resetPose(odometry.getPoseWPILib());
     }
 
@@ -141,9 +139,7 @@ public class DriveSubsystem {
      * @param pose the pose to reset to
      */
     public void resetPoseVis(Pose pose) {
-        follower.setPose(new Pose(pose.getX(), pose.getY(), follower.getHeading()));
-
-        update();
+        follower.setPose(pose);
     }
 
     /**

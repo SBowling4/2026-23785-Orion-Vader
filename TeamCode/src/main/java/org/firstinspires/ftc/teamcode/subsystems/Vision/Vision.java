@@ -23,8 +23,6 @@ public class Vision {
     private Limelight3A limelight;
     private LLResult result;
 
-    private double lastYawDeg = 0.0;
-    private boolean didReset = false;
     private double lastTimeReset = 0;
 
     private final HardwareMap hardwareMap;
@@ -33,7 +31,6 @@ public class Vision {
     private Pose2D llPose;
 
     private DriveSubsystem driveSubsystem;
-    private OrionIMU imu;
 
     private static Vision instance;
 
@@ -52,11 +49,7 @@ public class Vision {
 
         driveSubsystem = DriveSubsystem.getInstance();
 
-        imu = new OrionIMU(
-                hardwareMap,
-                RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
-                RevHubOrientationOnRobot.UsbFacingDirection.FORWARD
-        );
+        lastTimeReset = 0;
     }
 
     public void start() {
@@ -98,35 +91,8 @@ public class Vision {
 //        didReset = false;
     }
 
-    /**
-     * Detects and compensates for sudden IMU yaw jumps.
-     */
-    private boolean compensateForJump(double currentYawDeg) {
-        double diff = shortestAngleDiffDeg(currentYawDeg, lastYawDeg);
 
-        if (Math.abs(diff) > 60 && !didReset) {
-            imu.resetYaw(Math.toRadians(lastYawDeg));
-            didReset = true;
-            return true;
-        }
 
-        return false;
-    }
-
-    /**
-     * Returns shortest signed angular difference in degrees.
-     */
-    private double shortestAngleDiffDeg(double a, double b) {
-        double diff = (a - b + 180) % 360 - 180;
-        return diff < -180 ? diff + 360 : diff;
-    }
-
-    /**
-     * @param val the value to reset the imu to - radians
-     */
-    public void resetImu(double val) {
-        imu.resetYaw(val);
-    }
 
     public void setTelemetry(TelemetryPacket packet) {
         packet.put("Vision/Last ReLoc Time", lastTimeReset);
