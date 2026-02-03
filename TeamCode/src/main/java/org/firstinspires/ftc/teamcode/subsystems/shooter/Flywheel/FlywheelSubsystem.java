@@ -5,11 +5,12 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
+import org.firstinspires.ftc.lib.orion.feedforward.FeedForward;
 import org.firstinspires.ftc.lib.orion.hardware.OrionMotor;
+import org.firstinspires.ftc.lib.orion.util.units.AngularVelocityUnit;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.ShotCalculator;
 
@@ -19,13 +20,10 @@ public class FlywheelSubsystem {
     public OrionMotor rightMotor;
 
     public double lastTargetRPM = 0.0;
-
     public double lastTargetVolts = 0.0;
 
     private final Gamepad gamepad1;
     private final HardwareMap hardwareMap;
-    private DriveSubsystem driveSubsystem;
-
     public double tuningVelocity = 0.0;
 
     private static FlywheelSubsystem instance;
@@ -55,25 +53,30 @@ public class FlywheelSubsystem {
         rightMotor.setInverted(false);
 
         leftMotor.setCoefficients(
-                new PIDFCoefficients(
+                new PIDCoefficients(
                         FlywheelConstants.kP,
                         FlywheelConstants.kI,
-                        FlywheelConstants.kD,
-                        FlywheelConstants.kF
+                        FlywheelConstants.kD
+                ),
+                new FeedForward.FeedForwardCoefficients(
+                        FlywheelConstants.kS,
+                        FlywheelConstants.kV,
+                        FlywheelConstants.kA
                 )
         );
 
         rightMotor.setCoefficients(
-                new PIDFCoefficients(
+                new PIDCoefficients(
                         FlywheelConstants.kP,
                         FlywheelConstants.kI,
-                        FlywheelConstants.kD,
-                        FlywheelConstants.kF
+                        FlywheelConstants.kD
+                ),
+                new FeedForward.FeedForwardCoefficients(
+                        FlywheelConstants.kS,
+                        FlywheelConstants.kV,
+                        FlywheelConstants.kA
                 )
         );
-
-
-        driveSubsystem = DriveSubsystem.getInstance();
     }
 
     /**
@@ -84,14 +87,11 @@ public class FlywheelSubsystem {
             setVelocity(FlywheelConstants.target);
         } else {
             if (gamepad1.right_bumper) {
-                setVelocity(FlywheelConstants.CLOSE_SP);
-            } else if (gamepad1.right_trigger > 50) {
-                setVelocity(FlywheelConstants.FAR_SP);
+                setVelocityFromDistance();
             } else {
                 setPower(.2);
             }
         }
-
     }
 
     /**
@@ -108,7 +108,7 @@ public class FlywheelSubsystem {
      * @return Current velocity (RPM)
      */
     public double getVelocity() {
-        return (new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME).getVelocity() / OrionMotor.TICKS_PER_REVOLUTION) * 60;
+        return leftMotor.getVelocity(AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
     }
 
     /**
@@ -119,8 +119,15 @@ public class FlywheelSubsystem {
     public void setVelocity(double targetRPM) {
         lastTargetRPM = targetRPM;
 
-        leftMotor.setVelocity(targetRPM, getVelocity());
-        rightMotor.setVelocity(targetRPM, getVelocity());
+        leftMotor.setVelocity(targetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
+        rightMotor.setVelocity(targetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
+    }
+
+    public void setVelocityFromDistance() {
+        lastTargetRPM = ShotCalculator.getInstance().getShootingParameters().flywheelRPM();
+
+        leftMotor.setVelocity(lastTargetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
+        rightMotor.setVelocity(lastTargetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
     }
 
     public void setVoltage(double volts) {
@@ -163,6 +170,7 @@ public class FlywheelSubsystem {
         packet.put("Flywheel/Velocity", getVelocity());
         packet.put("Flywheel/Target", lastTargetRPM);
         packet.put("Flywheel/Volts", leftMotor.lastAppliedVoltage);
+        packet.put("Flywheel/Velocity from Distance", ShotCalculator.getInstance().getShootingParameters().flywheelRPM());
     }
 
     /**

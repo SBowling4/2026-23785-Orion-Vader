@@ -5,15 +5,8 @@ import com.bylazar.configurables.annotations.Configurable;
 @Configurable
 public class HoodConstants {
     public static final String SERVO_NAME = "hood";
-    public static double kP = 0.25;
-    public static double kI = 0.0;
-    public static double kD = 0.0;
-    public static double kF = 0.002;
-
-    public static final double GEAR_RATIO = 1.0 / 10.0;
-    public static final double MIN_ANGLE = 0.0;
-    public static final double MAX_ANGLE = 19;
-
+    public static final double HIGHEST_ANGLE = .12;
+    public static final double LOWEST_ANGLE = .72;
 
     public static double target = 0;
 }

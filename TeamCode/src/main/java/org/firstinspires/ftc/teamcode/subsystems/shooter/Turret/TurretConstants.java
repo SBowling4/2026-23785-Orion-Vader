@@ -15,4 +15,6 @@ public class TurretConstants {
     public static double target = 0;
 
     public static double RED_FAR_SP = Math.toRadians(80);
+
+    public static double OFFSET = -.05;
 }

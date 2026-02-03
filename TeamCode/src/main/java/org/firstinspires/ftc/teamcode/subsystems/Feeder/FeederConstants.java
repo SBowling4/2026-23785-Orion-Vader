@@ -41,8 +41,8 @@ public class FeederConstants {
     }
 
     public enum KICKER_STATE {
-        IN(.75),
-        OUT(.1);
+        IN(.1),
+        OUT(.327);
 
         private final double position;
 

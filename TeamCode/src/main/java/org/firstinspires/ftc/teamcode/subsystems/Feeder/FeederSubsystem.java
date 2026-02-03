@@ -11,10 +11,10 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 import org.firstinspires.ftc.lib.orion.hardware.OrionMotor;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Hood.HoodSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.KICKER_STATE;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.STOPPER_STATE;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.FEEDER_STATE;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Hood.HoodSubsystem;
 
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})

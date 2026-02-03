@@ -1,12 +1,17 @@
 package org.firstinspires.ftc.lib.orion.hardware;
 
+import com.arcrobotics.ftclib.controller.PIDController;
 import com.arcrobotics.ftclib.controller.PIDFController;
+import com.arcrobotics.ftclib.hardware.motors.Motor;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import org.firstinspires.ftc.lib.orion.feedforward.FeedForward;
+import org.firstinspires.ftc.lib.orion.util.units.AngularVelocityUnit;
 import org.firstinspires.ftc.teamcode.Robot;
 
 import com.arcrobotics.ftclib.hardware.motors.Motor.Encoder;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 public class OrionMotor {
@@ -14,7 +19,8 @@ public class OrionMotor {
     private final com.arcrobotics.ftclib.hardware.motors.Motor.Encoder encoder;
     private final String name;
 
-    private PIDFController pidfController;
+    private PIDController pidController;
+    private FeedForward feedForward;
     public double lastAppliedVoltage = 0;
 
     public static final double TICKS_PER_REVOLUTION = 28;
@@ -64,26 +70,62 @@ public class OrionMotor {
         }
     }
 
-    /**
-     * Gets the velocity in revolutions per second.
-     */
-    public double getVelocity() {
-        return (internalMotor.getVelocity() / OrionMotor.TICKS_PER_REVOLUTION) / 60.0;
+    public double getVelocity(AngularVelocityUnit unit) {
+        double ticksPerSecond = internalMotor.getVelocity();
+
+        return switch (unit) {
+            case TICKSPERSECOND -> ticksPerSecond;
+
+            case RPM ->
+                    (ticksPerSecond / OrionMotor.TICKS_PER_REVOLUTION) * 60.0;
+
+            case RADPERSECOND ->
+                    (ticksPerSecond / OrionMotor.TICKS_PER_REVOLUTION) * 2.0 * Math.PI;
+
+            default ->
+                    throw new IllegalArgumentException(
+                            "Unsupported AngularVelocityUnit: " + unit
+                    );
+        };
     }
 
 
+
+    public double getVelocity(AngularVelocityUnit unit, MotorEx altMotor) {
+        double ticksPerSecond = altMotor.getVelocity();
+
+        return switch (unit) {
+            case TICKSPERSECOND -> ticksPerSecond;
+
+            case RPM ->
+                    (ticksPerSecond / OrionMotor.TICKS_PER_REVOLUTION) * 60.0;
+
+            case RADPERSECOND ->
+                    (ticksPerSecond / OrionMotor.TICKS_PER_REVOLUTION) * 2.0 * Math.PI;
+
+            default ->
+                    throw new IllegalArgumentException(
+                            "Unsupported AngularVelocityUnit: " + unit
+                    );
+        };
+    }
+
+
+
     /**
-     * Sets the PIDF coefficients for velocity control.
+     * Sets the PID and FeedForward coefficients for velocity control.
      *
-     * @param pidfCoefficients the PIDF coefficients
+     * @param pidCoefficients the PID coefficients
+     *                        @param ffCoefficients  the FeedForward coefficients
      */
-    public void setCoefficients(PIDFCoefficients pidfCoefficients) {
-        pidfController = new PIDFController(
-                pidfCoefficients.p,
-                pidfCoefficients.i,
-                pidfCoefficients.d,
-                pidfCoefficients.f
+    public void setCoefficients(PIDCoefficients pidCoefficients, FeedForward.FeedForwardCoefficients ffCoefficients) {
+        pidController = new PIDController(
+                pidCoefficients.p,
+                pidCoefficients.i,
+                pidCoefficients.d
         );
+
+        feedForward = new FeedForward(ffCoefficients);
     }
 
     /**
@@ -116,31 +158,32 @@ public class OrionMotor {
      * Sets the target velocity using PIDF control.
      *
      * @param targetVelocity  the desired velocity
-     * @param currentVelocity the current velocity
      */
-    public void setVelocity(double targetVelocity, double currentVelocity) {
-        if (pidfController == null) {
+    public void setVelocity(double targetVelocity, AngularVelocityUnit unit) {
+        if (pidController == null || feedForward == null) {
             throw new IllegalStateException("PIDFController must be set before using setVelocity.");
         }
 
-        double pidOutput = pidfController.calculate(currentVelocity, targetVelocity);
+        double pidOutput = pidController.calculate(getVelocity(unit), targetVelocity);
+        double ffOutput = feedForward.calculate(targetVelocity);
 
-        setVoltage(pidOutput);
+        setVoltage(pidOutput + ffOutput);
     }
 
     /**
      * Sets the target velocity using PIDF control.
      *
-     * @param targetVelocity the desired velocity
+     * @param targetVelocity  the desired velocity
      */
-    public void setVelocity(double targetVelocity) {
-        if (pidfController == null) {
+    public void setVelocity(double targetVelocity, AngularVelocityUnit unit, MotorEx altMotor) {
+        if (pidController == null || feedForward == null) {
             throw new IllegalStateException("PIDFController must be set before using setVelocity.");
         }
 
-        double pidOutput = pidfController.calculate(internalMotor.getVelocity(), targetVelocity);
+        double pidOutput = pidController.calculate(getVelocity(unit, altMotor), targetVelocity);
+        double ffOutput = feedForward.calculate(targetVelocity);
 
-        setVoltage(pidOutput);
+        setVoltage(pidOutput + ffOutput);
     }
 
     /**

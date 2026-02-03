@@ -95,7 +95,6 @@ public class Odometry {
     public void update(Pose pose, Vector velocity) {
         this.pose = pose;
         this.velocity = velocity;
-
     }
 
 }

@@ -7,8 +7,10 @@ import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.lib.wpilib.math.MathUtil;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelConstants;
@@ -16,18 +18,11 @@ import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelSubsys
 import org.firstinspires.ftc.teamcode.subsystems.shooter.ShotCalculator;
 
 public class HoodSubsystem {
-    public CRServoImplEx hoodServo;
-    public Motor.Encoder hoodEncoder;
-    public PIDFController pid;
-
+    public ServoImplEx hoodServo;
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
     private static HoodSubsystem instance;
-    private DriveSubsystem driveSubsystem;
-    private FlywheelSubsystem flywheelSubsystem;
 
-    public double tuningPos = 0;
-    public double targetPos = 0;
     public double position =  0;
 
     /**
@@ -42,108 +37,40 @@ public class HoodSubsystem {
      * Initializes the Shooter Subsystem
      */
     public void init() {
-        hoodServo = hardwareMap.get(CRServoImplEx.class, HoodConstants.SERVO_NAME);
-
-        hoodEncoder = new MotorEx(hardwareMap, FlywheelConstants.RIGHT_FLYWHEEL_MOTOR_NAME).encoder;
-
-        pid = new PIDFController(
-                HoodConstants.kP,
-                HoodConstants.kI,
-                HoodConstants.kD,
-                HoodConstants.kF
-        );
-
-        double ticksPerRev = 8192;
-        double degreesPerPulse = (360.0 * HoodConstants.GEAR_RATIO) / ticksPerRev;
-
-        hoodEncoder.setDistancePerPulse(degreesPerPulse);
-
-        hoodEncoder.reset();
-
-        pid.setTolerance(1);
-
-        tuningPos = 0;
-
-        driveSubsystem = DriveSubsystem.getInstance();
-        flywheelSubsystem = FlywheelSubsystem.getInstance();
+        hoodServo = hardwareMap.get(ServoImplEx.class, HoodConstants.SERVO_NAME);
     }
 
     /**
      * Loops the Shooter Subsystem
      */
     public void loop() {
-        position = getPosition();
-
         if (Robot.tuningMode) {
             setAngle(HoodConstants.target);
         } else {
             if (gamepad1.right_bumper) {
-                setAngle(findAngle());
+                setAngleFromDistance();
             } else {
-                setAngle(0);
+                setAngle(HoodConstants.HIGHEST_ANGLE);
             }
         }
-
-        if (gamepad1.options) {
-            reset();
-        }
-
-    }
-
-    public void reset() {
-        hoodEncoder.reset();
-    }
-
-    public double findAngle() {
-        double baseAngle = ShotCalculator.getInstance().getShootingParameters().hoodAngle();
-        return baseAngle;
-//        double baseRPM = flywheelSubsystem.findVelocity(distance);
-//
-//        double angleAdj = baseAngle - 1 * (baseRPM - flywheelSubsystem.getVelocity());
-//        return angleAdj;
-    }
-
-    /**
-     *
-     * @return if the shooter is at the target position
-     */
-    public boolean atPosition() {
-        return Math.abs(position - targetPos) < 1;
     }
 
 
-
-    /**
-     *
-     * @return the position of the shooter (degrees)
-     */
-    public double getPosition() {
-        int ticksPerRev = 8192;
-        double revolutions = (double) hoodEncoder.getPosition() / ticksPerRev;
-
-        return revolutions * 360.0 * HoodConstants.GEAR_RATIO;
-    }
-
-
-    /**
-     *
-     * Sets the shooter to a specific angle
-     *
-     * @param targetAngle the angle for the shooter to go to (degrees)
-     */
     public void setAngle(double targetAngle) {
-        targetAngle = Range.clip(targetAngle, HoodConstants.MIN_ANGLE, HoodConstants.MAX_ANGLE);
+        targetAngle = Range.clip(targetAngle, HoodConstants.HIGHEST_ANGLE, HoodConstants.LOWEST_ANGLE);
 
-        targetPos = targetAngle;
+        this.position = targetAngle;
+        hoodServo.setPosition(targetAngle);
+    }
 
-        double power = pid.calculate(position, targetAngle);
-        hoodServo.setPower(power);
+    public void setAngleFromDistance() {
+        setAngle(ShotCalculator.getInstance().getShootingParameters().hoodAngle());
     }
 
 
     public void setTelemetry(TelemetryPacket packet) {
         packet.put("Hood/Position", position);
-        packet.put("Hood/Target", targetPos);
+        packet.put("Hood/Angle from Distance", ShotCalculator.getInstance().getShootingParameters().hoodAngle());
     }
 
 

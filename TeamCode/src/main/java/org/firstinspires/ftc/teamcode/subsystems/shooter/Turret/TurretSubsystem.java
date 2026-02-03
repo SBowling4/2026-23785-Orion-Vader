@@ -77,7 +77,8 @@ public class TurretSubsystem {
 
         position = getPosition();
 //        setpoint = Units.degreesToRadians(TurretConstants.target);
-        setpoint = Math.abs(findFieldRelativeAngle() - setpoint) > Units.degreesToRadians(2) ? findFieldRelativeAngle() : setpoint;
+        setpoint = findFieldRelativeAngle();
+//        setpoint = Math.abs(findFieldRelativeAngle() - setpoint) > Units.degreesToRadians(2) ? findFieldRelativeAngle() : setpoint;
 
         setPosition(setpoint);
     }
@@ -132,18 +133,42 @@ public class TurretSubsystem {
         } else if (Robot.alliance == Alliance.RED) {
             Translation2d delta = turretPose.minus(Field.RED_GOAL);
 
-            overallAngle = delta.getAngle().getRadians();
+            overallAngle = Math.PI +  delta.getAngle().getRadians();
         } else {
             throw new IllegalStateException("Alliance not set");
         }
 
         robotHeading = driveSubsystem.getOdometryPoseOrion().getRotation().getRadians();
 
-        double target = overallAngle - robotHeading;
+        double target = (overallAngle - robotHeading) + TurretConstants.OFFSET;
 
-        if (target < -Math.PI / 2.0 || target > Math.PI / 2.0) {
-            return 0;
+
+        return Range.clip(target, -Math.PI/2, Math.PI/2);
+    }
+
+    public double findAbsoluteFieldRelativeAngle() {
+        double robotHeading;
+        double overallAngle;
+
+        Translation2d turretPose = CoordinateSystemConverter.ftcToOrion(getTurretFieldPose()).getTranslation();
+
+        if (Robot.alliance == Alliance.BLUE) {
+            Translation2d delta = turretPose.minus(Field.BLUE_GOAL);
+
+            overallAngle = Math.PI + delta.getAngle().getRadians();
+
+        } else if (Robot.alliance == Alliance.RED) {
+            Translation2d delta = turretPose.minus(Field.RED_GOAL);
+
+            overallAngle = Math.PI + delta.getAngle().getRadians();
+        } else {
+            throw new IllegalStateException("Alliance not set");
         }
+
+        robotHeading = driveSubsystem.getOdometryPoseOrion().getRotation().getRadians();
+
+        double target = (overallAngle - robotHeading) + TurretConstants.OFFSET;
+
 
         return target;
     }
@@ -169,7 +194,7 @@ public class TurretSubsystem {
     public void setTelemetry(TelemetryPacket packet) {
         packet.put("Turret/Position", Units.radiansToDegrees(getPosition()));
         packet.put("Turret/Setpoint", Units.radiansToDegrees(setpoint));
-        packet.put("Turret/Needed Angle)", Units.radiansToDegrees(findFieldRelativeAngle()));
+        packet.put("Turret/Needed Angle)", Units.radiansToDegrees(findAbsoluteFieldRelativeAngle()));
         packet.put("Turret/Pose/Pose x", Units.metersToInches(getTurretFieldPose().getX(DistanceUnit.METER)));
         packet.put("Turret/Pose/Pose y", Units.metersToInches(getTurretFieldPose().getY(DistanceUnit.METER)));
         packet.put("Turret/Pose/Pose heading", 0);

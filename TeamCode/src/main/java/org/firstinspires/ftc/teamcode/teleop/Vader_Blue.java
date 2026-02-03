@@ -11,6 +11,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Hood.HoodSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Turret.TurretSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 
@@ -18,7 +19,7 @@ import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 public class Vader_Blue extends BaseOpMode {
     DriveSubsystem driveSubsystem;
     IntakeSubsystem intakeSubsystem;
-//    HoodSubsystem hoodSubsystem;
+    HoodSubsystem hoodSubsystem;
     Vision vision;
     FlywheelSubsystem flywheelSubsystem;
     FeederSubsystem feederSubsystem;
@@ -33,7 +34,7 @@ public class Vader_Blue extends BaseOpMode {
         driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
         intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1);
         flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
-//        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
+        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
         feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
         vision = Vision.getInstance(hardwareMap, gamepad1);
         turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1, gamepad2);
@@ -43,7 +44,7 @@ public class Vader_Blue extends BaseOpMode {
         driveSubsystem.init();
         intakeSubsystem.init();
         flywheelSubsystem.init();
-//        hoodSubsystem.init();
+        hoodSubsystem.init();
         feederSubsystem.init();
         turretSubsystem.init();
     }
@@ -58,7 +59,7 @@ public class Vader_Blue extends BaseOpMode {
     public void onLoop() {
         driveSubsystem.loop();
         intakeSubsystem.loop();
-//        hoodSubsystem.loop();
+        hoodSubsystem.loop();
         flywheelSubsystem.loop();
         feederSubsystem.loop();
         vision.loop();
@@ -70,7 +71,7 @@ public class Vader_Blue extends BaseOpMode {
 
         driveSubsystem.setTelemetry(packet);
         intakeSubsystem.setTelemetry(packet);
-//        hoodSubsystem.setTelemetry(packet);
+        hoodSubsystem.setTelemetry(packet);
         flywheelSubsystem.setTelemetry(packet);
         feederSubsystem.setTelemetry(packet);
         vision.setTelemetry(packet);

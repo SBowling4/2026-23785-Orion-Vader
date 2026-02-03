@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.lib.orion.util.converters;
 
+import com.pedropathing.ftc.FTCCoordinates;
 import com.pedropathing.ftc.InvertedFTCCoordinates;
 import com.pedropathing.ftc.PoseConverter;
 import com.pedropathing.geometry.PedroCoordinates;
@@ -224,13 +225,16 @@ public final class CoordinateSystemConverter {
     }
 
     public static Pose ftcToPedro(Pose2D llPose) {
-        double x = llPose.getX(DistanceUnit.INCH) + 72;
-        double y = llPose.getY(DistanceUnit.INCH) + 72;
+//        double x = llPose.getX(DistanceUnit.INCH) + 72;
+//        double y = llPose.getY(DistanceUnit.INCH) + 72;
+//
+//        double heading = llPose.getHeading(AngleUnit.RADIANS) - Math.PI / 2;
+//
+//        double normalizedHeading = heading > 2 * Math.PI ? heading - 2 * Math.PI : heading;
+//
+//        return new Pose(y,144 - x, normalizedHeading, PedroCoordinates.INSTANCE);
 
-        double heading = llPose.getHeading(AngleUnit.RADIANS) - Math.PI / 2;
-
-        double normalizedHeading = heading > 2 * Math.PI ? heading - 2 * Math.PI : heading;
-
-        return new Pose(y,144 - x, normalizedHeading, PedroCoordinates.INSTANCE);
+        Pose ftcStandard = PoseConverter.pose2DToPose(llPose, FTCCoordinates.INSTANCE);
+        return ftcStandard.getAsCoordinateSystem(PedroCoordinates.INSTANCE);
     }
 }

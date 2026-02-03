@@ -69,7 +69,7 @@ public class Vision {
 
         llPose = PoseObjectConverter.pose3DToPose2D(result.getBotpose());
 
-        if ((!driveSubsystem.isMoving() && (BaseOpMode.getOpModeTimeSeconds() - lastTimeReset) > 10) || gamepad1.x) {
+        if ((!driveSubsystem.isMoving() && (BaseOpMode.getOpModeTimeSeconds() - lastTimeReset) > 2) || gamepad1.x) {
             lastTimeReset = BaseOpMode.getOpModeTimeSeconds();
             driveSubsystem.resetPoseVis(
                     CoordinateSystemConverter.ftcToPedro(llPose)
@@ -98,13 +98,10 @@ public class Vision {
         packet.put("Vision/Last ReLoc Time", lastTimeReset);
 
         if (llPose == null) {
-            packet.put("Vision/PoseMT2/Pose x", 0);
-            packet.put("Vision/PoseMT2/Pose y", 0);
-            packet.put("Vision/PoseMT2/Pose heading", 0);
+            packet.put("Vision/Pose/Pose x", 0);
+            packet.put("Vision/Pose/Pose y", 0);
+            packet.put("Vision/Pose/Pose heading", 0);
 
-            packet.put("Vision/PoseMT1/Pose x", 0);
-            packet.put("Vision/PoseMT1/Pose y", 0);
-            packet.put("Vision/PoseMT1/Pose heading", 0);
 
             packet.put("Vision/PedroPose/Pose x",
                     0);
@@ -114,19 +111,11 @@ public class Vision {
                     0);
             return;
         }
-
-        packet.put("Vision/PoseMT2/Pose x",
-                Units.metersToInches(result.getBotpose_MT2().getPosition().x));
-        packet.put("Vision/PoseMT2/Pose y",
-                Units.metersToInches(result.getBotpose_MT2().getPosition().y));
-        packet.put("Vision/PoseMT2/Pose heading",
-                Units.degreesToRadians(result.getBotpose_MT2().getOrientation().getYaw(AngleUnit.DEGREES)));
-
-        packet.put("Vision/PoseMT1/Pose x",
+        packet.put("Vision/Pose/Pose x",
                 Units.metersToInches(result.getBotpose().getPosition().x));
-        packet.put("Vision/PoseMT1/Pose y",
+        packet.put("Vision/Pose/Pose y",
                 Units.metersToInches(result.getBotpose().getPosition().y));
-        packet.put("Vision/PoseMT1/Pose heading",
+        packet.put("Vision/Pose/Pose heading",
                 Units.degreesToRadians(result.getBotpose().getOrientation().getYaw(AngleUnit.DEGREES)));
 
         Pose pedroPose = CoordinateSystemConverter.ftcToPedro(llPose);

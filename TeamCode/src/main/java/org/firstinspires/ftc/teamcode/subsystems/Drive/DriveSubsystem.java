@@ -14,6 +14,7 @@ import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter
 import org.firstinspires.ftc.lib.wpilib.math.Matrix;
 import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
 import org.firstinspires.ftc.lib.wpilib.math.numbers.N1;
 import org.firstinspires.ftc.lib.wpilib.math.numbers.N3;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -32,8 +33,6 @@ public class DriveSubsystem {
 
     public Odometry odometry;
 //    public PoseEstimator poseEstimator;
-
-    private double driverHeadingOffset = 0;
 
     private final Pose resetPose = new Pose(9, 9, Math.toRadians(180));
 
@@ -84,23 +83,17 @@ public class DriveSubsystem {
         double inputY = -gamepad1.left_stick_x;
         double inputHeading = -gamepad1.right_stick_x;
 
-        // Rotate driver inputs by the heading offset to maintain field-oriented control
-        // relative to the driver's chosen forward direction
-        double cos = Math.cos(-driverHeadingOffset);
-        double sin = Math.sin(-driverHeadingOffset);
-        double rotatedX = inputX * cos - inputY * sin;
-        double rotatedY = inputX * sin + inputY * cos;
-
         follower.setTeleOpDrive(
-                -rotatedX,
-                -rotatedY,
+                inputX,
+                inputY,
                 inputHeading,
-                false
+                false,
+                Robot.alliance == Alliance.BLUE ? Math.toRadians(180) : Math.toRadians(0)
         );
 
         // Reset the driver's forward direction (doesn't affect absolute heading)
         if (gamepad1.share) {
-            resetDriverHeading();
+            resetPoseHeading();
         }
 
         // Full pose reset (resets both absolute and driver heading)
@@ -128,7 +121,6 @@ public class DriveSubsystem {
      */
     public void resetPose() {
         follower.setPose(resetPose);
-        driverHeadingOffset = 0;
         odometry.resetPose(resetPose);
 //        poseEstimator.resetPose(odometry.getPoseWPILib());
     }
@@ -140,6 +132,7 @@ public class DriveSubsystem {
      */
     public void resetPoseVis(Pose pose) {
         follower.setPose(pose);
+        odometry.resetPose(pose);
     }
 
     /**
@@ -147,19 +140,7 @@ public class DriveSubsystem {
      * Keeps the x and y coordinates the same
      */
     public void resetPoseHeading() {
-        double heading = Robot.alliance == Alliance.BLUE ? Math.toRadians(270) : Math.toRadians(90);
-        Pose headingResetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), heading);
-
-        follower.setPose(headingResetPose);
-        odometry.resetPose(headingResetPose);
-//        poseEstimator.resetPose(odometry.getPoseWPILib());
-    }
-
-    /**
-     * Resets only the heading of the pose to the alliance standard
-     * Keeps the x and y coordinates the same
-     */
-    public void resetPoseHeading(double heading) {
+        double heading = Robot.alliance == Alliance.BLUE ? Math.toRadians(180) : Math.toRadians(0);
         Pose headingResetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), heading);
 
         follower.setPose(headingResetPose);
@@ -192,14 +173,6 @@ public class DriveSubsystem {
         return odometry.getPoseOrion();
     }
 
-    /**
-     * Resets the driver's forward direction to the current robot heading
-     * This does NOT affect the absolute field-relative heading used for odometry
-     */
-    public void resetDriverHeading() {
-        driverHeadingOffset = follower.getHeading();
-        resetPoseHeading();
-    }
 
     /**
      * @return true if the robot is currently moving
