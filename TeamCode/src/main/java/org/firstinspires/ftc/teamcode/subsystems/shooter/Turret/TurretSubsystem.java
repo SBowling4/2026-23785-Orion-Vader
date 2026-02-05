@@ -93,7 +93,7 @@ public class TurretSubsystem {
 
     public Pose2D getTurretFieldPose() {
         // Get the FTC pose instead
-        Pose2D ftcRobotPose = driveSubsystem.getOdometryPoseFTC();
+        Pose2D ftcRobotPose = driveSubsystem.getFollowerPoseFTC();
 
         // Turret is 3.376 inches behind the robot center
         double offsetMeters = Units.inchesToMeters(3.376);
@@ -138,7 +138,7 @@ public class TurretSubsystem {
             throw new IllegalStateException("Alliance not set");
         }
 
-        robotHeading = driveSubsystem.getOdometryPoseOrion().getRotation().getRadians();
+        robotHeading = driveSubsystem.getFollowerPoseOrion().getRotation().getRadians();
 
         double target = (overallAngle - robotHeading) + TurretConstants.OFFSET;
 
@@ -165,7 +165,7 @@ public class TurretSubsystem {
             throw new IllegalStateException("Alliance not set");
         }
 
-        robotHeading = driveSubsystem.getOdometryPoseOrion().getRotation().getRadians();
+        robotHeading = driveSubsystem.getFollowerPoseOrion().getRotation().getRadians();
 
         double target = (overallAngle - robotHeading) + TurretConstants.OFFSET;
 

@@ -7,7 +7,7 @@ public class FlywheelConstants {
     public static final String LEFT_FLYWHEEL_MOTOR_NAME = "ls";
     public static final String RIGHT_FLYWHEEL_MOTOR_NAME = "rs";
 
-    public static double kP = 0.01;
+    public static double kP = 0.05;
     public static double kI = 0.0;
     public static double kD = 0.0;
 

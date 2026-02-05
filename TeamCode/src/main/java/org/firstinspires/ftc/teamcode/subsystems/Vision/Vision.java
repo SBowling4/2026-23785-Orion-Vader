@@ -4,17 +4,15 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.lib.orion.BaseOpMode;
-import org.firstinspires.ftc.lib.orion.hardware.OrionIMU;
 import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
 import org.firstinspires.ftc.lib.orion.util.converters.PoseObjectConverter;
-import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
@@ -24,11 +22,13 @@ public class Vision {
     private LLResult result;
 
     private double lastTimeReset = 0;
+    private double lastTimeFullReset = 0;
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
 
-    private Pose2D llPose;
+    private Pose2D llPoseMT1;
+    private Pose2D llPoseMT2;
 
     private DriveSubsystem driveSubsystem;
 
@@ -63,44 +63,82 @@ public class Vision {
         result = limelight.getLatestResult();
 
         if (result == null || !result.isValid() || result.getFiducialResults().isEmpty()) {
-            llPose = null;
+            llPoseMT1 = null;
+            llPoseMT2 = null;
             return;
         }
 
-        llPose = PoseObjectConverter.pose3DToPose2D(result.getBotpose());
+        double yaw = driveSubsystem.getFollowerPoseFTC().getHeading(AngleUnit.DEGREES);
 
-        if ((!driveSubsystem.isMoving() && (BaseOpMode.getOpModeTimeSeconds() - lastTimeReset) > 2) || gamepad1.x) {
+        yaw = yaw < 0 ? yaw + 360 : yaw;
+
+        limelight.updateRobotOrientation(yaw);
+
+        llPoseMT1 = PoseObjectConverter.pose3DToPose2D(result.getBotpose());
+        llPoseMT2 = PoseObjectConverter.pose3DToPose2D(result.getBotpose_MT2());
+
+
+        if (shouldForce()) {
             lastTimeReset = BaseOpMode.getOpModeTimeSeconds();
-            driveSubsystem.resetPoseVis(
-                    CoordinateSystemConverter.ftcToPedro(llPose)
-            );
-        }
-//
-//        Pose3D llPose3D = PoseObjectConverter.pose2DToPose3D(llPose);
-//        Translation3d translation =
-//                CoordinateSystemConverter.ftcFieldCoordinatesToWPILib(
-//                        llPose3D.getPosition()
-//                );
-//
-//        Pose2d wpiPose = new Pose2d(
-//                translation.toTranslation2d(),
-//                Rotation2d.fromDegrees(llPose3D.getOrientation().getYaw())
-//        );
+            lastTimeFullReset = BaseOpMode.getOpModeTimeSeconds();
 
-//        lastYawDeg = yawDeg;
-//        didReset = false;
+            driveSubsystem.resetPose(
+                    CoordinateSystemConverter.ftcToPedro(llPoseMT1),
+                    true
+            );
+
+            return;
+        }
+
+        if (shouldFullUpdate()) {
+            lastTimeReset = BaseOpMode.getOpModeTimeSeconds();
+            lastTimeFullReset = BaseOpMode.getOpModeTimeSeconds();
+
+            driveSubsystem.resetPose(
+                    CoordinateSystemConverter.ftcToPedro(llPoseMT1),
+                    true
+            );
+
+            return;
+        }
+
+        if (shouldUpdate()) {
+            lastTimeReset = BaseOpMode.getOpModeTimeSeconds();
+
+            driveSubsystem.resetPose(
+                    CoordinateSystemConverter.ftcToPedro(llPoseMT2),
+                    false
+            );
+
+            return;
+        }
     }
 
+    private boolean shouldUpdate() {
+        return !driveSubsystem.isMoving() && BaseOpMode.getOpModeTimeSeconds() - lastTimeReset < 2 && !gamepad1.right_bumper;
+    }
+
+    private boolean shouldForce() {
+        return gamepad1.x;
+    }
+
+    private boolean shouldFullUpdate() {
+        return BaseOpMode.getOpModeTimeSeconds() - lastTimeFullReset > 10 && !driveSubsystem.isMoving() && !gamepad1.right_bumper;
+    }
 
 
 
     public void setTelemetry(TelemetryPacket packet) {
         packet.put("Vision/Last ReLoc Time", lastTimeReset);
 
-        if (llPose == null) {
-            packet.put("Vision/Pose/Pose x", 0);
-            packet.put("Vision/Pose/Pose y", 0);
-            packet.put("Vision/Pose/Pose heading", 0);
+        if (llPoseMT1 == null) {
+            packet.put("Vision/PoseMT1/Pose x", 0);
+            packet.put("Vision/PoseMT1/Pose y", 0);
+            packet.put("Vision/PoseMT1/Pose heading", 0);
+
+            packet.put("Vision/PoseMT2/Pose x", 0);
+            packet.put("Vision/PoseMT2/Pose y", 0);
+            packet.put("Vision/PoseMT2/Pose heading", 0);
 
 
             packet.put("Vision/PedroPose/Pose x",
@@ -111,14 +149,26 @@ public class Vision {
                     0);
             return;
         }
-        packet.put("Vision/Pose/Pose x",
-                Units.metersToInches(result.getBotpose().getPosition().x));
-        packet.put("Vision/Pose/Pose y",
-                Units.metersToInches(result.getBotpose().getPosition().y));
-        packet.put("Vision/Pose/Pose heading",
-                Units.degreesToRadians(result.getBotpose().getOrientation().getYaw(AngleUnit.DEGREES)));
+        packet.put("Vision/PoseMT1/Pose x",
+                llPoseMT1.getX(DistanceUnit.INCH));
 
-        Pose pedroPose = CoordinateSystemConverter.ftcToPedro(llPose);
+        packet.put("Vision/PoseMT1/Pose y",
+                llPoseMT1.getX(DistanceUnit.INCH));
+
+        packet.put("Vision/PoseMT1/Pose heading",
+                llPoseMT1.getHeading(AngleUnit.RADIANS));
+
+
+        packet.put("Vision/PoseMT2/Pose x",
+                llPoseMT2.getX(DistanceUnit.INCH));
+
+        packet.put("Vision/PoseMT2/Pose y",
+                llPoseMT2.getY(DistanceUnit.INCH));
+
+        packet.put("Vision/PoseMT2/Pose heading",
+                llPoseMT2.getHeading(AngleUnit.RADIANS));
+
+        Pose pedroPose = CoordinateSystemConverter.ftcToPedro(llPoseMT1);
 
         packet.put("Vision/PedroPose/Pose x",
                 pedroPose.getX());

@@ -2,21 +2,16 @@ package org.firstinspires.ftc.teamcode.subsystems.Drive;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.lib.orion.odometry.PoseEstimator;
 import org.firstinspires.ftc.lib.orion.util.Field;
-import org.firstinspires.ftc.lib.orion.odometry.Odometry;
 import org.firstinspires.ftc.lib.pedroPathing.Constants;
 import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
-import org.firstinspires.ftc.lib.wpilib.math.Matrix;
-import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
-import org.firstinspires.ftc.lib.wpilib.math.numbers.N1;
-import org.firstinspires.ftc.lib.wpilib.math.numbers.N3;
+import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
@@ -31,9 +26,6 @@ public class DriveSubsystem {
 
     public Follower follower;
 
-    public Odometry odometry;
-//    public PoseEstimator poseEstimator;
-
     private final Pose resetPose = new Pose(9, 9, Math.toRadians(180));
 
     private Vision vision;
@@ -46,30 +38,12 @@ public class DriveSubsystem {
     }
 
     public void init() {
-        odometry = new Odometry();
-
-//        poseEstimator = new PoseEstimator(
-//                odometry,
-//                VecBuilder.fill(0.6, 0.6, .1),
-//                VecBuilder.fill(0.2, 0.2, 99999)
-//        );
-
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Robot.lastPose);
-
-        vision = Vision.getInstance(hardwareMap, gamepad1);
     }
 
-    public void autoInit() {
-        odometry = new Odometry();
-
-//        poseEstimator = new PoseEstimator(
-//                odometry,
-//                VecBuilder.fill(0.6, 0.6, 99999),
-//                VecBuilder.fill(0.2, 0.2, 99999)
-//        );
-
-        vision = Vision.getInstance(hardwareMap, gamepad1);
+    public void autoInit(Follower follower) {
+        this.follower = follower;
     }
 
 
@@ -112,8 +86,6 @@ public class DriveSubsystem {
      */
     private void update() {
         follower.update();
-        odometry.update(follower.getPose(), follower.getVelocity());
-//        poseEstimator.update();
     }
 
     /**
@@ -121,8 +93,6 @@ public class DriveSubsystem {
      */
     public void resetPose() {
         follower.setPose(resetPose);
-        odometry.resetPose(resetPose);
-//        poseEstimator.resetPose(odometry.getPoseWPILib());
     }
 
     /**
@@ -130,9 +100,12 @@ public class DriveSubsystem {
      * Primarily used for ll vision resets
      * @param pose the pose to reset to
      */
-    public void resetPoseVis(Pose pose) {
-        follower.setPose(pose);
-        odometry.resetPose(pose);
+    public void resetPose(Pose pose, boolean heading) {
+        if (heading) {
+            follower.setPose(pose);
+        } else {
+            follower.setPose(new Pose(pose.getX(), pose.getY(), getFollowerPose().getHeading(), PedroCoordinates.INSTANCE));
+        }
     }
 
     /**
@@ -144,8 +117,6 @@ public class DriveSubsystem {
         Pose headingResetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), heading);
 
         follower.setPose(headingResetPose);
-        odometry.resetPose(headingResetPose);
-//        poseEstimator.resetPose(odometry.getPoseWPILib());
     }
 
     /**
@@ -161,16 +132,16 @@ public class DriveSubsystem {
      * Gets the odometry pose in FTC standard coordinates
      * Coordinates: FTC Standard
      */
-    public Pose2D getOdometryPoseFTC() {
-        return odometry.getPoseFTCStandard();
+    public Pose2D getFollowerPoseFTC() {
+        return CoordinateSystemConverter.pedroToFTC(getFollowerPose());
     }
 
     /**
      * Gets the estimated pose from the pose estimator (with vision fusion)
      * Coordinates: Orion
      */
-    public Pose2d getOdometryPoseOrion() {
-        return odometry.getPoseOrion();
+    public Pose2d getFollowerPoseOrion() {
+        return CoordinateSystemConverter.pedroToOrion(getFollowerPose());
     }
 
 
@@ -178,61 +149,52 @@ public class DriveSubsystem {
      * @return true if the robot is currently moving
      */
     public boolean isMoving() {
-        double mag = odometry.getVelocityMagnitude();
-        double rot = odometry.getRotationalVelocity();
+        double mag = follower.getVelocity().getMagnitude();
+        double rot = follower.getAngularVelocity();
 
         return mag > .2 || Math.abs(rot) > .2;
     }
 
-//    /**
-//     * Adds a vision measurement to the pose estimator
-//     * @param visPose the vision pose measurement
-//     * @param timestampSeconds the timestamp of the measurement
-//     */
-//    public void addVisionMeasurement(Pose2d visPose, double timestampSeconds) {
-//        poseEstimator.addVisionMeasurement(visPose, timestampSeconds);
-//    }
-//
-//    /**
-//     * Adds a vision measurement to the pose estimator with standard deviations
-//     * @param visPose the vision pose measurement
-//     * @param timestampSeconds the timestamp of the measurement
-//     * @param visionStdDev the standard deviations of the measurement
-//     */
-//    public void addVisionMeasurement(Pose2d visPose, double timestampSeconds, Matrix<N3, N1> visionStdDev) {
-//        poseEstimator.addVisionMeasurement(visPose, timestampSeconds, visionStdDev);
-//    }
+    public double getXVelocity() {
+        return Units.inchesToMeters(follower.getVelocity().getXComponent());
+    }
+
+    public double getYVelocity() {
+        return Units.inchesToMeters(follower.getVelocity().getYComponent());
+    }
+
+    public double getMagnitude() {
+        return Units.inchesToMeters(follower.getVelocity().getMagnitude());
+    }
+
+    public double getAngularVelocity() {
+        return follower.getAngularVelocity();
+    }
 
     /**
      * @return the distance from the robot to the goal in meters
      */
     public double getDistanceToGoal() {
         if (Robot.alliance == Alliance.BLUE) {
-            return getOdometryPoseOrion().getTranslation().getDistance(Field.BLUE_GOAL);
+            return getFollowerPoseOrion().getTranslation().getDistance(Field.BLUE_GOAL);
         } else {
-            return getOdometryPoseOrion().getTranslation().getDistance(Field.RED_GOAL);
+            return getFollowerPoseOrion().getTranslation().getDistance(Field.RED_GOAL);
         }
     }
 
     public void setTelemetry(TelemetryPacket packet) {
-        Pose2D ftcPose = CoordinateSystemConverter.orionToFTC(getOdometryPoseOrion());
+        packet.put("Drive/Follower Pose/Pose x", getFollowerPoseFTC().getX(DistanceUnit.INCH));
+        packet.put("Drive/Follower Pose/Pose y", getFollowerPoseFTC().getY(DistanceUnit.INCH));
+        packet.put("Drive/Follower Pose/Pose heading", getFollowerPoseFTC().getHeading(AngleUnit.RADIANS));
 
-//        packet.put("Drive/Estimated Pose/Pose x", ftcPose.getX(DistanceUnit.INCH));
-//        packet.put("Drive/Estimated Pose/Pose y", ftcPose.getY(DistanceUnit.INCH));
-//        packet.put("Drive/Estimated Pose/Pose heading", ftcPose.getHeading(AngleUnit.RADIANS));
+        packet.put("Drive/Pose Orion/X", getFollowerPoseOrion().getX());
+        packet.put("Drive/Pose Orion/Y", getFollowerPoseOrion().getY());
+        packet.put("Drive/Pose Orion/Heading", getFollowerPoseOrion().getRotation().getRadians());
 
-        packet.put("Drive/Odometry Pose/Pose x", odometry.getPoseFTCStandard().getX(DistanceUnit.INCH));
-        packet.put("Drive/Odometry Pose/Pose y", odometry.getPoseFTCStandard().getY(DistanceUnit.INCH));
-        packet.put("Drive/Odometry Pose/Pose heading", odometry.getPoseFTCStandard().getHeading(AngleUnit.RADIANS));
-
-        packet.put("Drive/Pose Orion/X", getOdometryPoseOrion().getX());
-        packet.put("Drive/Pose Orion/Y", getOdometryPoseOrion().getY());
-        packet.put("Drive/Pose Orion/Heading", getOdometryPoseOrion().getRotation().getRadians());
-
-        packet.put("Drive/Velocity/X", odometry.getXVelocity());
-        packet.put("Drive/Velocity/Y", odometry.getYVelocity());
-        packet.put("Drive/Velocity/Rotational", odometry.getRotationalVelocity());
-        packet.put("Drive/Velocity/Magnitude", odometry.getVelocityMagnitude());
+        packet.put("Drive/Velocity/X", getXVelocity());
+        packet.put("Drive/Velocity/Y", getYVelocity());
+        packet.put("Drive/Velocity/Angular", getAngularVelocity());
+        packet.put("Drive/Velocity/Magnitude", getMagnitude());
         packet.put("Drive/Velocity/Moving", isMoving());
 
 

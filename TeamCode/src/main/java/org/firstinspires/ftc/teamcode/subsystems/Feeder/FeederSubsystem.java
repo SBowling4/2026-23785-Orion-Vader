@@ -90,13 +90,13 @@ public class FeederSubsystem {
                 setFeederState(FEEDER_STATE.STOP);
             }
 
-            if (gamepad1.left_bumper) {
+            if (gamepad1.left_bumper || gamepad1.y) {
                 setKickerState(KICKER_STATE.IN);
             } else {
                 setKickerState(KICKER_STATE.OUT);
             }
 
-            if (gamepad1.right_bumper || gamepad1.right_trigger > .5) {
+            if (gamepad1.right_bumper) {
                 setStopperState(STOPPER_STATE.OPEN);
             } else {
                 setStopperState(STOPPER_STATE.CLOSED);
