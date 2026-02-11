@@ -23,7 +23,9 @@ public class ShotCalculator {
         flywheelMap.put(2.9, 2275.0);
         flywheelMap.put(3.24, 2390.0);
         flywheelMap.put(3.39, 2450.0);
-        flywheelMap.put(3.8, 2525.0);
+        flywheelMap.put(3.54, 2510.0);
+        flywheelMap.put(3.8, 2525.0); //what?
+        flywheelMap.put(3.96, 2625.0); //estoy muy confudido
     }
 
     public record ShootingParameters(double flywheelRPM, double hoodAngle) {}

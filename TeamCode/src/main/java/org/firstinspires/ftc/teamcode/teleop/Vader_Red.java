@@ -12,14 +12,14 @@ import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Turret.TurretSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
+import org.firstinspires.ftc.teamcode.subsystems.Vision.VisionSubsystem;
 
 @TeleOp(name = "Vader_Red", group = "Orion")
 public class Vader_Red extends BaseOpMode {
     DriveSubsystem driveSubsystem;
     IntakeSubsystem intakeSubsystem;
     //    HoodSubsystem hoodSubsystem;
-    Vision vision;
+    VisionSubsystem visionSubsystem;
     FlywheelSubsystem flywheelSubsystem;
     FeederSubsystem feederSubsystem;
     TurretSubsystem turretSubsystem;
@@ -35,11 +35,11 @@ public class Vader_Red extends BaseOpMode {
         flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
 //        hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
         feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
-        vision = Vision.getInstance(hardwareMap, gamepad1);
+        visionSubsystem = VisionSubsystem.getInstance(hardwareMap, gamepad1);
         turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1, gamepad2);
 
 
-        vision.init();
+        visionSubsystem.init();
         driveSubsystem.init();
         intakeSubsystem.init();
         flywheelSubsystem.init();
@@ -51,7 +51,7 @@ public class Vader_Red extends BaseOpMode {
     @Override
     public void onStart() {
         driveSubsystem.start();
-        vision.start();
+        visionSubsystem.start();
     }
 
     @Override
@@ -61,7 +61,7 @@ public class Vader_Red extends BaseOpMode {
 //        hoodSubsystem.loop();
         flywheelSubsystem.loop();
         feederSubsystem.loop();
-        vision.loop();
+        visionSubsystem.loop();
         turretSubsystem.loop();
 
 
@@ -73,7 +73,7 @@ public class Vader_Red extends BaseOpMode {
 //        hoodSubsystem.setTelemetry(packet);
         flywheelSubsystem.setTelemetry(packet);
         feederSubsystem.setTelemetry(packet);
-        vision.setTelemetry(packet);
+        visionSubsystem.setTelemetry(packet);
         turretSubsystem.setTelemetry(packet);
 
         FtcDashboard.getInstance().sendTelemetryPacket(packet);

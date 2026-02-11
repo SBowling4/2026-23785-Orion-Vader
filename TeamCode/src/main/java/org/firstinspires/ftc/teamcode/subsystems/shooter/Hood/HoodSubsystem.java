@@ -1,20 +1,12 @@
 package org.firstinspires.ftc.teamcode.subsystems.shooter.Hood;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.arcrobotics.ftclib.controller.PIDFController;
-import com.arcrobotics.ftclib.hardware.motors.Motor;
-import com.arcrobotics.ftclib.hardware.motors.MotorEx;
-import com.qualcomm.robotcore.hardware.CRServoImplEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 
-import org.firstinspires.ftc.lib.wpilib.math.MathUtil;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelConstants;
-import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.ShotCalculator;
 
 public class HoodSubsystem {
@@ -47,11 +39,7 @@ public class HoodSubsystem {
         if (Robot.tuningMode) {
             setAngle(HoodConstants.target);
         } else {
-            if (gamepad1.right_bumper) {
-                setAngleFromDistance();
-            } else {
-                setAngle(HoodConstants.HIGHEST_ANGLE);
-            }
+            setAngleFromDistance();
         }
     }
 

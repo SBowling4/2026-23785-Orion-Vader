@@ -9,18 +9,18 @@ import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.Vision.VisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Hood.HoodSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.Turret.TurretSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
 
 @TeleOp(name = "Vader_Blue", group = "Orion")
 public class Vader_Blue extends BaseOpMode {
     DriveSubsystem driveSubsystem;
     IntakeSubsystem intakeSubsystem;
     HoodSubsystem hoodSubsystem;
-    Vision vision;
+    VisionSubsystem visionSubsystem;
     FlywheelSubsystem flywheelSubsystem;
     FeederSubsystem feederSubsystem;
     TurretSubsystem turretSubsystem;
@@ -31,16 +31,18 @@ public class Vader_Blue extends BaseOpMode {
 
     @Override
     public void onInit() {
+        Robot.alliance = Alliance.BLUE;
+
         driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
         intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1);
         flywheelSubsystem = FlywheelSubsystem.getInstance(hardwareMap, gamepad1);
         hoodSubsystem = HoodSubsystem.getInstance(hardwareMap, gamepad1);
         feederSubsystem = FeederSubsystem.getInstance(hardwareMap, gamepad1);
-        vision = Vision.getInstance(hardwareMap, gamepad1);
+        visionSubsystem = VisionSubsystem.getInstance(hardwareMap, gamepad1);
         turretSubsystem = TurretSubsystem.getInstance(hardwareMap, gamepad1, gamepad2);
 
 
-        vision.init();
+        visionSubsystem.init();
         driveSubsystem.init();
         intakeSubsystem.init();
         flywheelSubsystem.init();
@@ -52,7 +54,7 @@ public class Vader_Blue extends BaseOpMode {
     @Override
     public void onStart() {
         driveSubsystem.start();
-        vision.start();
+        visionSubsystem.start();
     }
 
     @Override
@@ -62,7 +64,7 @@ public class Vader_Blue extends BaseOpMode {
         hoodSubsystem.loop();
         flywheelSubsystem.loop();
         feederSubsystem.loop();
-        vision.loop();
+        visionSubsystem.loop();
         turretSubsystem.loop();
 
 
@@ -74,7 +76,7 @@ public class Vader_Blue extends BaseOpMode {
         hoodSubsystem.setTelemetry(packet);
         flywheelSubsystem.setTelemetry(packet);
         feederSubsystem.setTelemetry(packet);
-        vision.setTelemetry(packet);
+        visionSubsystem.setTelemetry(packet);
         turretSubsystem.setTelemetry(packet);
 
         FtcDashboard.getInstance().sendTelemetryPacket(packet);

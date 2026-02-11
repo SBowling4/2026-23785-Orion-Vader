@@ -18,13 +18,13 @@ import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelConsta
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(30)
-            .forwardZeroPowerAcceleration(-72.78069448430112)
-            .lateralZeroPowerAcceleration(-64.8184983519383)
-            .translationalPIDFCoefficients(new PIDFCoefficients(.15, 0, .007, .03))
-            .headingPIDFCoefficients(new PIDFCoefficients(1,0,.03,.02))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.3,0,0.00001,.6,0.01))
-            .centripetalScaling(0.00018);
+            .mass(38.3)
+            .forwardZeroPowerAcceleration(-50.51033318645804)
+            .lateralZeroPowerAcceleration(-71.35929610657753)
+            .translationalPIDFCoefficients(new PIDFCoefficients(.1, 0, .005, .04))
+            .headingPIDFCoefficients(new PIDFCoefficients(1,0,.003,.04))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.07,0,.001,.6,0.01))
+            .centripetalScaling(0.00019);
 
     public static PathConstraints pathConstraints = new PathConstraints(
             .99,
@@ -43,15 +43,15 @@ public class Constants {
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .xVelocity(68.98701234066769)
-            .yVelocity(43.998690576845966);
+            .xVelocity(57.86075592258057)
+            .yVelocity(43.226006885091984);
 
 
 
     public static ThreeWheelIMUConstants localizerConstants = new ThreeWheelIMUConstants() //TODO: Something is wrong here and I will find it
-            .forwardTicksToInches(5.431931944E-4)
-            .strafeTicksToInches(5.56156434E-4)
-            .turnTicksToInches(5.446537043E-4)
+            .forwardTicksToInches(5.405625457e-4)
+            .strafeTicksToInches(5.5530193e-4)
+            .turnTicksToInches(5.438790633e-4)
             .leftPodY(6.140628)
             .rightPodY(-6.140628)
             .strafePodX(-4.305)

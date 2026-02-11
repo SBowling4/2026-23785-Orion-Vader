@@ -3,7 +3,27 @@
 
 package org.firstinspires.ftc.lib.wpilib.math;
 
-import org.firstinspires.ftc.lib.wpilib.math.numbers.*;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N0;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N1;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N10;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N11;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N12;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N13;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N14;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N15;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N16;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N17;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N18;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N19;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N2;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N20;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N3;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N4;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N5;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N6;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N7;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N8;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N9;
 
 /**
  * A natural number expressed as a java class. The counterpart to {@link Num} that should be used as

@@ -39,6 +39,8 @@ public class TurretSubsystem {
     private double power = 0.0;
     private double position = 0.0;
 
+    private boolean manual;
+
 
     private final HardwareMap hardwareMap;
     private final Gamepad gamepad1;
@@ -71,20 +73,31 @@ public class TurretSubsystem {
     }
 
     public void loop() {
-        pidController.setP(TurretConstants.kP);
-        pidController.setF(TurretConstants.kF);
-        pidController.setD(TurretConstants.kD);
-
         position = getPosition();
-//        setpoint = Units.degreesToRadians(TurretConstants.target);
-        setpoint = findFieldRelativeAngle();
-//        setpoint = Math.abs(findFieldRelativeAngle() - setpoint) > Units.degreesToRadians(2) ? findFieldRelativeAngle() : setpoint;
 
-        setPosition(setpoint);
+        if (gamepad1.dpad_left) {
+            setPower(.5);
+
+            manual = true;
+        } else if (gamepad1.dpad_right) {
+            setPower(-.5);
+
+            manual = true;
+        } else if (gamepad1.right_stick_button) {
+            encoder.reset();
+
+            manual = false;
+        } else if (!manual) {
+            setpoint = findFieldRelativeAngle();
+
+            setPosition(setpoint);
+        } else {
+            setPower(0);
+        }
     }
 
     public void setPosition(double pos) {
-        pos = Range.clip(pos, -Math.PI/2, Math.PI/2);
+        pos = Range.clip(pos, -Math.PI/2 -.2, Math.PI/2 + .2);
 
         power = -pidController.calculate(position, pos);
         setPower(power);
@@ -141,6 +154,10 @@ public class TurretSubsystem {
         robotHeading = driveSubsystem.getFollowerPoseOrion().getRotation().getRadians();
 
         double target = (overallAngle - robotHeading) + TurretConstants.OFFSET;
+
+        if (target < -Math.PI/2 || target > Math.PI / 2) {
+            return 0;
+        }
 
 
         return Range.clip(target, -Math.PI/2, Math.PI/2);

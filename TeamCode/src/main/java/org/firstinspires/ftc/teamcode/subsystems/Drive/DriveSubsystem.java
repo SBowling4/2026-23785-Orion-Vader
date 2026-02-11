@@ -17,7 +17,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.lib.orion.util.Alliance;
-import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
+import org.firstinspires.ftc.teamcode.subsystems.Vision.VisionSubsystem;
 
 public class DriveSubsystem {
 
@@ -28,7 +28,7 @@ public class DriveSubsystem {
 
     private final Pose resetPose = new Pose(9, 9, Math.toRadians(180));
 
-    private Vision vision;
+    private VisionSubsystem visionSubsystem;
 
     private static DriveSubsystem instance;
 
@@ -163,7 +163,7 @@ public class DriveSubsystem {
         return Units.inchesToMeters(follower.getVelocity().getYComponent());
     }
 
-    public double getMagnitude() {
+    public double getVelocityMagnitude() {
         return Units.inchesToMeters(follower.getVelocity().getMagnitude());
     }
 
@@ -194,7 +194,7 @@ public class DriveSubsystem {
         packet.put("Drive/Velocity/X", getXVelocity());
         packet.put("Drive/Velocity/Y", getYVelocity());
         packet.put("Drive/Velocity/Angular", getAngularVelocity());
-        packet.put("Drive/Velocity/Magnitude", getMagnitude());
+        packet.put("Drive/Velocity/Magnitude", getVelocityMagnitude());
         packet.put("Drive/Velocity/Moving", isMoving());
 
 

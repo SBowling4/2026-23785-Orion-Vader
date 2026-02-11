@@ -83,32 +83,6 @@ public class FlywheelSubsystem {
      * Main loop for the Flywheel Subsystem
      */
     public void loop() {
-        leftMotor.setCoefficients(
-                new PIDCoefficients(
-                        FlywheelConstants.kP,
-                        FlywheelConstants.kI,
-                        FlywheelConstants.kD
-                ),
-                new FeedForward.FeedForwardCoefficients(
-                        FlywheelConstants.kS,
-                        FlywheelConstants.kV,
-                        FlywheelConstants.kA
-                )
-        );
-
-        rightMotor.setCoefficients(
-                new PIDCoefficients(
-                        FlywheelConstants.kP,
-                        FlywheelConstants.kI,
-                        FlywheelConstants.kD
-                ),
-                new FeedForward.FeedForwardCoefficients(
-                        FlywheelConstants.kS,
-                        FlywheelConstants.kV,
-                        FlywheelConstants.kA
-                )
-        );
-
         if (Robot.tuningMode) {
             setVelocity(FlywheelConstants.target);
         } else {
