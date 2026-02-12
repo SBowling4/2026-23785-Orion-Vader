@@ -8,8 +8,8 @@ import org.firstinspires.ftc.teamcode.auto.BaseAuto;
 import org.firstinspires.ftc.teamcode.auto.PathBuilder;
 import org.firstinspires.ftc.teamcode.auto.Poses;
 
-@Autonomous(name = "FrontOffline_Blue")
-public class FrontOffline extends BaseAuto {
+@Autonomous(name = "Front_Offline_Blue")
+public class Front_Offline extends BaseAuto {
 
     public enum PathState {
         DRIVE_OFFLINE,

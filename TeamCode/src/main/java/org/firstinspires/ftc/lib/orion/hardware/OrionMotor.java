@@ -22,8 +22,11 @@ public class OrionMotor {
 
     public static final double TICKS_PER_REVOLUTION = 28;
 
+    private final HardwareMap hardwareMap;
+
     public OrionMotor(HardwareMap hardwareMap, String name) {
         this.name = name;
+        this.hardwareMap = hardwareMap;
 
         internalMotor = new MotorEx(hardwareMap, name);
         encoder = internalMotor.encoder;
@@ -141,7 +144,10 @@ public class OrionMotor {
      */
     public void setVoltage(double volts) {
         lastAppliedVoltage = volts;
-        setPower(volts / Robot.getRobotVoltage());
+
+        double robotVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
+
+        setPower(volts / robotVoltage);
     }
     /**
      * Stops the motor.

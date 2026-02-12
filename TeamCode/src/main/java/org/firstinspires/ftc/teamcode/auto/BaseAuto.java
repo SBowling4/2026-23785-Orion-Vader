@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.auto;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -48,6 +49,7 @@ public abstract class BaseAuto extends OpMode {
 
     // ==================== STATE TRACKING ====================
     protected boolean hasSpunUp = false;
+    protected boolean isShooting = false;
     protected Alliance alliance;
 
     // ==================== TELEMETRY ====================
@@ -121,6 +123,12 @@ public abstract class BaseAuto extends OpMode {
             visionSubsystem.loop();
         }
 
+        turretSubsystem.loop();
+
+        if (!isShooting) {
+            flywheelSubsystem.setPower(.35);
+        }
+
         // Update state machine (implemented by child classes)
         updateStateMachine();
 
@@ -180,7 +188,7 @@ public abstract class BaseAuto extends OpMode {
 
         // Initialize Drive
         driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
-        driveSubsystem.init();
+        driveSubsystem.autoInit(follower);
         telemetry.addLine("  ✓ Drive");
         telemetry.update();
 
@@ -240,6 +248,7 @@ public abstract class BaseAuto extends OpMode {
      * @return true if shooting sequence is complete
      */
     protected boolean shootSequence() {
+        isShooting = true;
         // Set velocity and hood angle based on distance
         flywheelSubsystem.setVelocityFromDistance();
         hoodSubsystem.setAngleFromDistance();
@@ -484,6 +493,13 @@ public abstract class BaseAuto extends OpMode {
      * Override this to add custom telemetry in child classes.
      */
     protected void updateTelemetry() {
+
+        TelemetryPacket packet = new TelemetryPacket();
+        driveSubsystem.setTelemetry(packet);
+        turretSubsystem.setTelemetry(packet);
+        flywheelSubsystem.setTelemetry(packet);
+
+        FtcDashboard.getInstance().sendTelemetryPacket(packet);
 
         // Add basic telemetry
         telemetry.addLine("========== TIMERS ==========");
