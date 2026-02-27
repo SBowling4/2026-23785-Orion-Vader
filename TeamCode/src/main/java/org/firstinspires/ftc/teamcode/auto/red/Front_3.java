@@ -1,14 +1,14 @@
-package org.firstinspires.ftc.teamcode.auto.blue;
+package org.firstinspires.ftc.teamcode.auto.red;
 
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.teamcode.auto.BaseAuto;
-import org.firstinspires.ftc.teamcode.auto.PathBuilder;
 import org.firstinspires.ftc.teamcode.auto.DefinedPose;
+import org.firstinspires.ftc.teamcode.auto.PathBuilder;
 
-@Autonomous(name = "Front_3_Blue", group = "Blue")
+@Autonomous(name = "Front_3_Red", group = "Blue")
 public class Front_3 extends BaseAuto {
 
     enum PathState {
@@ -27,7 +27,7 @@ public class Front_3 extends BaseAuto {
 
     @Override
     protected Alliance getAlliance() {
-        return Alliance.BLUE;
+        return Alliance.RED;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class Front_3 extends BaseAuto {
 
     @Override
     protected void setStartingPose() {
-        follower.setStartingPose(DefinedPose.FRONT_START.pose);
+        follower.setStartingPose(DefinedPose.FRONT_START.pose.mirror());
     }
 
     @Override

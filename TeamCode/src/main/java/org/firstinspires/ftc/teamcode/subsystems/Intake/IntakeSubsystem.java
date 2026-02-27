@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.lib.orion.hardware.OrionMotor;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants.INTAKE_STATE;
+import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants.intakeState;
 
 public class IntakeSubsystem {
     private OrionMotor intakeMotor;
@@ -14,7 +14,7 @@ public class IntakeSubsystem {
     private final Gamepad gamepad1;
     private final HardwareMap hardwareMap;
 
-    private INTAKE_STATE intakeState;
+    private intakeState intakeState;
 
     private static IntakeSubsystem instance;
 
@@ -34,7 +34,7 @@ public class IntakeSubsystem {
     public void init() {
         intakeMotor = new OrionMotor(hardwareMap, IntakeConstants.INTAKE_MOTOR_NAME);
 
-        intakeState = INTAKE_STATE.STOP;
+        intakeState = IntakeConstants.intakeState.STOP;
     }
 
     /**
@@ -42,25 +42,25 @@ public class IntakeSubsystem {
      */
     public void loop() {
         if (Robot.tuningMode) {
-            setState(INTAKE_STATE.INTAKE);
+            setState(IntakeConstants.intakeState.INTAKE);
         } else {
             if (gamepad1.a) {
-                setState(INTAKE_STATE.INTAKE);
+                setState(IntakeConstants.intakeState.INTAKE);
             } else if (gamepad1.y){
-                setState(INTAKE_STATE.OUT);
+                setState(IntakeConstants.intakeState.OUT);
             } else {
-                setState(INTAKE_STATE.STOP);
+                setState(IntakeConstants.intakeState.STOP);
             }
         }
 
     }
 
-    public void setState(INTAKE_STATE state) {
+    public void setState(intakeState state) {
         this.intakeState = state;
         intakeMotor.setPower(state.getPower());
     }
 
-    public INTAKE_STATE getState() {
+    public intakeState getState() {
         return this.intakeState;
     }
 

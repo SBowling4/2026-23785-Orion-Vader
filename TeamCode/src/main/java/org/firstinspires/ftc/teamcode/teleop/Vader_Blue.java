@@ -25,13 +25,14 @@ public class Vader_Blue extends BaseOpMode {
     FeederSubsystem feederSubsystem;
     TurretSubsystem turretSubsystem;
 
-    public Vader_Blue() {
-        super(Alliance.BLUE);
+    @Override
+    protected Alliance getAlliance() {
+        return Alliance.BLUE;
     }
 
     @Override
     public void onInit() {
-        Robot.alliance = Alliance.BLUE;
+        Robot.alliance = getAlliance();
 
         driveSubsystem = DriveSubsystem.getInstance(hardwareMap, gamepad1);
         intakeSubsystem = IntakeSubsystem.getInstance(hardwareMap, gamepad1);
@@ -86,4 +87,5 @@ public class Vader_Blue extends BaseOpMode {
     public void onStop() {
         Robot.lastPose = driveSubsystem.getFollowerPose();
     }
+
 }

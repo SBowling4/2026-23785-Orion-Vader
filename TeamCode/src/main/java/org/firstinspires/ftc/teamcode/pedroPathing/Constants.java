@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.lib.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
@@ -7,6 +7,7 @@ import com.pedropathing.follower.FollowerConstants;
 import com.pedropathing.ftc.FollowerBuilder;
 import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.ftc.localization.Encoder;
+import com.pedropathing.ftc.localization.constants.ThreeWheelConstants;
 import com.pedropathing.ftc.localization.constants.ThreeWheelIMUConstants;
 import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -23,14 +24,18 @@ public class Constants {
             .lateralZeroPowerAcceleration(-71.35929610657753)
             .translationalPIDFCoefficients(new PIDFCoefficients(.1, 0, .005, .04))
             .headingPIDFCoefficients(new PIDFCoefficients(1,0,.003,.04))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.07,0,.001,.6,0.01))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.05,0,0.0023,.6,0.04))
             .centripetalScaling(0.00019);
 
     public static PathConstraints pathConstraints = new PathConstraints(
             .99,
+            2,
+            1,
+            .1,
             100,
-            .8,
-            1
+            1,
+            100,
+            1.0
     );
 
     public static MecanumConstants mecanumConstants = new MecanumConstants()
@@ -43,7 +48,7 @@ public class Constants {
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .xVelocity(57.86075592258057)
+            .xVelocity(58.118757663758814)
             .yVelocity(43.226006885091984);
 
 

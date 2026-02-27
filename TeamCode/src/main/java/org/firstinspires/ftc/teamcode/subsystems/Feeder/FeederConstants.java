@@ -1,20 +1,18 @@
 package org.firstinspires.ftc.teamcode.subsystems.Feeder;
 
-import com.bylazar.configurables.annotations.Configurable;
-
 public class FeederConstants {
     public static final String FEEDER_MOTOR_NAME = "feeder";
     public static final String KICKER_SERVO_NAME = "kicker";
     public static final String STOPPER_SERVO_NAME = "stopper";
 
-    public enum FEEDER_STATE {
+    public enum feederState {
         IN(1),
         OUT(-1),
         STOP(0);
 
         private final double power;
 
-        private FEEDER_STATE(double power) {
+        private feederState(double power) {
             this.power = power;
         }
 

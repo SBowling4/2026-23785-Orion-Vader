@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.shooter.ShotCalculator;
 
 public class HoodSubsystem {
@@ -30,6 +31,7 @@ public class HoodSubsystem {
      */
     public void init() {
         hoodServo = hardwareMap.get(ServoImplEx.class, HoodConstants.SERVO_NAME);
+        position = 0;
     }
 
     /**
@@ -39,7 +41,11 @@ public class HoodSubsystem {
         if (Robot.tuningMode) {
             setAngle(HoodConstants.target);
         } else {
-            setAngleFromDistance();
+            if (ShotCalculator.getInstance().getShootingParameters().isFar()) {
+                setAngleFromDistanceNoCorrection();
+            } else {
+                setAngleFromDistanceWithCorrection();
+            }
         }
     }
 
@@ -51,14 +57,45 @@ public class HoodSubsystem {
         hoodServo.setPosition(targetAngle);
     }
 
-    public void setAngleFromDistance() {
-        setAngle(ShotCalculator.getInstance().getShootingParameters().hoodAngle());
+    public double getAngleFromDistanceNoCorrection() {
+        return ShotCalculator.getInstance().getShootingParameters().hoodAngle();
+    }
+
+    public void setAngleFromDistanceNoCorrection() {
+        setAngle(getAngleFromDistanceNoCorrection());
+    }
+
+
+    public void setAngleFromDistanceWithCorrection() {
+        setAngle(getAngleFromDistanceWithCorrection());
+    }
+
+
+
+    public double getAngleFromDistanceWithCorrection() {
+        ShotCalculator.ShootingParameters params = ShotCalculator.getInstance().getShootingParameters();
+        double baseAngle = params.hoodAngle();
+        double deltaRPM = FlywheelSubsystem.getInstance().getDelta();
+
+        if (params.isFar()) {
+            return baseAngle;
+        }
+
+        if (deltaRPM < 25) {
+            return baseAngle;
+        }
+
+        double angleAdj = baseAngle - HoodConstants.kRapidFire * deltaRPM;
+
+        return angleAdj;
     }
 
 
     public void setTelemetry(TelemetryPacket packet) {
         packet.put("Hood/Position", position);
+        packet.put("Hood/Setpoint With Correction", getAngleFromDistanceWithCorrection());
         packet.put("Hood/Angle from Distance", ShotCalculator.getInstance().getShootingParameters().hoodAngle());
+        packet.put("Hood/Should Not Correct", ShotCalculator.getInstance().getShootingParameters().isFar());
     }
 
 

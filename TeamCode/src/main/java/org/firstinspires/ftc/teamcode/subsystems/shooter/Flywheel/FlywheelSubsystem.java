@@ -20,12 +20,9 @@ public class FlywheelSubsystem {
     public OrionMotor rightMotor;
 
     public double lastTargetRPM = 0.0;
-    public double lastTargetVolts = 0.0;
 
     private final Gamepad gamepad1;
     private final HardwareMap hardwareMap;
-    public double tuningVelocity = 0.0;
-
     private static FlywheelSubsystem instance;
 
     /**
@@ -89,6 +86,7 @@ public class FlywheelSubsystem {
             if (gamepad1.right_bumper) {
                 setVelocityFromDistance();
             } else {
+                lastTargetRPM = 0;
                 setPower(.2);
             }
         }
@@ -126,13 +124,16 @@ public class FlywheelSubsystem {
     public void setVelocityFromDistance() {
         lastTargetRPM = ShotCalculator.getInstance().getShootingParameters().flywheelRPM();
 
-        leftMotor.setVelocity(lastTargetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
-        rightMotor.setVelocity(lastTargetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
+        // If not within 90% of setpoint, just apply 100% power
+        if (getVelocity() / lastTargetRPM < 0.9) {
+            setPower(1);
+        } else {
+            leftMotor.setVelocity(lastTargetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
+            rightMotor.setVelocity(lastTargetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
+        }
     }
 
     public void setVoltage(double volts) {
-        lastTargetVolts = volts;
-
         leftMotor.setVoltage(volts);
         rightMotor.setVoltage(volts);
     }
@@ -147,7 +148,11 @@ public class FlywheelSubsystem {
             return true;
         }
 
-        return Math.abs(lastTargetRPM - getVelocity()) < 100;
+        return Math.abs(getDelta()) < 50;
+    }
+
+    public double getDelta() {
+        return lastTargetRPM - getVelocity();
     }
 
 
@@ -170,6 +175,7 @@ public class FlywheelSubsystem {
         packet.put("Flywheel/Velocity", getVelocity());
         packet.put("Flywheel/Target", lastTargetRPM);
         packet.put("Flywheel/Volts", leftMotor.lastAppliedVoltage);
+        packet.put("Flywheel/Delta", getDelta());
         packet.put("Flywheel/Velocity from Distance", ShotCalculator.getInstance().getShootingParameters().flywheelRPM());
     }
 

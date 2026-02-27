@@ -8,8 +8,8 @@ import org.firstinspires.ftc.teamcode.auto.BaseAuto;
 import org.firstinspires.ftc.teamcode.auto.PathBuilder;
 import org.firstinspires.ftc.teamcode.auto.DefinedPose;
 
-@Autonomous(name = "Front_3_Blue", group = "Blue")
-public class Front_3 extends BaseAuto {
+@Autonomous(name = "Back_3_Blue", group = "Blue")
+public class Back_3 extends BaseAuto {
 
     enum PathState {
         DRIVE_TO_SHOOT,
@@ -35,15 +35,15 @@ public class Front_3 extends BaseAuto {
         driveToShoot = PathBuilder.buildPath(
                 follower,
                 PathBuilder.Heading.LINEAR,
-                DefinedPose.FRONT_START,
-                DefinedPose.FRONT_SHOOT,
+                DefinedPose.BACK_START,
+                DefinedPose.BACK_SHOOT,
                 getAlliance()
         );
         driveOffline = PathBuilder.buildPath(
                 follower,
-                PathBuilder.Heading.CONSTANT,
-                DefinedPose.FRONT_SHOOT,
-                DefinedPose.GATE_OFFLINE,
+                PathBuilder.Heading.LINEAR,
+                DefinedPose.BACK_SHOOT,
+                DefinedPose.BACK_OFFLINE,
                 getAlliance()
         );
     }
@@ -67,7 +67,7 @@ public class Front_3 extends BaseAuto {
 
                 // Start path only once
                 if (!hasStartedDriveToShoot) {
-                    follower.followPath(driveToShoot, .5, false);
+                    follower.followPath(driveToShoot);
                     hasStartedDriveToShoot = true;
                 }
 
@@ -105,4 +105,5 @@ public class Front_3 extends BaseAuto {
                 break;
         }
     }
+
 }

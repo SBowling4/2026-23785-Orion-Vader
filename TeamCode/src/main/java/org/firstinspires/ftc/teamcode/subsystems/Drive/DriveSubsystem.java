@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.lib.orion.util.Field;
-import org.firstinspires.ftc.lib.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
@@ -71,7 +71,7 @@ public class DriveSubsystem {
         }
 
         // Full pose reset (resets both absolute and driver heading)
-        if (gamepad1.left_stick_button && gamepad1.right_stick_button) {
+        if (gamepad1.left_stick_button) {
             resetPose();
 
             update();
@@ -108,12 +108,22 @@ public class DriveSubsystem {
         }
     }
 
+    public void resetPoseNoHeading(Pose pose) {
+        follower.setPose(new Pose(pose.getX(), pose.getY(), follower.getPose().getHeading(), PedroCoordinates.INSTANCE));
+    }
+
     /**
      * Resets only the heading of the pose to the alliance standard
      * Keeps the x and y coordinates the same
      */
     public void resetPoseHeading() {
         double heading = Robot.alliance == Alliance.BLUE ? Math.toRadians(180) : Math.toRadians(0);
+        Pose headingResetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), heading);
+
+        follower.setPose(headingResetPose);
+    }
+
+    public void resetPoseHeading(double heading) {
         Pose headingResetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), heading);
 
         follower.setPose(headingResetPose);

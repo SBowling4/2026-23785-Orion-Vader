@@ -12,6 +12,8 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.lib.orion.util.Field;
 import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -24,6 +26,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.lib.orion.util.Alliance;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.ShotCalculator;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class TurretSubsystem {
@@ -75,22 +78,22 @@ public class TurretSubsystem {
     public void loop() {
         position = getPosition();
 
-        if (gamepad1.dpad_left) {
-            setPower(.5);
+        if (Math.abs(gamepad2.left_stick_x) > .33) {
+            setPower(gamepad2.left_stick_x);
 
             manual = true;
-        } else if (gamepad1.dpad_right) {
-            setPower(-.5);
+        }  else if (Math.abs(gamepad2.right_stick_x) > .33) {
+            setPower(gamepad2.right_stick_x / 5);
 
             manual = true;
-        } else if (gamepad1.right_stick_button) {
+        } else if (gamepad2.a) {
             encoder.reset();
 
             manual = false;
+        } else if (gamepad2.b) {
+            manual = false;
         } else if (!manual) {
-            setpoint = findFieldRelativeAngle();
-
-            setPosition(setpoint);
+            setFieldRelativeAngle();
         } else {
             setPower(0);
         }
@@ -98,6 +101,8 @@ public class TurretSubsystem {
 
     public void setPosition(double pos) {
         pos = Range.clip(pos, -Math.PI/2 -.2, Math.PI/2 + .2);
+
+        setpoint = pos;
 
         power = -pidController.calculate(position, pos);
         setPower(power);
@@ -132,62 +137,46 @@ public class TurretSubsystem {
         return new Pose2D(ftcTurretPose.getPosition().unit, ftcTurretPose.getPosition().x, ftcTurretPose.getPosition().y, AngleUnit.RADIANS, ftcTurretPose.getOrientation().getYaw(AngleUnit.RADIANS));
     }
 
-    public double findFieldRelativeAngle() {
-        double robotHeading;
-        double overallAngle;
-
-        Translation2d turretPose = CoordinateSystemConverter.ftcToOrion(getTurretFieldPose()).getTranslation();
-
-        if (Robot.alliance == Alliance.BLUE) {
-            Translation2d delta = turretPose.minus(Field.BLUE_GOAL);
-
-            overallAngle = Math.PI + delta.getAngle().getRadians();
-
-        } else if (Robot.alliance == Alliance.RED) {
-            Translation2d delta = turretPose.minus(Field.RED_GOAL);
-
-            overallAngle = Math.PI +  delta.getAngle().getRadians();
-        } else {
-            throw new IllegalStateException("Alliance not set");
-        }
-
-        robotHeading = driveSubsystem.getFollowerPoseOrion().getRotation().getRadians();
-
-        double target = (overallAngle - robotHeading) + TurretConstants.OFFSET;
+    public void setFieldRelativeAngle() {
+        double target = getFieldRelativeAngle();
 
         if (target < -Math.PI/2 || target > Math.PI / 2) {
-            return 0;
+            setPosition(0);
+
+            return;
         }
 
-
-        return Range.clip(target, -Math.PI/2, Math.PI/2);
+        setPosition(target);
     }
 
-    public double findAbsoluteFieldRelativeAngle() {
+    public double getFieldRelativeAngle() {
         double robotHeading;
         double overallAngle;
 
         Translation2d turretPose = CoordinateSystemConverter.ftcToOrion(getTurretFieldPose()).getTranslation();
 
-        if (Robot.alliance == Alliance.BLUE) {
-            Translation2d delta = turretPose.minus(Field.BLUE_GOAL);
+        Translation2d goal = getTargetGoal();
+        Translation2d delta = turretPose.minus(goal);
 
-            overallAngle = Math.PI + delta.getAngle().getRadians();
-
-        } else if (Robot.alliance == Alliance.RED) {
-            Translation2d delta = turretPose.minus(Field.RED_GOAL);
-
-            overallAngle = Math.PI + delta.getAngle().getRadians();
-        } else {
-            throw new IllegalStateException("Alliance not set");
-        }
+        overallAngle = Math.PI + delta.getAngle().getRadians();
 
         robotHeading = driveSubsystem.getFollowerPoseOrion().getRotation().getRadians();
 
         double target = (overallAngle - robotHeading) + TurretConstants.OFFSET;
 
-
         return target;
+    }
+
+    public Translation2d getTargetGoal() {
+        boolean far = ShotCalculator.getInstance().getShootingParameters().isFar();
+
+        if (Robot.alliance == Alliance.BLUE) {
+            return far ?  Field.BLUE_GOAL.plus(Field.FAR_TARGET_OFFSET) : Field.BLUE_GOAL.plus(Field.CLOSE_TARGET_OFFSET);
+        } else if (Robot.alliance == Alliance.RED) {
+            return far ? Field.RED_GOAL.plus(Field.FAR_TARGET_OFFSET) : Field.RED_GOAL.plus(Field.CLOSE_TARGET_OFFSET);
+        } else {
+            throw new IllegalStateException("Alliance not set");
+        }
     }
 
     public double getPosition() {
@@ -211,10 +200,18 @@ public class TurretSubsystem {
     public void setTelemetry(TelemetryPacket packet) {
         packet.put("Turret/Position", Units.radiansToDegrees(getPosition()));
         packet.put("Turret/Setpoint", Units.radiansToDegrees(setpoint));
-        packet.put("Turret/Needed Angle)", Units.radiansToDegrees(findAbsoluteFieldRelativeAngle()));
+        packet.put("Turret/Needed Angle)", Units.radiansToDegrees(getFieldRelativeAngle()));
         packet.put("Turret/Pose/Pose x", Units.metersToInches(getTurretFieldPose().getX(DistanceUnit.METER)));
         packet.put("Turret/Pose/Pose y", Units.metersToInches(getTurretFieldPose().getY(DistanceUnit.METER)));
         packet.put("Turret/Pose/Pose heading", 0);
+
+        Pose2d targetPose = new Pose2d(getTargetGoal(), Rotation2d.kZero);
+        Pose2D targetPoseFTC = CoordinateSystemConverter.orionToFTC(targetPose);
+
+        packet.put("Turret/Target/Pose x", targetPoseFTC.getX(DistanceUnit.INCH));
+        packet.put("Turret/Target/Pose y", targetPoseFTC.getY(DistanceUnit.INCH));
+        packet.put("Turret/Target/Pose heading", targetPoseFTC.getHeading(AngleUnit.RADIANS));
+
     }
 
     public static TurretSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2) {

@@ -30,12 +30,14 @@ public abstract class BaseOpMode extends OpMode {
     private double avgLoopMs = 0.0;
     private long loopCount = 0;
 
-    protected BaseOpMode(Alliance alliance) {
-        Robot.alliance = alliance;
-    }
+    protected Alliance alliance;
+
 
     @Override
     public final void init() {
+        alliance = getAlliance();
+        Robot.alliance = alliance;
+
         Robot.sendHardwareMap(hardwareMap);
 
         hubs = hardwareMap.getAll(LynxModule.class);
@@ -99,6 +101,8 @@ public abstract class BaseOpMode extends OpMode {
     protected void onStart() {}
     protected abstract void onLoop();
     protected void onStop() {}
+
+    protected abstract Alliance getAlliance();
 
     // ---- Public helpers for child OpModes ----
 

@@ -19,16 +19,19 @@ public class ShotCalculator {
         flywheelMap.put(1.14,1800.0);
         flywheelMap.put(1.45, 1850.0);
         flywheelMap.put(2.0, 2000.0);
+        flywheelMap.put(2.17, 2075.0);
+        flywheelMap.put(2.28, 2110.0);
+        flywheelMap.put(2.35, 2125.0);
         flywheelMap.put(2.4, 2150.0);
         flywheelMap.put(2.9, 2275.0);
         flywheelMap.put(3.24, 2390.0);
         flywheelMap.put(3.39, 2450.0);
         flywheelMap.put(3.54, 2510.0);
-        flywheelMap.put(3.8, 2525.0); //what?
-        flywheelMap.put(3.96, 2625.0); //estoy muy confudido
+        flywheelMap.put(3.8, 2525.0);
+        flywheelMap.put(3.96, 2625.0);
     }
 
-    public record ShootingParameters(double flywheelRPM, double hoodAngle) {}
+    public record ShootingParameters(double flywheelRPM, double hoodAngle, boolean isFar) {}
 
     private DriveSubsystem driveSubsystem;
 
@@ -50,7 +53,9 @@ public class ShotCalculator {
         double hoodAngle = hoodMap.get(distance);
         double flywheelRPM = flywheelMap.get(distance);
 
-        return new ShootingParameters(flywheelRPM, hoodAngle);
+        boolean isFar = distance > 3;
+
+        return new ShootingParameters(flywheelRPM, hoodAngle, isFar);
     }
 
 }
