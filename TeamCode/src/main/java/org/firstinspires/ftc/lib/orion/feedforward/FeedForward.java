@@ -8,6 +8,8 @@ public class FeedForward {
     private double kV; // Velocity gain
     private double kA; // Acceleration gain
 
+    public record FeedForwardCoefficients(double kS, double kV, double kA) {}
+
     /**
      * Constructor for FeedForward with all gains.
      *

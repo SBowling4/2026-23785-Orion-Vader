@@ -1,31 +1,35 @@
 package org.firstinspires.ftc.teamcode.auto.blue;
 
 import com.pedropathing.geometry.BezierCurve;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.teamcode.auto.BaseAuto;
-import org.firstinspires.ftc.teamcode.auto.PathBuilder;
 import org.firstinspires.ftc.teamcode.auto.DefinedPose;
+import org.firstinspires.ftc.teamcode.auto.PathBuilder;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants;
 
-@Autonomous(name = "Back_6_Blue", group = "Blue")
-public class Back_6 extends BaseAuto {
+@Autonomous(name = "Back_9_HP_Blue", group = "Blue")
+public class Back_9_HP_Blue extends BaseAuto {
 
     enum PathState {
-        DRIVE_START_TO_SHOOT,
+        DRIVE_START_TO_SHOOT_PRELOAD,
         SHOOT_PRELOAD,
-        DRIVE_PICKUP,
-        DRIVE_PICKUP_TO_SHOOT,
-        SHOOT_PICKUP,
+        DRIVE_THIRD_PICKUP,
+        DRIVE_THIRD_PICKUP_TO_SHOOT,
+        SHOOT_THIRD_PICKUP,
+        DRIVE_HP_PICKUP,
+        DRIVE_HP_TO_SHOOT,
+        SHOOT_HP,
         DRIVE_OFFLINE,
         END
     }
 
     private PathState pathState;
-    private PathChain driveToShootPreload, drivePickup, drivePickupToShoot, driveOffline;
+    private PathChain driveToShootPreload, driveThirdPickup, driveThirdPickupToShoot, driveHPPickup, driveHPToShoot, driveOffline;
 
     // Flags to ensure we only call followPath once per state
     private boolean hasStartedDriveToShoot = false;
@@ -44,7 +48,7 @@ public class Back_6 extends BaseAuto {
                 DefinedPose.BACK_SHOOT,
                 getAlliance()
         );
-        drivePickup = PathBuilder.buildPath(
+        driveThirdPickup = PathBuilder.buildPath(
                 follower,
                 .4,
                 DefinedPose.BACK_SHOOT,
@@ -52,11 +56,21 @@ public class Back_6 extends BaseAuto {
                 DefinedPose.THIRD_PICKUP,
                 getAlliance()
         );
-
-        drivePickupToShoot = PathBuilder.buildPath(
+        driveThirdPickupToShoot = PathBuilder.buildPath(
                 follower,
                 PathBuilder.Heading.LINEAR,
                 DefinedPose.THIRD_PICKUP,
+                DefinedPose.BACK_SHOOT,
+                getAlliance()
+        );
+        driveHPPickup = follower.pathBuilder()
+                .addPath(new BezierLine(DefinedPose.BACK_SHOOT.pose, DefinedPose.HP_PICKUP.pose))
+                .setLinearHeadingInterpolation(DefinedPose.BACK_SHOOT.pose.getHeading(), DefinedPose.HP_PICKUP.pose.getHeading(), .4)
+                .build();
+        driveHPToShoot = PathBuilder.buildPath(
+                follower,
+                PathBuilder.Heading.LINEAR,
+                DefinedPose.HP_PICKUP,
                 DefinedPose.BACK_SHOOT,
                 getAlliance()
         );
@@ -76,14 +90,14 @@ public class Back_6 extends BaseAuto {
 
     @Override
     protected void initializeFirstState() {
-        pathState = PathState.DRIVE_START_TO_SHOOT;
+        pathState = PathState.DRIVE_START_TO_SHOOT_PRELOAD;
         resetPathTimer();
     }
 
     @Override
     protected void updateStateMachine() {
         switch (pathState) {
-            case DRIVE_START_TO_SHOOT:
+            case DRIVE_START_TO_SHOOT_PRELOAD:
                 revFlywheel();
 
                 // Start path only once
@@ -102,41 +116,65 @@ public class Back_6 extends BaseAuto {
             case SHOOT_PRELOAD:
                 // shootSequence() handles everything and returns true when done
                 if (shootSequence()) {
-                    pathState = PathState.DRIVE_PICKUP;
+                    pathState = PathState.DRIVE_THIRD_PICKUP;
                     resetPathTimer();
-                    follower.followPath(drivePickup);
+                    follower.followPath(driveThirdPickup);
                 }
                 break;
-            case DRIVE_PICKUP:
+            case DRIVE_THIRD_PICKUP:
                 setFeederAndIntakeState(IntakeConstants.intakeState.INTAKE, FeederConstants.feederState.IN);
 
                 if (!follower.isBusy()) {
-                    pathState = PathState.DRIVE_PICKUP_TO_SHOOT;
+                    pathState = PathState.DRIVE_THIRD_PICKUP_TO_SHOOT;
                     resetPathTimer();
-                    follower.followPath(drivePickupToShoot);
+                    follower.followPath(driveThirdPickupToShoot);
                 }
 
                 break;
 
-            case DRIVE_PICKUP_TO_SHOOT:
+            case DRIVE_THIRD_PICKUP_TO_SHOOT:
                 revFlywheel();
 
                 if (!follower.isBusy()){
-                    pathState = PathState.SHOOT_PICKUP;
+                    pathState = PathState.SHOOT_THIRD_PICKUP;
                     resetPathTimer();
-                    stopIntake();
                 }
 
                 break;
-            case SHOOT_PICKUP:
+            case SHOOT_THIRD_PICKUP:
+                if (shootSequence()) {
+                    pathState = PathState.DRIVE_HP_PICKUP;
+                    resetPathTimer();
+                    setFeederAndIntakeState(IntakeConstants.intakeState.INTAKE, FeederConstants.feederState.IN);
+                    follower.followPath(driveHPPickup);
+                }
+                break;
+            case DRIVE_HP_PICKUP:
+                if (!follower.isBusy()) {
+                    pathState = PathState.DRIVE_HP_TO_SHOOT;
+                    resetPathTimer();
+
+                    setFeederAndIntakeState(IntakeConstants.intakeState.STOP, FeederConstants.feederState.IN);
+                    follower.followPath(driveHPToShoot);
+                }
+                break;
+            case DRIVE_HP_TO_SHOOT:
+                if (!follower.isBusy()) {
+                    stopIntake();
+
+                    pathState = PathState.SHOOT_HP;
+                    resetPathTimer();
+                }
+                break;
+            case SHOOT_HP:
                 if (shootSequence()) {
                     pathState = PathState.DRIVE_OFFLINE;
                     resetPathTimer();
+
                     follower.followPath(driveOffline);
                 }
                 break;
             case DRIVE_OFFLINE:
-                // Wait for path to complete
                 if (!follower.isBusy()) {
                     pathState = PathState.END;
                     resetPathTimer();

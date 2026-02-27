@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystems.Feeder;
 
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -9,19 +8,18 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PwmControl;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 
-import org.firstinspires.ftc.lib.orion.hardware.Motor;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.lib.orion.hardware.OrionMotor;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.Hood.HoodSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.KICKER_STATE;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.STOPPER_STATE;
-import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.FEEDER_STATE;
+import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants.feederState;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Hood.HoodSubsystem;
 
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class FeederSubsystem {
-    private Motor feederMotor;
+    private OrionMotor feederMotor;
     public ServoImplEx kickerServo;
     private ServoImplEx stopperServo;
 
@@ -37,7 +35,7 @@ public class FeederSubsystem {
 
     private STOPPER_STATE stopperState;
     private KICKER_STATE kickerState;
-    private FEEDER_STATE feederState;
+    private feederState feederState;
 
 
     /**
@@ -52,18 +50,12 @@ public class FeederSubsystem {
      * Initializes the Feeder Subsystem
      */
     public void init() {
-        feederMotor = new Motor(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME);
+        feederMotor = new OrionMotor(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME);
 
         kickerServo = hardwareMap.get(ServoImplEx.class, FeederConstants.KICKER_SERVO_NAME);
         stopperServo = hardwareMap.get(ServoImplEx.class, FeederConstants.STOPPER_SERVO_NAME);
 
         stopperServo.setPwmRange(new PwmControl.PwmRange(450, 2550));
-
-
-        kickerState = KICKER_STATE.OUT;
-        stopperState = STOPPER_STATE.CLOSED;
-        feederState = FEEDER_STATE.STOP;
-
 
         flywheelSubsystem = FlywheelSubsystem.getInstance();
     }
@@ -73,7 +65,7 @@ public class FeederSubsystem {
      */
     public void loop() {
         if (Robot.tuningMode) {
-            setFeederState(FEEDER_STATE.IN);
+            setFeederState(FeederConstants.feederState.IN);
             setStopperState(STOPPER_STATE.OPEN);
             setKickerState(KICKER_STATE.OUT);
         } else {
@@ -83,22 +75,22 @@ public class FeederSubsystem {
                 }
 
                 if (atVelocity) {
-                    setFeederState(FEEDER_STATE.IN);
+                    setFeederState(FeederConstants.feederState.IN);
                 } else {
-                    setFeederState(FEEDER_STATE.STOP);
+                    setFeederState(FeederConstants.feederState.STOP);
                 }
             } else if (gamepad1.a) {
                 atVelocity = false;
-                setFeederState(FEEDER_STATE.IN);
+                setFeederState(FeederConstants.feederState.IN);
             } else if (gamepad1.y) {
                 atVelocity = false;
-                setFeederState(FEEDER_STATE.OUT);
+                setFeederState(FeederConstants.feederState.OUT);
             } else {
                 atVelocity = false;
-                setFeederState(FEEDER_STATE.STOP);
+                setFeederState(FeederConstants.feederState.STOP);
             }
 
-            if (gamepad1.left_bumper) {
+            if (gamepad1.left_bumper || gamepad1.y) {
                 setKickerState(KICKER_STATE.IN);
             } else {
                 setKickerState(KICKER_STATE.OUT);
@@ -117,31 +109,13 @@ public class FeederSubsystem {
 
     }
 
-    public void setFeederState(FEEDER_STATE state) {
-        if (this.feederState == state) {
-            return;
-        }
-
+    public void setFeederState(feederState state) {
         this.feederState = state;
 
         feederMotor.setPower(state.getPower());
     }
 
     public void setStopperState(STOPPER_STATE state) {
-        if (this.stopperState == state) {
-            return;
-        }
-
-        this.stopperState = state;
-
-        stopperServo.setPosition(state.getPosition());
-    }
-
-    public void setStopperState(STOPPER_STATE state, boolean force) {
-        if (this.stopperState == state && !force) {
-            return;
-        }
-
         this.stopperState = state;
 
         stopperServo.setPosition(state.getPosition());
@@ -165,15 +139,15 @@ public class FeederSubsystem {
         return kickerState;
     }
 
-    public FEEDER_STATE getFeederState() {
+    public feederState getFeederState() {
         return feederState;
     }
 
     public void setTelemetry(TelemetryPacket packet) {
-        packet.put("Feeder/FeederState", feederState.toString());
-        packet.put("Feeder/Kicker/KickerState", kickerState.toString());
+        packet.put("Feeder/FeederState", feederState);
+        packet.put("Feeder/Kicker/KickerState", kickerState);
         packet.put("Feeder/Kicker/KickerPos", kickerServo.getController().getServoPosition(0));
-        packet.put("Feeder/Stopper/StopperState", stopperState.toString());
+        packet.put("Feeder/Stopper/StopperState", stopperState);
         packet.put("Feeder/Stopper/StopperPos", stopperServo.getController().getServoPosition(2));
     }
 

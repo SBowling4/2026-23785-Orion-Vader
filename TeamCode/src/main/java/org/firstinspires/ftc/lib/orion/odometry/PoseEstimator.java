@@ -4,12 +4,15 @@ import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.TreeMap;
 
+import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
 import org.firstinspires.ftc.lib.wpilib.math.MathUtil;
 import org.firstinspires.ftc.lib.wpilib.math.Matrix;
 import org.firstinspires.ftc.lib.wpilib.math.Nat;
 import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation2d;
+import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Transform2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Twist2d;
@@ -103,8 +106,14 @@ public class PoseEstimator {
         m_poseEstimate = odometry.getPoseWPILib();
     }
 
+    /**
+     *
+     * @return gets the estimated pose from the pose estimator in Orion coordinates
+     */
     public Pose2d getEstimatedPosition() {
-        return m_poseEstimate;
+        Pose3d pose3d = new Pose3d(m_poseEstimate.getX(), m_poseEstimate.getY(), 0, new Rotation3d(0,0, m_poseEstimate.getRotation().getRadians()));
+
+        return CoordinateSystemConverter.WPILibToOrion(pose3d);
     }
 
     public Optional<Pose2d> sampleAt(double timestampSeconds) {

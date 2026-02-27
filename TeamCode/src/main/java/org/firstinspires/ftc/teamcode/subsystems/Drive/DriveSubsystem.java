@@ -1,39 +1,23 @@
 package org.firstinspires.ftc.teamcode.subsystems.Drive;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.arcrobotics.ftclib.controller.PIDFController;
-import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.PedroCoordinates;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.lib.orion.PoseConverter;
 import org.firstinspires.ftc.lib.orion.util.Field;
-import org.firstinspires.ftc.lib.orion.odometry.Odometry;
-import org.firstinspires.ftc.lib.orion.odometry.PoseEstimator;
-import org.firstinspires.ftc.lib.pedroPathing.Constants;
-import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
-import org.firstinspires.ftc.lib.wpilib.math.Matrix;
-import org.firstinspires.ftc.lib.wpilib.math.VecBuilder;
-import org.firstinspires.ftc.lib.wpilib.math.controller.PIDController;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose3d;
-import org.firstinspires.ftc.lib.wpilib.math.geometry.Rotation3d;
-import org.firstinspires.ftc.lib.wpilib.math.numbers.N1;
-import org.firstinspires.ftc.lib.wpilib.math.numbers.N3;
 import org.firstinspires.ftc.lib.wpilib.math.util.Units;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.lib.orion.util.Alliance;
-import org.firstinspires.ftc.teamcode.subsystems.Vision.Vision;
+import org.firstinspires.ftc.teamcode.subsystems.Vision.VisionSubsystem;
 
 public class DriveSubsystem {
 
@@ -42,19 +26,9 @@ public class DriveSubsystem {
 
     public Follower follower;
 
-    public Odometry odometry;
-    public PoseEstimator poseEstimator;
+    private final Pose resetPose = new Pose(9, 9, Math.toRadians(180));
 
-    private double driverHeadingOffset = 0;
-
-    private double lastHeading = 0;
-    private boolean hasReset = false;
-
-    private Pose resetPose = new Pose(144 - 9.5, 9.5, Math.toRadians(270));
-
-    private PIDFController alignPID;
-
-    private Vision vision;
+    private VisionSubsystem visionSubsystem;
 
     private static DriveSubsystem instance;
 
@@ -64,32 +38,12 @@ public class DriveSubsystem {
     }
 
     public void init() {
-        odometry = new Odometry();
-
-        poseEstimator = new PoseEstimator(
-                odometry,
-                VecBuilder.fill(0.6, 0.6, .1),
-                VecBuilder.fill(0.2, 0.2, 99999)
-        );
-
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(Robot.lastPose);
-
-        vision = Vision.getInstance(hardwareMap);
-
-        alignPID = new PIDFController(.1,0,.03,.02);
     }
 
-    public void autoInit() {
-        odometry = new Odometry();
-
-        poseEstimator = new PoseEstimator(
-                odometry,
-                VecBuilder.fill(0.6, 0.6, .1),
-                VecBuilder.fill(0.2, 0.2, 99999)
-        );
-
-        vision = Vision.getInstance(hardwareMap);
+    public void autoInit(Follower follower) {
+        this.follower = follower;
     }
 
 
@@ -103,242 +57,158 @@ public class DriveSubsystem {
         double inputY = -gamepad1.left_stick_x;
         double inputHeading = -gamepad1.right_stick_x;
 
-        // Rotate driver inputs by the heading offset to maintain field-oriented control
-        // relative to the driver's chosen forward direction
-        double cos = Math.cos(-driverHeadingOffset);
-        double sin = Math.sin(-driverHeadingOffset);
-        double rotatedX = inputX * cos - inputY * sin;
-        double rotatedY = inputX * sin + inputY * cos;
-
         follower.setTeleOpDrive(
-                -rotatedX,
-                -rotatedY,
+                inputX,
+                inputY,
                 inputHeading,
-                false
+                false,
+                Robot.alliance == Alliance.BLUE ? Math.toRadians(180) : Math.toRadians(0)
         );
 
         // Reset the driver's forward direction (doesn't affect absolute heading)
         if (gamepad1.share) {
-            resetDriverHeading();
-        }
-
-        if (gamepad1.x) {
-            align();
-
-            lastHeading = follower.getHeading();
-            follower.update();
-            odometry.update(follower.getPose());
-            poseEstimator.update();
-            return;
+            resetPoseHeading();
         }
 
         // Full pose reset (resets both absolute and driver heading)
-        if (gamepad1.left_stick_button && gamepad1.right_stick_button) {
+        if (gamepad1.left_stick_button) {
             resetPose();
 
-            lastHeading = follower.getHeading();
-            follower.update();
-            odometry.update(follower.getPose());
-            poseEstimator.update();
+            update();
             return;
         }
 
-        if (Math.abs(lastHeading - follower.getHeading()) > Math.toRadians(40) && !hasReset) {
-            follower.setPose(new Pose(getFollowerPose().getX(), getFollowerPose().getY(), lastHeading));
-            vision.resetIMU(lastHeading);
-            hasReset = true;
-            lastHeading = follower.getHeading();
-            follower.update();
-            odometry.update(follower.getPose());
-            poseEstimator.update();
-            return;
-        }
+       update();
+    }
 
-//        if (gamepad1.right_bumper) {
-//            follower.holdPoint(follower.getPose());
-//        }
-
-        hasReset = false;
-
-        lastHeading = follower.getHeading();
-
-        // Update follower first
+    /**
+     * Updates the follower, odometry, and pose estimator
+     */
+    private void update() {
         follower.update();
-
-        // Update odometry with the absolute field-relative pose
-        odometry.update(follower.getPose());
-
-        // Update pose estimator
-        poseEstimator.update();
     }
 
-
-    public void autoLoop(Follower follower) {
-        Pose poseAdj = convertPose(follower.getPose());
-
-        odometry.update(poseAdj);
-        poseEstimator.update();
-    }
-
-    public void align() {
-        if (vision.getTx().isEmpty()) return;
-
-        double pow = alignPID.calculate(vision.getTx().get(), 0);
-
-        follower.setTeleOpDrive(0,0,pow, true);
-    }
-
-    private Pose convertPose(Pose pose) {
-        return new Pose(144 - pose.getY(),  pose.getX(),  pose.getHeading() + (Math.PI / 2));
-    }
-
+    /**
+     * Resets the follower, odometry, and pose estimator to the initial reset pose
+     */
     public void resetPose() {
         follower.setPose(resetPose);
-        driverHeadingOffset = 0;
-        odometry.resetPose(resetPose);
-        poseEstimator.resetPose(odometry.getPoseWPILib());
-        hasReset = true;
     }
 
+    /**
+     * Resets the follower, odometry, and pose estimator to the given pose
+     * Primarily used for ll vision resets
+     * @param pose the pose to reset to
+     */
+    public void resetPose(Pose pose, boolean heading) {
+        if (heading) {
+            follower.setPose(pose);
+        } else {
+            follower.setPose(new Pose(pose.getX(), pose.getY(), getFollowerPose().getHeading(), PedroCoordinates.INSTANCE));
+        }
+    }
+
+    public void resetPoseNoHeading(Pose pose) {
+        follower.setPose(new Pose(pose.getX(), pose.getY(), follower.getPose().getHeading(), PedroCoordinates.INSTANCE));
+    }
+
+    /**
+     * Resets only the heading of the pose to the alliance standard
+     * Keeps the x and y coordinates the same
+     */
     public void resetPoseHeading() {
-        double heading = Robot.alliance == Alliance.BLUE ? Math.toRadians(270) : Math.toRadians(90);
+        double heading = Robot.alliance == Alliance.BLUE ? Math.toRadians(180) : Math.toRadians(0);
         Pose headingResetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), heading);
 
         follower.setPose(headingResetPose);
-        odometry.resetPose(headingResetPose);
-        poseEstimator.resetPose(odometry.getPoseWPILib());
-        hasReset = true;
+    }
+
+    public void resetPoseHeading(double heading) {
+        Pose headingResetPose = new Pose(follower.getPose().getX(), follower.getPose().getY(), heading);
+
+        follower.setPose(headingResetPose);
     }
 
     /**
      * Returns the absolute field-relative pose from Pedro Pathing
      * This is what should be used for odometry and localization
+     * Coordinates: Pedro Pathing Standard
      */
     public Pose getFollowerPose() {
         return follower.getPose();
     }
 
     /**
-     * Returns the pose adjusted to field coordinates (origin at field center)
+     * Gets the odometry pose in FTC standard coordinates
+     * Coordinates: FTC Standard
      */
-    public Pose getFollowerPoseFieldAdj() {
-        return new Pose(
-                getFollowerPose().getX() - 72,
-                getFollowerPose().getY() - 72,
-                getFollowerPose().getHeading()
-        );
-    }
-
-    /**
-     * Returns the pose relative to the driver's chosen forward direction
-     * This is useful for driver-station display but should NOT be used for odometry
-     */
-    public Pose getDriverRelativePose() {
-        return new Pose(
-                follower.getPose().getX(),
-                follower.getPose().getY(),
-                follower.getHeading() - driverHeadingOffset
-        );
-    }
-
-    public Pose2D getOdometryPose() {
-        return odometry.getPoseFTCStandard();
+    public Pose2D getFollowerPoseFTC() {
+        return CoordinateSystemConverter.pedroToFTC(getFollowerPose());
     }
 
     /**
      * Gets the estimated pose from the pose estimator (with vision fusion)
+     * Coordinates: Orion
      */
-    public Pose2D getEstimatedPoseFTC() {
-        Pose2d poseEstimatorPose = poseEstimator.getEstimatedPosition();
-        Pose3d pose3d = new Pose3d(
-                poseEstimatorPose.getX(),
-                poseEstimatorPose.getY(),
-                0,
-                new Rotation3d(poseEstimatorPose.getRotation())
-        );
+    public Pose2d getFollowerPoseOrion() {
+        return CoordinateSystemConverter.pedroToOrion(getFollowerPose());
+    }
 
-        Pose3D ftcPose = CoordinateSystems.WPILibToFieldPose(pose3d);
 
-        return new Pose2D(
-                DistanceUnit.METER,
-                ftcPose.getPosition().x,
-                ftcPose.getPosition().y,
-                AngleUnit.RADIANS,
-                ftcPose.getOrientation().getYaw(AngleUnit.RADIANS)
-        );
+    /**
+     * @return true if the robot is currently moving
+     */
+    public boolean isMoving() {
+        double mag = follower.getVelocity().getMagnitude();
+        double rot = follower.getAngularVelocity();
+
+        return mag > .2 || Math.abs(rot) > .2;
+    }
+
+    public double getXVelocity() {
+        return Units.inchesToMeters(follower.getVelocity().getXComponent());
+    }
+
+    public double getYVelocity() {
+        return Units.inchesToMeters(follower.getVelocity().getYComponent());
+    }
+
+    public double getVelocityMagnitude() {
+        return Units.inchesToMeters(follower.getVelocity().getMagnitude());
+    }
+
+    public double getAngularVelocity() {
+        return follower.getAngularVelocity();
     }
 
     /**
-     * Resets the driver's forward direction to the current robot heading
-     * This does NOT affect the absolute field-relative heading used for odometry
+     * @return the distance from the robot to the goal in meters
      */
-    public void resetDriverHeading() {
-        driverHeadingOffset = follower.getHeading();
-        resetPoseHeading();
-    }
-
-    /**
-     * Gets the absolute field-relative heading (for odometry/localization)
-     */
-    public double getAbsoluteHeading() {
-        return follower.getHeading();
-    }
-
-    /**
-     * Gets the heading relative to the driver's chosen forward direction
-     */
-    public double getDriverRelativeHeading() {
-        return follower.getHeading() - driverHeadingOffset;
-    }
-
-    public void addVisionMeasurement(Pose2d visPose, double timestampSeconds) {
-        poseEstimator.addVisionMeasurement(visPose, timestampSeconds);
-    }
-
-    public void addVisionMeasurement(Pose2d visPose, double timestampSeconds, Matrix<N3, N1> visionStdDev) {
-        poseEstimator.addVisionMeasurement(visPose, timestampSeconds, visionStdDev);
-    }
-
     public double getDistanceToGoal() {
-        Pose3D estPose = new Pose3D(
-                new Position(
-                        DistanceUnit.METER,
-                        getEstimatedPoseFTC().getX(DistanceUnit.METER),
-                        getEstimatedPoseFTC().getY(DistanceUnit.METER),
-                        0.0,
-                        0
-                ),
-                new YawPitchRollAngles(
-                        AngleUnit.RADIANS,
-                        getEstimatedPoseFTC().getHeading(AngleUnit.RADIANS),
-                        0,
-                        0,
-                        0
-                )
-        );
-
-        Pose2d wpiLibPose = PoseConverter.ftcToWPILib(estPose).toPose2d();
-
         if (Robot.alliance == Alliance.BLUE) {
-            return wpiLibPose.getTranslation().getDistance(Field.BLUE_GOAL);
+            return getFollowerPoseOrion().getTranslation().getDistance(Field.BLUE_GOAL);
         } else {
-            return wpiLibPose.getTranslation().getDistance(Field.RED_GOAL);
+            return getFollowerPoseOrion().getTranslation().getDistance(Field.RED_GOAL);
         }
     }
 
     public void setTelemetry(TelemetryPacket packet) {
-        packet.put("Drive/Estimated Pose/Pose x", Units.metersToInches(getEstimatedPoseFTC().getX(DistanceUnit.METER)));
-        packet.put("Drive/Estimated Pose/Pose y", Units.metersToInches(getEstimatedPoseFTC().getY(DistanceUnit.METER)));
-        packet.put("Drive/Estimated Pose/Pose heading", getEstimatedPoseFTC().getHeading(AngleUnit.RADIANS));
+        packet.put("Drive/Follower Pose/Pose x", getFollowerPoseFTC().getX(DistanceUnit.INCH));
+        packet.put("Drive/Follower Pose/Pose y", getFollowerPoseFTC().getY(DistanceUnit.INCH));
+        packet.put("Drive/Follower Pose/Pose heading", getFollowerPoseFTC().getHeading(AngleUnit.RADIANS));
 
-        packet.put("Drive/Odometry Pose/Pose x", odometry.getPoseFTCStandard().getX(DistanceUnit.INCH));
-        packet.put("Drive/Odometry Pose/Pose y", odometry.getPoseFTCStandard().getY(DistanceUnit.INCH));
-        packet.put("Drive/Odometry Pose/Pose heading", odometry.getPoseFTCStandard().getHeading(AngleUnit.RADIANS));
+        packet.put("Drive/Pose Orion/X", getFollowerPoseOrion().getX());
+        packet.put("Drive/Pose Orion/Y", getFollowerPoseOrion().getY());
+        packet.put("Drive/Pose Orion/Heading", getFollowerPoseOrion().getRotation().getRadians());
 
-        packet.put("Drive/Absolute Heading (rad)", getAbsoluteHeading());
-        packet.put("Drive/Driver Heading (rad)", getDriverRelativeHeading());
+        packet.put("Drive/Velocity/X", getXVelocity());
+        packet.put("Drive/Velocity/Y", getYVelocity());
+        packet.put("Drive/Velocity/Angular", getAngularVelocity());
+        packet.put("Drive/Velocity/Magnitude", getVelocityMagnitude());
+        packet.put("Drive/Velocity/Moving", isMoving());
+
+
         packet.put("Drive/Distance to Goal", getDistanceToGoal());
-        packet.put("Drive/Heading diff", Math.abs(lastHeading - follower.getHeading()));
     }
 
     public static DriveSubsystem getInstance(HardwareMap hardwareMap, Gamepad gamepad1) {

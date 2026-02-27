@@ -1,8 +1,7 @@
-package org.firstinspires.ftc.teamcode.subsystems.Turret;
+package org.firstinspires.ftc.teamcode.subsystems.shooter.Turret;
 
 import com.bylazar.configurables.annotations.Configurable;
 
-@Configurable
 public class TurretConstants {
     public static double kP = 1.5;
     public static double kI = 0.0;
@@ -13,4 +12,8 @@ public class TurretConstants {
     public static final double GEAR_RATIO = 1.0 / 3.0;
 
     public static double target = 0;
+
+    public static double RED_FAR_SP = Math.toRadians(80);
+
+    public static double OFFSET = 0;
 }

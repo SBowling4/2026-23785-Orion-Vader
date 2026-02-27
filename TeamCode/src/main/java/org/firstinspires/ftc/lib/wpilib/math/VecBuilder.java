@@ -5,7 +5,16 @@ package org.firstinspires.ftc.lib.wpilib.math;
 
 import java.util.Objects;
 import org.ejml.simple.SimpleMatrix;
-import org.firstinspires.ftc.lib.wpilib.math.numbers.*;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N1;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N10;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N2;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N3;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N4;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N5;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N6;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N7;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N8;
+import org.firstinspires.ftc.lib.wpilib.math.numbers.N9;
 
 /** A class for constructing vectors (Nx1 matrices). */
 public final class VecBuilder {

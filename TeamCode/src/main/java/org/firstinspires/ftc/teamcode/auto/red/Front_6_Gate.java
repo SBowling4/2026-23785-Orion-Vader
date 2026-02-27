@@ -1,38 +1,38 @@
-package org.firstinspires.ftc.teamcode.auto.blue;
+package org.firstinspires.ftc.teamcode.auto.red;
 
-import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 import org.firstinspires.ftc.lib.orion.util.Alliance;
 import org.firstinspires.ftc.teamcode.auto.BaseAuto;
-import org.firstinspires.ftc.teamcode.auto.PathBuilder;
 import org.firstinspires.ftc.teamcode.auto.DefinedPose;
+import org.firstinspires.ftc.teamcode.auto.PathBuilder;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.IntakeConstants;
 
-@Autonomous(name = "Back_6_Blue", group = "Blue")
-public class Back_6 extends BaseAuto {
+@Autonomous(name = "Front_6_Gate_Red", group = "Blue")
+public class Front_6_Gate extends BaseAuto {
 
     enum PathState {
         DRIVE_START_TO_SHOOT,
         SHOOT_PRELOAD,
         DRIVE_PICKUP,
-        DRIVE_PICKUP_TO_SHOOT,
+        GATE,
+        DRIVE_GATE_TO_SHOOT,
         SHOOT_PICKUP,
         DRIVE_OFFLINE,
         END
     }
 
     private PathState pathState;
-    private PathChain driveToShootPreload, drivePickup, drivePickupToShoot, driveOffline;
+    private PathChain driveToShootPreload, drivePickup, driveGateToShoot, driveOffline, driveGate;
 
     // Flags to ensure we only call followPath once per state
     private boolean hasStartedDriveToShoot = false;
 
     @Override
     protected Alliance getAlliance() {
-        return Alliance.BLUE;
+        return Alliance.RED;
     }
 
     @Override
@@ -40,38 +40,44 @@ public class Back_6 extends BaseAuto {
         driveToShootPreload = PathBuilder.buildPath(
                 follower,
                 PathBuilder.Heading.LINEAR,
-                DefinedPose.BACK_START,
-                DefinedPose.BACK_SHOOT,
+                DefinedPose.FRONT_START,
+                DefinedPose.FRONT_SHOOT,
                 getAlliance()
         );
         drivePickup = PathBuilder.buildPath(
                 follower,
-                .4,
-                DefinedPose.BACK_SHOOT,
-                DefinedPose.THIRD_PICKUP_BACK_CONTROL,
-                DefinedPose.THIRD_PICKUP,
+                .2,
+                DefinedPose.FRONT_SHOOT,
+                DefinedPose.FIRST_PICKUP,
                 getAlliance()
         );
-
-        drivePickupToShoot = PathBuilder.buildPath(
+        driveGate = PathBuilder.buildPath(
+                follower,
+                PathBuilder.Heading.CONSTANT,
+                DefinedPose.FIRST_PICKUP,
+                DefinedPose.FIRST_PICKUP_GATE_CONTROL,
+                DefinedPose.FIRST_GATE,
+                getAlliance()
+        );
+        driveGateToShoot = PathBuilder.buildPath(
                 follower,
                 PathBuilder.Heading.LINEAR,
-                DefinedPose.THIRD_PICKUP,
-                DefinedPose.BACK_SHOOT,
+                DefinedPose.FIRST_GATE,
+                DefinedPose.FRONT_SHOOT,
                 getAlliance()
         );
         driveOffline = PathBuilder.buildPath(
                 follower,
                 PathBuilder.Heading.LINEAR,
-                DefinedPose.BACK_SHOOT,
-                DefinedPose.BACK_OFFLINE,
+                DefinedPose.FRONT_SHOOT,
+                DefinedPose.GATE_OFFLINE,
                 getAlliance()
         );
     }
 
     @Override
     protected void setStartingPose() {
-        follower.setStartingPose(DefinedPose.FRONT_START.pose);
+        follower.setStartingPose(DefinedPose.FRONT_START.pose.mirror());
     }
 
     @Override
@@ -104,27 +110,33 @@ public class Back_6 extends BaseAuto {
                 if (shootSequence()) {
                     pathState = PathState.DRIVE_PICKUP;
                     resetPathTimer();
-                    follower.followPath(drivePickup);
+                    follower.followPath(drivePickup, .8, false);
                 }
                 break;
             case DRIVE_PICKUP:
                 setFeederAndIntakeState(IntakeConstants.intakeState.INTAKE, FeederConstants.feederState.IN);
 
                 if (!follower.isBusy()) {
-                    pathState = PathState.DRIVE_PICKUP_TO_SHOOT;
+                    setFeederAndIntakeState(IntakeConstants.intakeState.STOP, FeederConstants.feederState.IN);
+                    pathState = PathState.GATE;
                     resetPathTimer();
-                    follower.followPath(drivePickupToShoot);
+                    follower.followPath(driveGate);
                 }
 
                 break;
+            case GATE:
+                if (!follower.isBusy()) {
+                    pathState = PathState.DRIVE_GATE_TO_SHOOT;
+                    resetPathTimer();
+                    follower.followPath(driveGateToShoot);
+                }
 
-            case DRIVE_PICKUP_TO_SHOOT:
+            case DRIVE_GATE_TO_SHOOT:
                 revFlywheel();
 
                 if (!follower.isBusy()){
                     pathState = PathState.SHOOT_PICKUP;
                     resetPathTimer();
-                    stopIntake();
                 }
 
                 break;
@@ -148,5 +160,4 @@ public class Back_6 extends BaseAuto {
                 break;
         }
     }
-
 }

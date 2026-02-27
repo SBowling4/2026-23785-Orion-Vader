@@ -1,12 +1,12 @@
 package org.firstinspires.ftc.lib.orion.odometry;
 
-import com.pedropathing.ftc.FTCCoordinates;
-import com.pedropathing.ftc.PoseConverter;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 
-import org.firstinspires.ftc.lib.trobotix.CoordinateSystems;
+import org.firstinspires.ftc.lib.orion.util.converters.CoordinateSystemConverter;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Pose2d;
 import org.firstinspires.ftc.lib.wpilib.math.geometry.Translation3d;
+import org.firstinspires.ftc.lib.wpilib.math.util.Units;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
@@ -16,19 +16,20 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class Odometry {
     private Pose pose;
+    private Vector velocity;
 
-    public Odometry() {}
+
+    public Odometry() {
+        pose = new Pose();
+        velocity = new Vector();
+    }
+
+    public Pose2d getPoseOrion() {
+        return CoordinateSystemConverter.pedroToOrion(pose);
+    }
 
     public Pose2D getPoseFTCStandard() {
-        double pedroX = pose.getX();
-        double pedroY = pose.getY();
-
-        double ftcY = pedroY - 72;
-        double ftcX = pedroX - 72;
-
-        return new Pose2D(DistanceUnit.INCH, ftcX, ftcY, AngleUnit.RADIANS, pose.getHeading());
-
-//        return PoseConverter.poseToPose2D(pose, FTCCoordinates.INSTANCE);
+        return CoordinateSystemConverter.pedroToFTC(pose);
     }
 
     public Pose2d getPoseWPILib() {
@@ -37,7 +38,7 @@ public class Odometry {
         Position pos = new Position(DistanceUnit.METER, ftcStandard.getX(DistanceUnit.METER), ftcStandard.getY(DistanceUnit.METER), 0.0, System.nanoTime());
         YawPitchRollAngles ang = new YawPitchRollAngles(AngleUnit.RADIANS, ftcStandard.getHeading(AngleUnit.RADIANS), 0, 0, System.nanoTime());
 
-        return CoordinateSystems.fieldPoseToWPILib(new Pose3D(pos, ang)).toPose2d();
+        return CoordinateSystemConverter.fieldPoseToWPILib(new Pose3D(pos, ang)).toPose2d();
     }
 
     public void resetPose() {
@@ -50,7 +51,7 @@ public class Odometry {
 
     public void resetPose(Pose2d pose2d) {
         Translation3d translation = new Translation3d(pose2d.getTranslation());
-        Position pos = CoordinateSystems.WPILibToFieldCoordinates(translation);
+        Position pos = CoordinateSystemConverter.WPILibToFTCFieldCoordinates(translation);
         pose = new Pose(pos.x, pos.y, pose2d.getRotation().getRadians());
     }
 
@@ -58,13 +59,42 @@ public class Odometry {
         pose = new Pose(pose2D.getX(DistanceUnit.METER), pose2D.getY(DistanceUnit.METER), pose2D.getHeading(AngleUnit.RADIANS));
     }
 
+    /**
+     * Gets the x velocity of the Robot
+     * @return the x velocity of the robot (m/s)
+     */
+    public double getXVelocity() {
+        return Units.inchesToMeters(velocity.getXComponent());
+    }
+
+    /**
+     * Gets the y velocity of the Robot
+     * @return the y velocity of the robot (m/s)
+     */
+    public double getYVelocity() {
+        return Units.inchesToMeters(velocity.getYComponent());
+    }
+
+    /**
+     * Gets the rotational velocity of the robot
+     * @return the rotation velocity of the robot in rad/s
+     */
+    public double getRotationalVelocity() {
+        return velocity.getTheta();
+    }
+
+    public double getVelocityMagnitude() {
+        return Units.inchesToMeters(velocity.getMagnitude());
+    }
 
     /**
      * Updates the odometry with the latest pose from the Follower.
      * Should be called every loop after Follower.update
      * @param pose the latest pose from the Follower
      */
-    public void update(Pose pose) {
+    public void update(Pose pose, Vector velocity) {
         this.pose = pose;
+        this.velocity = velocity;
     }
+
 }

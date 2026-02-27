@@ -1,32 +1,28 @@
-package org.firstinspires.ftc.teamcode.subsystems.Flywheel;
+package org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel;
 
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.arcrobotics.ftclib.hardware.motors.MotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
+import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
-import org.firstinspires.ftc.lib.orion.hardware.Motor;
+import org.firstinspires.ftc.lib.orion.feedforward.FeedForward;
+import org.firstinspires.ftc.lib.orion.hardware.OrionMotor;
+import org.firstinspires.ftc.lib.orion.util.units.AngularVelocityUnit;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.Feeder.FeederConstants;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.ShotCalculator;
 
 
 public class FlywheelSubsystem {
-    public Motor leftMotor;
-    public Motor rightMotor;
+    public OrionMotor leftMotor;
+    public OrionMotor rightMotor;
 
     public double lastTargetRPM = 0.0;
 
-    public double lastTargetVolts = 0.0;
-
     private final Gamepad gamepad1;
     private final HardwareMap hardwareMap;
-    private DriveSubsystem driveSubsystem;
-
-    public double tuningVelocity = 0.0;
-
     private static FlywheelSubsystem instance;
 
     /**
@@ -41,8 +37,8 @@ public class FlywheelSubsystem {
      * Initializes the Flywheel Subsystem
      */
     public void init() {
-        leftMotor = new Motor(hardwareMap, FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME);
-        rightMotor = new Motor(hardwareMap, FlywheelConstants.RIGHT_FLYWHEEL_MOTOR_NAME);
+        leftMotor = new OrionMotor(hardwareMap, FlywheelConstants.LEFT_FLYWHEEL_MOTOR_NAME);
+        rightMotor = new OrionMotor(hardwareMap, FlywheelConstants.RIGHT_FLYWHEEL_MOTOR_NAME);
 
         leftMotor.resetEncoder();
         rightMotor.resetEncoder();
@@ -54,25 +50,30 @@ public class FlywheelSubsystem {
         rightMotor.setInverted(false);
 
         leftMotor.setCoefficients(
-                new PIDFCoefficients(
+                new PIDCoefficients(
                         FlywheelConstants.kP,
                         FlywheelConstants.kI,
-                        FlywheelConstants.kD,
-                        FlywheelConstants.kF
+                        FlywheelConstants.kD
+                ),
+                new FeedForward.FeedForwardCoefficients(
+                        FlywheelConstants.kS,
+                        FlywheelConstants.kV,
+                        FlywheelConstants.kA
                 )
         );
 
         rightMotor.setCoefficients(
-                new PIDFCoefficients(
+                new PIDCoefficients(
                         FlywheelConstants.kP,
                         FlywheelConstants.kI,
-                        FlywheelConstants.kD,
-                        FlywheelConstants.kF
+                        FlywheelConstants.kD
+                ),
+                new FeedForward.FeedForwardCoefficients(
+                        FlywheelConstants.kS,
+                        FlywheelConstants.kV,
+                        FlywheelConstants.kA
                 )
         );
-
-
-        driveSubsystem = DriveSubsystem.getInstance();
     }
 
     /**
@@ -83,12 +84,12 @@ public class FlywheelSubsystem {
             setVelocity(FlywheelConstants.target);
         } else {
             if (gamepad1.right_bumper) {
-                setVelocity(findVelocity(driveSubsystem.getDistanceToGoal()));
+                setVelocityFromDistance();
             } else {
-                setPower(.35);
+                lastTargetRPM = 0;
+                setPower(.2);
             }
         }
-
     }
 
     /**
@@ -105,7 +106,7 @@ public class FlywheelSubsystem {
      * @return Current velocity (RPM)
      */
     public double getVelocity() {
-        return (new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME).getVelocity() / Motor.TICKS_PER_REVOLUTION) * 60;
+        return leftMotor.getVelocity(AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
     }
 
     /**
@@ -116,13 +117,23 @@ public class FlywheelSubsystem {
     public void setVelocity(double targetRPM) {
         lastTargetRPM = targetRPM;
 
-        leftMotor.setVelocity(targetRPM, getVelocity());
-        rightMotor.setVelocity(targetRPM, getVelocity());
+        leftMotor.setVelocity(targetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
+        rightMotor.setVelocity(targetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
+    }
+
+    public void setVelocityFromDistance() {
+        lastTargetRPM = ShotCalculator.getInstance().getShootingParameters().flywheelRPM();
+
+        // If not within 90% of setpoint, just apply 100% power
+        if (getVelocity() / lastTargetRPM < 0.9) {
+            setPower(1);
+        } else {
+            leftMotor.setVelocity(lastTargetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
+            rightMotor.setVelocity(lastTargetRPM, AngularVelocityUnit.RPM, new MotorEx(hardwareMap, FeederConstants.FEEDER_MOTOR_NAME));
+        }
     }
 
     public void setVoltage(double volts) {
-        lastTargetVolts = volts;
-
         leftMotor.setVoltage(volts);
         rightMotor.setVoltage(volts);
     }
@@ -137,18 +148,17 @@ public class FlywheelSubsystem {
             return true;
         }
 
-        return Math.abs(lastTargetRPM - getVelocity()) < 150;
+        return Math.abs(getDelta()) < 50;
+    }
+
+    public double getDelta() {
+        return lastTargetRPM - getVelocity();
     }
 
 
-    /**
-     * Equation obtained from here: <a href="https://docs.google.com/spreadsheets/d/1m6Tb_BewsEm0vuEWVIr-rKV5Jfy468Ui95xVuQbh-_I/edit?usp=sharing">Spreadsheet</a>
-     *
-     * @param distance distance (m) from target (Center of robot to back corner of goal)
-     * @return Desired velocity for flywheel (rad/s)
-     */
-    public double findVelocity(double distance) {
-        return 1474 + 1106 * distance + -451 * Math.pow(distance, 2) + 70.6 * Math.pow(distance, 3);
+
+    public double findVelocity() {
+        return ShotCalculator.getInstance().getShootingParameters().flywheelRPM();
     }
 
     /**
@@ -165,6 +175,8 @@ public class FlywheelSubsystem {
         packet.put("Flywheel/Velocity", getVelocity());
         packet.put("Flywheel/Target", lastTargetRPM);
         packet.put("Flywheel/Volts", leftMotor.lastAppliedVoltage);
+        packet.put("Flywheel/Delta", getDelta());
+        packet.put("Flywheel/Velocity from Distance", ShotCalculator.getInstance().getShootingParameters().flywheelRPM());
     }
 
     /**

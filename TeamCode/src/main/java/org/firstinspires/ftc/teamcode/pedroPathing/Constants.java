@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.lib.pedroPathing;
+package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
@@ -15,23 +15,27 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.subsystems.Drive.DriveConstants;
-import org.firstinspires.ftc.teamcode.subsystems.Flywheel.FlywheelConstants;
+import org.firstinspires.ftc.teamcode.subsystems.shooter.Flywheel.FlywheelConstants;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(30)
-            .forwardZeroPowerAcceleration(-72.78069448430112)
-            .lateralZeroPowerAcceleration(-64.8184983519383)
-            .translationalPIDFCoefficients(new PIDFCoefficients(.15, 0, .007, .03))
-            .headingPIDFCoefficients(new PIDFCoefficients(1,0,.03,.02))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.3,0,0.00001,.6,0.01))
-            .centripetalScaling(0.00018);
+            .mass(38.3)
+            .forwardZeroPowerAcceleration(-50.51033318645804)
+            .lateralZeroPowerAcceleration(-71.35929610657753)
+            .translationalPIDFCoefficients(new PIDFCoefficients(.1, 0, .005, .04))
+            .headingPIDFCoefficients(new PIDFCoefficients(1,0,.003,.04))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.05,0,0.0023,.6,0.04))
+            .centripetalScaling(0.00019);
 
     public static PathConstraints pathConstraints = new PathConstraints(
             .99,
+            2,
+            1,
+            .1,
             100,
-            .8,
-            1
+            1,
+            100,
+            1.0
     );
 
     public static MecanumConstants mecanumConstants = new MecanumConstants()
@@ -41,18 +45,18 @@ public class Constants {
             .leftFrontMotorName(DriveConstants.LEFT_FRONT_MOTOR_NAME)
             .leftRearMotorName(DriveConstants.LEFT_BACK_MOTOR_NAME)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(68.98701234066769)
-            .yVelocity(43.998690576845966);
+            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .xVelocity(58.118757663758814)
+            .yVelocity(43.226006885091984);
 
 
 
     public static ThreeWheelIMUConstants localizerConstants = new ThreeWheelIMUConstants() //TODO: Something is wrong here and I will find it
-            .forwardTicksToInches(5.431931944E-4)
-            .strafeTicksToInches(5.56156434E-4)
-            .turnTicksToInches(5.446537043E-4)
+            .forwardTicksToInches(5.405625457e-4)
+            .strafeTicksToInches(5.5530193e-4)
+            .turnTicksToInches(5.438790633e-4)
             .leftPodY(6.140628)
             .rightPodY(-6.140628)
             .strafePodX(-4.305)
